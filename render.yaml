@@ -1,0 +1,44 @@
+# Render Blueprint — provisions the Kinetic backend in one click.
+#
+# Usage:
+#   1. Sign in at https://render.com (free tier is enough).
+#   2. New + → Blueprint → connect this repo → Render reads this file.
+#   3. After the service is created, in the dashboard:
+#        a. Settings → Secret Files → add `firebase-admin.json`
+#           with your service-account JSON, mounted at
+#           `/etc/secrets/firebase-admin.json` (default Render path).
+#        b. Settings → Environment → set `KINETIC_CORS_ORIGINS` to the
+#           Vercel URL of the frontend (e.g. https://kinetic.vercel.app).
+#   4. Deploy. The backend will be reachable at
+#      https://kinetic-backend.onrender.com.
+#
+# Notes:
+#   * Free tier sleeps after ~15 min idle; the first request after
+#     idling takes ~30s to wake the dyno. That's fine for a personal
+#     "try it" demo and matches what users will see on Render's free
+#     plan generally.
+#   * The Dockerfile honours $PORT, which Render injects.
+
+services:
+  - type: web
+    name: kinetic-backend
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      # Strict auth in production: every /decision call must carry a
+      # valid Firebase ID token. The frontend already attaches one.
+      - key: KINETIC_AUTH_REQUIRED
+        value: "true"
+      # Where firebase_admin.initialize_app() picks up the service
+      # account. Render mounts secret files under /etc/secrets/<name>.
+      - key: FIREBASE_CREDENTIALS
+        value: /etc/secrets/firebase-admin.json
+      # Set in the Render dashboard once the Vercel URL is known.
+      # Leaving sync:false keeps the secret out of version control.
+      - key: KINETIC_CORS_ORIGINS
+        sync: false

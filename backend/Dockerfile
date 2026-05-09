@@ -32,4 +32,6 @@ USER kinetic
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.api:app", "--host", "0.0.0.0", "--port", "8000"]
+# Listen on $PORT when set (Render and most managed Docker hosts inject it),
+# otherwise fall back to 8000 so local docker-compose works unchanged.
+CMD ["sh", "-c", "uvicorn app.api:app --host 0.0.0.0 --port ${PORT:-8000}"]
