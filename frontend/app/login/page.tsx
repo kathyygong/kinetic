@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FirebaseError } from "firebase/app";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,7 +20,19 @@ import StrideWave from "@/components/StrideWave";
 
 type Mode = "signin" | "signup";
 
+// `useSearchParams()` opts the page out of static prerender unless it's
+// inside a Suspense boundary — Next.js 16 enforces this at build time.
+// Keep all hook usage inside `LoginInner` so the wrapper below can
+// remain a tiny shell that just provides the boundary.
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginInner />
+    </Suspense>
+  );
+}
+
+function LoginInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialMode: Mode = searchParams?.get("mode") === "signup" ? "signup" : "signin";

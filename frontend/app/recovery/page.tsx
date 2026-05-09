@@ -233,9 +233,13 @@ export default function RecoveryPage() {
       return null;
     }
     // Synthesise a ManualReadiness from the chart values. We don't
-    // have self-reports for past days here — just the metrics.
+    // have self-reports for past days here — just the metrics. The
+    // synthetic timestamp anchors the entry to the latest point's
+    // calendar date so downstream staleness checks stay sensible.
+    const latestDate = hrv.points.at(-1)?.date ?? isoDateKey(new Date());
     return {
-      date: hrv.points.at(-1)?.date ?? isoDateKey(new Date()),
+      date: latestDate,
+      updated_at: new Date(`${latestDate}T00:00:00`).toISOString(),
       ...(latestHrv !== undefined ? { hrv: latestHrv } : {}),
       ...(latestSleep !== undefined ? { sleep_hours: latestSleep } : {}),
       ...(latestRhr !== undefined ? { resting_hr: latestRhr } : {}),
@@ -1014,7 +1018,7 @@ function LevelSliderField<T extends number>({
  */
 type SparseSeries = {
   totalDays: number;
-  points: Array<{ x: number; value: number }>;
+  points: Array<{ x: number; value: number; date: string }>;
 };
 
 type MetricKey = "hrv" | "sleep_hours" | "resting_hr";
@@ -1030,16 +1034,17 @@ function buildSparseSeries(
   days: number,
 ): SparseSeries {
   const today = new Date();
-  const points: Array<{ x: number; value: number }> = [];
+  const points: Array<{ x: number; value: number; date: string }> = [];
   for (let i = 0; i < days; i++) {
     const d = new Date(today);
     // i runs 0..days-1; we want the oldest day first so subtract
     // (days - 1 - i) days from today.
     d.setDate(d.getDate() - (days - 1 - i));
-    const entry = log.entries[isoDateKey(d)];
+    const dateKey = isoDateKey(d);
+    const entry = log.entries[dateKey];
     const v = entry?.[metric];
     if (typeof v === "number" && Number.isFinite(v)) {
-      points.push({ x: i, value: v });
+      points.push({ x: i, value: v, date: dateKey });
     }
   }
   return { totalDays: days, points };

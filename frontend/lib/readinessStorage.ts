@@ -159,9 +159,12 @@ export function saveReadinessForDate(
   const log = getReadinessLog();
   const existing = log.entries[date];
   const merged: ManualReadiness = {
-    date,
     ...existing,
     ...patch,
+    // `date` and `updated_at` are placed AFTER the spreads so they
+    // override any pre-existing values. Without that, `...existing`
+    // could re-introduce a stale date (TS flags it as a duplicate key).
+    date,
     updated_at: new Date().toISOString(),
   };
   log.entries[date] = merged;

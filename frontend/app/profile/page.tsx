@@ -131,7 +131,11 @@ export default function ProfilePage() {
   }>({ weekly_mileage: undefined, preferred_training_days: [] });
 
   const [editingPRs, setEditingPRs] = useState(false);
-  const [prsDraft, setPrsDraft] = useState<CurrentPRs>({});
+  // PR drafts are intentionally Partial — new users haven't logged
+  // every distance yet, and the per-row clear button uses
+  // `delete next[key]` to drop a value back to "unset". Mirrors the
+  // `Partial<CurrentPRs>` shape on `profile.personal_bests`.
+  const [prsDraft, setPrsDraft] = useState<Partial<CurrentPRs>>({});
 
   // Connected-services state lives outside `profile` so we can show
   // per-row connecting / error states without round-tripping through
