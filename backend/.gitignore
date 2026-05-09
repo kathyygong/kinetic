@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Google Calendar OAuth secrets — never commit these
+credentials.json
+token.json
+
+# Local environment files — never commit these
+.env
+.env.local
+.env.*.local

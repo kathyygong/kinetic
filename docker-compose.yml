@@ -1,0 +1,45 @@
+# Local-dev parity for the Kinetic backend.
+#
+# Quick start:
+#   1. (Optional) Drop your Firebase service-account JSON at
+#      ./secrets/firebase-admin.json — see secrets/README.md.
+#   2. Edit backend/.env if you want auth strict (KINETIC_AUTH_REQUIRED=true)
+#      or want to set production CORS origins.
+#   3. `docker compose up --build`.
+#
+# The frontend is intentionally NOT included; run it the usual way:
+#   cd frontend && npm run dev
+# That keeps hot-reload fast and lets the dashboard hit the containerized
+# backend at http://127.0.0.1:8000.
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: kinetic-backend:local
+    container_name: kinetic-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      # Loaded by Docker Compose itself, separate from the dotenv loader
+      # in app/api.py. Both end up in os.environ; either works.
+      - backend/.env
+    environment:
+      # Belt-and-suspenders defaults if backend/.env is missing or empty.
+      KINETIC_CORS_ORIGINS: "${KINETIC_CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}"
+      FIREBASE_CREDENTIALS: "/run/secrets/firebase-admin.json"
+    volumes:
+      # Mount the SA file read-only at the path FIREBASE_CREDENTIALS points
+      # at. Docker's host bind tolerates the file being absent — the auth
+      # module falls back to permissive mode in that case (assuming
+      # KINETIC_AUTH_REQUIRED is unset/false). When you're ready to enforce,
+      # drop the file and flip the env var.
+      - ./secrets/firebase-admin.json:/run/secrets/firebase-admin.json:ro
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health',timeout=2).status==200 else 1)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s

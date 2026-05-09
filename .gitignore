@@ -1,0 +1,18 @@
+# Local secrets — files that get mounted into containers at runtime.
+# Drop your Firebase service-account JSON into ./secrets/firebase-admin.json.
+secrets/*
+!secrets/.gitkeep
+!secrets/README.md
+
+# Stray top-level env files (each subproject keeps its own as well).
+.env
+.env.local
+.env.*.local
+
+# IDE / tooling
+.vscode/
+.idea/
+
+# OS noise
+Thumbs.db
+.DS_Store

@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+pydantic
+
+# Loads `.env` at import time so backend/.env Just Works.
+python-dotenv
+
+# Google Calendar (read-only)
+google-api-python-client
+google-auth
+google-auth-oauthlib
+
+# Firebase ID-token verification on protected endpoints
+firebase-admin

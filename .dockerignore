@@ -1,0 +1,24 @@
+# Build-context filter for the backend image.
+# Path: repo root, applied because docker-compose uses `context: .`.
+
+# Default-deny everything…
+*
+
+# …then re-include just the backend tree we need to build.
+!backend/
+
+# Inside backend/, exclude noise that should never be baked into the image.
+backend/.venv/
+backend/venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/.env
+backend/.env.local
+backend/.env.*.local
+backend/credentials.json
+backend/token.json
+
+# Belt-and-suspenders: never accidentally bundle a service-account JSON.
+secrets/
+**/firebase-admin.json
