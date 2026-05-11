@@ -70,6 +70,11 @@ import {
   getWorkoutLog,
   logTodayFromPlan,
 } from "@/lib/workoutLog";
+import {
+  clearTodayCompletion,
+  getTodayCompletion,
+  setTodayCompletion,
+} from "@/lib/todayCompletion";
 import type { Goal, RaceDistance, UserProfile } from "@/lib/types";
 import AnimatedNumber from "@/components/AnimatedNumber";
 import ProgressRing from "@/components/ProgressRing";
@@ -239,10 +244,20 @@ export default function DashboardPage() {
     // Note which scheduled checks are due so we can surface them.
     setScheduleChecks(dueChecks());
 
-    // Hydrate today's response + completion state from the persisted
-    // workout log so a reload doesn't re-prompt for choices the runner
-    // has already made.
-    if (g && p) {
+    // Hydrate today's response + completion state. We persist this in
+    // two places so each can cover the other's blind spot:
+    //   1. `getTodayCompletion()` — date-keyed, survives plan changes
+    //      and works even on rest days when no plan slot exists.
+    //   2. `findTodayLogEntry()` — plan-slot keyed, covers the case
+    //      where the runner logged a workout under an older deploy
+    //      that only wrote to the workout log.
+    // The date-keyed store wins when both exist because it's the source
+    // of truth for "what did you click on the dashboard today".
+    const todayState = getTodayCompletion();
+    if (todayState) {
+      setCompletionStatus(todayState.completionStatus);
+      setResponseStatus(todayState.responseStatus);
+    } else if (g && p) {
       const existing = findTodayLogEntry(goalSignature(g), p);
       if (existing) {
         setCompletionStatus(existing.status);
@@ -594,10 +609,20 @@ export default function DashboardPage() {
                 planStart={savedPlan?.planStart ?? null}
                 responseStatus={responseStatus}
                 completionStatus={completionStatus}
-                onAccept={() => setResponseStatus("accepted")}
-                onReject={() => setResponseStatus("rejected")}
+                onAccept={() => {
+                  setResponseStatus("accepted");
+                  setTodayCompletion({ responseStatus: "accepted" });
+                }}
+                onReject={() => {
+                  setResponseStatus("rejected");
+                  setTodayCompletion({ responseStatus: "rejected" });
+                }}
                 onMarkCompleted={() => {
                   setCompletionStatus("completed");
+                  setTodayCompletion({
+                    completionStatus: "completed",
+                    responseStatus,
+                  });
                   if (goal && savedPlan) {
                     // Only attach the acceptedAdjustment flag when the engine
                     // actually offered an adjustment to consider. Otherwise
@@ -618,6 +643,10 @@ export default function DashboardPage() {
                 }}
                 onMarkSkipped={() => {
                   setCompletionStatus("skipped");
+                  setTodayCompletion({
+                    completionStatus: "skipped",
+                    responseStatus,
+                  });
                   if (goal && savedPlan) {
                     const offeredAdjustment =
                       decision.selected_action.name !== "proceed";
@@ -635,6 +664,7 @@ export default function DashboardPage() {
                 onReset={() => {
                   setResponseStatus("pending");
                   setCompletionStatus("pending");
+                  clearTodayCompletion();
                 }}
               />
             </motion.div>
