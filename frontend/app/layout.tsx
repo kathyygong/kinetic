@@ -1,27 +1,7 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import TopNav from "@/components/top-nav";
 import MotionBackground from "@/components/MotionBackground";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-// Space Grotesk — the brand wordmark face. Geometric grotesque with
-// just enough personality (slightly humanist `e`/`a`, taut counters)
-// to carry the "Kinetic" name without competing with the body type.
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-});
 
 export const metadata: Metadata = {
   title: "Kinetic — Adaptive training",
@@ -36,7 +16,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} h-full antialiased`}
+      className="h-full antialiased"
     >
       {/*
         Premium-minimal shell, inspired by apple.com / linear.app:

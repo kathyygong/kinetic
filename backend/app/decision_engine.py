@@ -2,7 +2,7 @@
 
 import logging
 from dataclasses import replace
-from typing import Optional
+from typing import List, Optional
 
 from .types import (
     Biometrics,
@@ -14,7 +14,7 @@ from .types import (
 from .calendar import get_available_minutes
 from .state_estimator import estimate_state
 from .candidate_generator import generate_candidates
-from .scoring import score_candidate
+from .scoring import apply_learned_preferences, score_candidate
 from .constraint_engine import apply_constraints
 
 _log = logging.getLogger(__name__)
@@ -187,6 +187,7 @@ def make_decision(
     constraints: Constraints,
     freshness: Optional[DataFreshness] = None,
     bias_toward_original: float = 0.0,
+    learned_preferences: Optional[List[dict]] = None,
 ) -> DecisionOutput:
     """Run the full pipeline and return a DecisionOutput.
 
@@ -276,6 +277,21 @@ def make_decision(
             f"Personalization: bias_toward_original={bias:.2f} → "
             f"proceed candidate score +{proceed_bonus:.3f}."
         )
+
+    # 3c) Apply learned-preference adjustments (small, bounded nudges from
+    #     user-confirmed behavior patterns). This runs AFTER scoring and
+    #     the bias bonus so the base scoring stays a clean state-vs-fit
+    #     calculation, and personalization layers are visible and
+    #     auditable in the trace. The scoring helper enforces its own
+    #     safety contract — per-rule caps, per-candidate net cap, and
+    #     skipping safety-touching rules under state=at_risk.
+    scored, preference_trace = apply_learned_preferences(
+        scored, state, constraints, learned_preferences or []
+    )
+    trace.extend(preference_trace)
+    # Refresh scores_by_name so the engine and clients see the final
+    # post-personalization values rather than the pre-adjustment ones.
+    scores_by_name = {c.name: s for c, s, _ in scored}
 
     # 4) Select best
     scored.sort(key=lambda t: t[1], reverse=True)

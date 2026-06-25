@@ -54,7 +54,19 @@ class Event(TypedDict):
     end: datetime
 
 
-def get_mock_events_for_day() -> List[Event]:
+def _creds_from_access_token(access_token: str) -> Credentials:
+    """Build google-auth Credentials from a raw OAuth access token.
+
+    Used when the frontend has already done the OAuth dance (via Firebase
+    `GoogleAuthProvider` with the calendar.readonly scope) and is passing
+    its token through on a per-request basis. We don't need the client
+    id/secret because we're not going to refresh — the token's good for
+    about an hour and the frontend will obtain a fresh one when needed.
+    """
+    return Credentials(token=access_token, scopes=SCOPES)
+
+
+def get_mock_events_for_day(access_token: str | None = None) -> List[Event]:
     """Return today's events from the user's primary Google Calendar.
 
     The legacy ``get_mock_events_for_day`` name is retained so existing callers
@@ -62,8 +74,16 @@ def get_mock_events_for_day() -> List[Event]:
 
     All-day events are skipped (they have no time window to plan around).
     Returned datetimes are naive local time, matching the rest of the engine.
+
+    ``access_token`` is the user's Google OAuth access token (calendar.readonly
+    scope). When supplied, it's used directly to talk to Google; when omitted,
+    we fall back to the server's cached ``token.json``.
     """
-    creds = _get_credentials()
+    creds = (
+        _creds_from_access_token(access_token)
+        if access_token
+        else _get_credentials()
+    )
     service = build("calendar", "v3", credentials=creds, cache_discovery=False)
 
     today = date.today()
@@ -154,9 +174,11 @@ def calculate_available_minutes(events: List[Event]) -> int:
     return max(0, largest)
 
 
-def get_available_minutes() -> int:
+def get_available_minutes(access_token: str | None = None) -> int:
     """Compose the two helpers above and return today's free minutes."""
-    return calculate_available_minutes(get_mock_events_for_day())
+    return calculate_available_minutes(
+        get_mock_events_for_day(access_token=access_token)
+    )
 
 
 # --- Multi-day availability + travel detection ------------------------------
@@ -187,15 +209,23 @@ _TRAVEL_KEYWORDS = (
 def get_week_availability(
     start: date | None = None,
     days: int = 7,
+    access_token: str | None = None,
 ) -> List[dict]:
     """Return per-day available minutes for the next `days` days.
 
     Each entry is ``{"date": "YYYY-MM-DD", "day": "Mon", "minutes": int}``.
     Day labels are stable across timezones; minutes is the longest free
     block in the 6am-10pm window.
+
+    ``access_token`` is the user's Google OAuth access token. When omitted,
+    we fall back to the server's cached credentials.
     """
     base = start or date.today()
-    creds = _get_credentials()
+    creds = (
+        _creds_from_access_token(access_token)
+        if access_token
+        else _get_credentials()
+    )
     service = build("calendar", "v3", credentials=creds, cache_discovery=False)
 
     # Fetch all events for the window in one call, then bucket by day.
@@ -252,6 +282,7 @@ def get_week_availability(
 def detect_travel_events(
     start: date | None = None,
     days: int = 14,
+    access_token: str | None = None,
 ) -> List[dict]:
     """Scan the user's calendar for travel events.
 
@@ -260,9 +291,16 @@ def detect_travel_events(
     AFTER the last day of the trip (matches Google Calendar's all-day
     convention) so callers can compute "first 48 hours after arrival" by
     treating ``end`` as the arrival-back day.
+
+    ``access_token`` is the user's Google OAuth access token. When omitted,
+    we fall back to the server's cached credentials.
     """
     base = start or date.today()
-    creds = _get_credentials()
+    creds = (
+        _creds_from_access_token(access_token)
+        if access_token
+        else _get_credentials()
+    )
     service = build("calendar", "v3", credentials=creds, cache_discovery=False)
 
     window_start = datetime.combine(base, time.min).astimezone()
@@ -315,6 +353,204 @@ def detect_travel_events(
 
 
 # --- internals --------------------------------------------------------------
+
+
+def calendar_health(access_token: str | None = None) -> dict:
+    """Probe Google Calendar OAuth state without doing a real API call.
+
+    When ``access_token`` is supplied (the user passed their frontend
+    Google token through), we treat that as the authoritative answer:
+    if the token can talk to Google, the calendar is healthy from the
+    runner's perspective regardless of what the server's stored
+    ``token.json`` looks like. We verify the token cheaply by hitting
+    Google's tokeninfo endpoint.
+
+    When ``access_token`` is None we fall back to the original
+    server-side check (credentials.json + cached token.json).
+
+    Returns a dict with:
+
+    * ``status`` — one of ``ok``, ``not_configured``, ``not_authorized``,
+      ``expired``, ``revoked``, ``error``.
+    * ``user_actionable`` — True when the runner clicking "Reconnect" in
+      the UI would plausibly help (i.e. their token is what's wrong).
+      False when the operator needs to fix something on the server.
+    * ``message`` — one short, human-readable sentence safe to show in
+      the UI. No stack traces, no internals.
+    """
+    # 1) Frontend supplied a token — that's the path that actually
+    # matters for the user. Verify it via Google's tokeninfo endpoint
+    # (no scope grant required, just a debug introspection call).
+    if access_token:
+        import urllib.error
+        import urllib.parse
+        import urllib.request
+
+        url = (
+            "https://oauth2.googleapis.com/tokeninfo?"
+            + urllib.parse.urlencode({"access_token": access_token})
+        )
+        try:
+            with urllib.request.urlopen(url, timeout=4) as resp:
+                if resp.status == 200:
+                    return {
+                        "status": "ok",
+                        "user_actionable": False,
+                        "message": "Connected and ready.",
+                    }
+                # urlopen surfaces 2xx only; 4xx/5xx raise HTTPError
+                # below. Anything else here is genuinely unexpected.
+                return {
+                    "status": "error",
+                    "user_actionable": False,
+                    "message": (
+                        "Couldn't verify your Google session "
+                        f"(unexpected status {resp.status})."
+                    ),
+                }
+        except urllib.error.HTTPError as exc:
+            # Google's tokeninfo returns 400 invalid_token for any
+            # expired, revoked, or malformed token. From the runner's
+            # perspective these are all the same actionable case:
+            # reconnect to grant a fresh token. Map every 4xx to
+            # ``expired`` so the UI shows a Reconnect button.
+            if 400 <= exc.code < 500:
+                return {
+                    "status": "expired",
+                    "user_actionable": True,
+                    "message": (
+                        "Your Google session expired. "
+                        "Reconnect to grant access again."
+                    ),
+                }
+            # 5xx from Google → service blip, not the runner's
+            # problem. Keep the row in a non-actionable error state
+            # so we don't nag the user to reconnect.
+            return {
+                "status": "error",
+                "user_actionable": False,
+                "message": (
+                    "Google's auth service is unavailable right now. "
+                    "Try again in a minute."
+                ),
+            }
+        except Exception as exc:  # noqa: BLE001
+            # Network blip talking to Google (DNS, TLS, timeout, etc.).
+            # We don't know whether the token is good or bad — keep the
+            # UI from flashing a misleading Reconnect button.
+            return {
+                "status": "error",
+                "user_actionable": False,
+                "message": (
+                    "Couldn't verify your Google session. "
+                    f"({type(exc).__name__})"
+                ),
+            }
+
+    # No frontend token → fall back to the server-side check below.
+    # 1) No credentials.json at all → server-side ops problem. The
+    # runner can't fix this; surface it as such.
+    if not _CREDENTIALS_PATH.exists():
+        return {
+            "status": "not_configured",
+            "user_actionable": False,
+            "message": (
+                "Calendar integration isn't set up on the server yet. "
+                "Reach out if this keeps showing up."
+            ),
+        }
+
+    # 2) credentials.json present but no token.json → the operator
+    # hasn't completed the initial consent flow on the server. Still
+    # not something the runner can fix from the browser.
+    if not _TOKEN_PATH.exists():
+        return {
+            "status": "not_authorized",
+            "user_actionable": False,
+            "message": (
+                "Calendar isn't connected on the server yet. "
+                "An administrator needs to authorize it."
+            ),
+        }
+
+    # 3) Load the cached token and probe its state. We deliberately
+    # avoid `_get_credentials()` here because that helper escalates to
+    # `run_local_server()` on the operator's machine, which would block
+    # forever if called from an API handler.
+    try:
+        creds = Credentials.from_authorized_user_file(str(_TOKEN_PATH), SCOPES)
+    except Exception as exc:  # noqa: BLE001 — malformed token.json
+        return {
+            "status": "error",
+            "user_actionable": False,
+            "message": (
+                "Couldn't read the server's stored Google credentials. "
+                f"({type(exc).__name__})"
+            ),
+        }
+
+    if creds.valid:
+        return {
+            "status": "ok",
+            "user_actionable": False,
+            "message": "Connected and ready.",
+        }
+
+    # 4) Expired but has a refresh token — try to refresh in-place. If
+    # this works the next /availability/week call will also work, so
+    # we report ok. If it fails with invalid_grant the user revoked
+    # consent on Google's side (Account → Security → Third-party).
+    if creds.expired and creds.refresh_token:
+        try:
+            creds.refresh(Request())
+        except Exception as exc:  # noqa: BLE001 — refresh failures
+            msg = str(exc).lower()
+            if "invalid_grant" in msg or "token has been expired or revoked" in msg:
+                return {
+                    "status": "revoked",
+                    "user_actionable": False,
+                    "message": (
+                        "Google says the server's access was revoked. "
+                        "An administrator needs to re-authorize the server."
+                    ),
+                }
+            return {
+                "status": "error",
+                "user_actionable": False,
+                "message": (
+                    "Couldn't refresh the server's Google token. "
+                    f"({type(exc).__name__})"
+                ),
+            }
+        # Persist the freshly-refreshed token so the next request
+        # doesn't pay this cost again.
+        try:
+            _TOKEN_PATH.write_text(creds.to_json())
+        except Exception as exc:  # noqa: BLE001 — disk failures
+            _log_health_warning("could not persist refreshed token", exc)
+        return {
+            "status": "ok",
+            "user_actionable": False,
+            "message": "Connected and ready.",
+        }
+
+    # 5) Expired with no refresh token → effectively unauthorized.
+    return {
+        "status": "expired",
+        "user_actionable": False,
+        "message": (
+            "The server's Google session expired and can't refresh itself. "
+            "An administrator needs to re-authorize the server."
+        ),
+    }
+
+
+def _log_health_warning(label: str, exc: Exception) -> None:
+    """Local logger so calendar.py stays standalone (no api.py import)."""
+    import logging
+
+    logging.getLogger(__name__).warning("%s: %s", label, exc)
+
 
 def _get_credentials() -> Credentials:
     """Load cached OAuth credentials, refreshing or prompting as needed."""

@@ -353,7 +353,7 @@ export default function ProfileEditPage() {
           </div>
           <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
             Hours : minutes : seconds. Leave blank for any distance you
-            haven't raced.
+            haven&apos;t raced.
           </p>
         </SectionCard>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useId } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 
 type StrideWaveProps = {
   /** Width in pixels. Defaults to 320. */
@@ -56,6 +56,11 @@ export default function StrideWave({
   const reactId = useId();
   const gradId = `stride-grad-${reactId.replace(/:/g, "")}`;
 
+  // Respect the user's reduced-motion preference: draw the wave once and
+  // hold it static instead of pulsing forever.
+  const reduceMotion = useReducedMotion();
+  const shouldLoop = loop && !reduceMotion;
+
   const colors = TONE_COLORS[tone];
 
   // Build a low-amplitude sine path scaled to the supplied box.
@@ -103,12 +108,12 @@ export default function StrideWave({
         strokeLinejoin="round"
         initial={{ opacity: 0 }}
         animate={
-          loop
+          shouldLoop
             ? { opacity: [0.7, 1, 0.7] }
             : { opacity: 0.95 }
         }
         transition={
-          loop
+          shouldLoop
             ? {
                 duration: 3.6,
                 ease: [0.22, 1, 0.36, 1],

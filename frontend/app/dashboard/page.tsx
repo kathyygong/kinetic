@@ -1,12 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { onAuthStateChanged, type User } from "firebase/auth";
 
 import { auth } from "@/lib/firebase";
-import { API_BASE, apiFetch } from "@/lib/api";
+import {
+  API_BASE,
+  apiFetch,
+  fetchDailyReasoning,
+  type DailyReasoning,
+} from "@/lib/api";
 import { formatPace } from "@/lib/paceCalculator";
 import {
   applyPreferredDays,
@@ -49,8 +54,15 @@ import {
 } from "@/lib/recoveryScore";
 import {
   computeDataFreshness,
+  recordCalendarFailure,
   recordCalendarSync,
 } from "@/lib/dataFreshness";
+import {
+  clearDemoLearning,
+  resetDemoData,
+  seedDemoData,
+} from "@/lib/demoData";
+import { trackProductEvent } from "@/lib/instrumentation";
 import {
   getGoal,
   getSavedPlan,
@@ -77,8 +89,47 @@ import {
 } from "@/lib/todayCompletion";
 import type { Goal, RaceDistance, UserProfile } from "@/lib/types";
 import AnimatedNumber from "@/components/AnimatedNumber";
+import AIStatusBadge from "@/components/AIStatusBadge";
+import FloatingMetric from "@/components/FloatingMetric";
+import LiquidSurface from "@/components/LiquidSurface";
 import ProgressRing from "@/components/ProgressRing";
 import StrideWave from "@/components/StrideWave";
+import {
+  buildRecommendationEventId,
+  bucketCalendarLoad,
+  bucketConfidence,
+  bucketRecoveryStatus,
+  bucketSelectedAction,
+  bucketSleepStatus,
+  getRecommendationEvent,
+  listLearnedPreferences,
+  saveRecommendationEvent,
+  updateRecommendationEvent,
+} from "@/lib/behaviorStorage";
+import type {
+  LearnedPreference,
+  RecommendationEvent,
+} from "@/lib/behaviorTypes";
+import { isoDateKey } from "@/lib/readinessStorage";
+
+// Rejection reasons surfaced when a user declines an adjusted
+// recommendation. Slugged values get saved to storage so downstream
+// analysis can group on them; human labels live alongside in the
+// dialog below.
+type RejectReason =
+  | "too_hard"
+  | "too_easy"
+  | "not_enough_time"
+  | "felt_better"
+  | "other";
+
+const REJECT_REASONS: { value: RejectReason; label: string }[] = [
+  { value: "too_hard", label: "Too hard" },
+  { value: "too_easy", label: "Too easy" },
+  { value: "not_enough_time", label: "Not enough time" },
+  { value: "felt_better", label: "Felt better than the data suggested" },
+  { value: "other", label: "Other" },
+];
 
 // --- Motion ----------------------------------------------------------------
 
@@ -105,6 +156,9 @@ const itemVariants: Variants = {
     transition: { duration: 0.5, ease: PREMIUM_EASE },
   },
 };
+
+const WEEKDAY_ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
+type WeekdayLabel = (typeof WEEKDAY_ORDER)[number];
 
 // --- Types matching the backend DecisionOutput ------------------------------
 
@@ -137,10 +191,20 @@ function toRequestBody(
   s: Scenario,
   readiness?: ManualReadiness | null,
   biasTowardOriginal: number = 0,
+  learnedPreferences: LearnedPreference[] = [],
+  plannedWorkoutOverride?: string | null,
 ) {
   return {
     biometrics: applyManualReadiness(s.biometrics, readiness),
-    training_context: s.training_context,
+    // The demo scenario carries a placeholder `planned_workout`. When we
+    // can resolve the runner's real plan slot for today we send that
+    // instead, so the engine reasons about — and the AI explanation
+    // describes — the same session the hero shows (a rest day stays a
+    // rest day). Falls back to the scenario string when no plan/goal is
+    // available yet.
+    training_context: plannedWorkoutOverride
+      ? { ...s.training_context, planned_workout: plannedWorkoutOverride }
+      : s.training_context,
     constraints: s.constraints,
     // Snapshot how recent each input source is so the backend can
     // apply a confidence penalty + emit matching warnings. Computed
@@ -154,6 +218,15 @@ function toRequestBody(
     // sit closer to their original plan. 0 means "no preference signal
     // yet" — the engine then runs unmodified.
     bias_toward_original: biasTowardOriginal,
+    // Personalization: patterns the runner has explicitly confirmed
+    // on the "Kinetic is learning" card. The backend can use these
+    // as soft inputs when scoring candidates (e.g. nudge intensity
+    // down for an "intensity_tolerance" preference). Always an array;
+    // empty when the runner hasn't confirmed anything yet, which is
+    // also the case for older clients that don't send this field at
+    // all. Newer servers should treat the empty list and a missing
+    // field identically.
+    learned_preferences: learnedPreferences,
   };
 }
 
@@ -183,11 +256,42 @@ function applyManualReadiness(
   };
 }
 
+/**
+ * Convert today's plan slot into a `planned_workout` phrase for the
+ * `/decision` request. The engine echoes this string back in
+ * `final_workout` and the daily reasoning, so deriving it from the
+ * runner's real plan (instead of the demo scenario's placeholder)
+ * keeps the AI explanation consistent with the hero headline — e.g.
+ * the reasoning reads "rest day" on a day the hero shows as rest,
+ * rather than referencing an interval session that isn't scheduled.
+ */
+function plannedWorkoutLabel(todays: TodaysWorkout): string {
+  if (todays.type === "rest") return "rest day";
+  const mins = Math.max(1, Math.round(todays.totalDuration));
+  switch (todays.type) {
+    case "easy":
+      return `${mins} min easy run`;
+    case "tempo":
+      return `${mins} min tempo run`;
+    case "intervals":
+      return `${mins} min interval run`;
+    case "long run":
+      return `${mins} min long run`;
+    case "race":
+      return `${mins} min race effort`;
+    default:
+      return `${mins} min run`;
+  }
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [decision, setDecision] = useState<DecisionOutput | null>(null);
+  const [aiReasoning, setAiReasoning] = useState<DailyReasoning | null>(null);
+  const [aiReasoningLoading, setAiReasoningLoading] = useState(false);
+  const [demoNotice, setDemoNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [responseStatus, setResponseStatus] = useState<"pending" | "accepted" | "rejected">("pending");
@@ -210,6 +314,20 @@ export default function DashboardPage() {
   const [suggestionStatus, setSuggestionStatus] =
     useState<"pending" | "accepted" | "rejected">("pending");
   const [scheduleChecks, setScheduleChecks] = useState<ScheduleCheck[]>([]);
+  const trackedStaleWarningRef = useRef<string | null>(null);
+  // Controls the rejection-reason dialog mounted at the bottom of the
+  // page. Opening it defers the actual responseStatus change until the
+  // user picks a reason, so a stray click + escape doesn't permanently
+  // lock the day into "rejected".
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  // Saved post-workout check-in for today's recommendation, if any.
+  // Hydrated from the behavior log on mount so a reload preserves the
+  // user's reflection (effort, note, "did you do it?"). The check-in
+  // card reads this to decide between the editable form and the
+  // collapsed "Logged" chip.
+  const [savedActual, setSavedActual] = useState<
+    RecommendationEvent["actualWorkout"] | null
+  >(null);
   // User profile is loaded from local storage so we can greet by name and
   // show personalized chrome without an extra round-trip.
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -311,6 +429,7 @@ export default function DashboardPage() {
     (async () => {
       setLoading(true);
       setError(null);
+      setAiReasoning(null);
       // Note: we deliberately don't reset `responseStatus` /
       // `completionStatus` here — those are hydrated from the persisted
       // workout log on mount, so re-fetching the decision (e.g. after
@@ -325,16 +444,73 @@ export default function DashboardPage() {
         const biasTowardOriginal = goal
           ? getAdjustmentBiasTowardOriginal(getWorkoutLog(goalSignature(goal)))
           : 0;
+        // Personalization: forward only the preferences the runner has
+        // explicitly confirmed on the "Kinetic is learning" card.
+        // Unconfirmed (i.e. still-tentative) patterns stay local and
+        // never influence the engine — "the user is in control" is the
+        // contract that whole flow is built on, so we re-enforce it
+        // here on the wire too.
+        const confirmedPreferences = listLearnedPreferences().filter(
+          (p) => p.userConfirmed === true,
+        );
+        // Resolve today's real plan slot so the engine decides about the
+        // same workout the hero renders. Without a goal (or on a plan-shape
+        // edge case) we leave it null and the scenario placeholder stands.
+        let plannedWorkoutOverride: string | null = null;
+        if (goal) {
+          try {
+            const todays = getTodaysWorkout(
+              goal,
+              savedPlan?.weeks,
+              undefined,
+              new Date(),
+              savedPlan?.planStart ? { planStart: savedPlan.planStart } : undefined,
+            );
+            plannedWorkoutOverride = plannedWorkoutLabel(todays);
+          } catch {
+            plannedWorkoutOverride = null;
+          }
+        }
         const res = await apiFetch(`/decision`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(
-            toRequestBody(activeScenario, todayReadiness, biasTowardOriginal),
+            toRequestBody(
+              activeScenario,
+              todayReadiness,
+              biasTowardOriginal,
+              confirmedPreferences,
+              plannedWorkoutOverride,
+            ),
           ),
         });
         if (!res.ok) throw new Error(`Server returned ${res.status}`);
-        const data = (await res.json()) as DecisionOutput;
-        if (!cancelled) setDecision(data);
+        // The current backend wraps the engine output as
+        //   { decision, ai_reasoning, reasoning_available }
+        // so it can piggy-back a cached LLM explanation in the same
+        // round trip. Older backends (and the probe scripts) return
+        // the bare `DecisionOutput`. Accept both shapes so the page
+        // never crashes if the contract drifts again.
+        const raw = (await res.json()) as
+          | DecisionOutput
+          | { decision: DecisionOutput; ai_reasoning?: DailyReasoning | null };
+        const data: DecisionOutput =
+          "decision" in raw && raw.decision ? raw.decision : (raw as DecisionOutput);
+        const cachedReasoning =
+          "decision" in raw && raw.decision ? raw.ai_reasoning ?? null : null;
+        // Defensive validation: every downstream renderer assumes
+        // `selected_action` is present (HeroCard reads
+        // `decision.selected_action.name` directly). If the response
+        // doesn't carry it — error envelope, partial payload, future
+        // shape drift — surface a typed error instead of letting the
+        // page crash on the read.
+        if (!data || typeof data !== "object" || !data.selected_action) {
+          throw new Error("Decision response missing selected_action");
+        }
+        if (!cancelled) {
+          setDecision(data);
+          setAiReasoning(cachedReasoning);
+        }
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load decision");
       } finally {
@@ -344,7 +520,195 @@ export default function DashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [user, activeScenario, todayReadiness, goal]);
+  }, [user, activeScenario, todayReadiness, goal, savedPlan]);
+
+  // Hydrate the explanation asynchronously. The local ReasoningCard
+  // renders immediately from deterministic decision fields; this call
+  // can safely succeed, timeout, or fall back without changing the
+  // selected workout or any persisted state.
+  useEffect(() => {
+    if (!decision || aiReasoning) return;
+    let cancelled = false;
+    const controller = new AbortController();
+    const startedAt = performance.now();
+    setAiReasoningLoading(true);
+    fetchDailyReasoning(decision, { signal: controller.signal })
+      .then((res) => {
+        if (!cancelled) {
+          setAiReasoning(res);
+          trackProductEvent("ai_reasoning_completed", {
+            surface: "dashboard_daily",
+            outcome: "success",
+            ui_fallback_used: false,
+            latency_ms: Math.round(performance.now() - startedAt),
+            selected_action: decision.selected_action.name,
+            staleness_warning_count: decision.staleness_warnings?.length ?? 0,
+          });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          trackProductEvent("ai_reasoning_completed", {
+            surface: "dashboard_daily",
+            outcome: "client_fallback",
+            ui_fallback_used: true,
+            latency_ms: Math.round(performance.now() - startedAt),
+            selected_action: decision.selected_action.name,
+            staleness_warning_count: decision.staleness_warnings?.length ?? 0,
+          });
+        }
+        // Keep the deterministic local explanation on failures.
+      })
+      .finally(() => {
+        if (!cancelled) setAiReasoningLoading(false);
+      });
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [decision, aiReasoning]);
+
+  // Behavior tracking: log a RecommendationEvent whenever a decision is
+  // visible on the dashboard. The id is derived from today's date + the
+  // planned + recommended workout strings, so re-renders, refetches
+  // and reloads on the same day with the same recommendation are all
+  // deduped against the existing record. Once a row exists, this
+  // effect never overwrites it — user response and actualWorkout
+  // updates are applied through separate `updateRecommendationEvent`
+  // calls from the accept/reject/log handlers.
+  //
+  // The id + labels are memoized so the accept/reject handlers below
+  // can patch the same event without re-deriving the id ad-hoc.
+  const recommendationEvent = useMemo(() => {
+    if (!decision || !goal) return null;
+    // Build the planned and recommended labels the same way the hero
+    // card does, so the logged event matches what the user actually
+    // saw. `getTodaysWorkout` without an action gives the unmodified
+    // plan slot; with the engine's action it gives the recommended
+    // workout (which may be a rest day, shortened session, etc).
+    let plannedLabel = "";
+    let recommendedLabel = "";
+    try {
+      const planArg = savedPlan?.weeks;
+      const planStartArg = savedPlan?.planStart
+        ? { planStart: savedPlan.planStart }
+        : undefined;
+      plannedLabel = getTodaysWorkout(
+        goal,
+        planArg,
+        undefined,
+        new Date(),
+        planStartArg,
+      ).headline;
+      recommendedLabel = getTodaysWorkout(
+        goal,
+        planArg,
+        decision.selected_action,
+        new Date(),
+        planStartArg,
+      ).headline;
+    } catch {
+      // Plan-shape edge cases (e.g. goal saved but plan not yet
+      // generated) — fall back to the backend's free-text label so we
+      // still produce a useful record.
+      plannedLabel = plannedLabel || decision.final_workout;
+      recommendedLabel = recommendedLabel || decision.final_workout;
+    }
+    const date = isoDateKey();
+    return {
+      id: buildRecommendationEventId(date, plannedLabel, recommendedLabel),
+      date,
+      plannedLabel,
+      recommendedLabel,
+    };
+  }, [decision, goal, savedPlan]);
+
+  // Does today's final recommendation resolve to a rest day? Uses the
+  // SAME plan lookup the hero headline does (with the engine's action
+  // applied), so the reasoning copy never describes a "quality session"
+  // on a day the hero shows as rest. Covers both an engine-chosen rest
+  // and a scheduled rest slot the engine simply proceeded with.
+  const todayIsRestDay = useMemo(() => {
+    if (!goal || !decision) return false;
+    try {
+      return (
+        getTodaysWorkout(
+          goal,
+          savedPlan?.weeks,
+          decision.selected_action,
+          new Date(),
+          savedPlan?.planStart ? { planStart: savedPlan.planStart } : undefined,
+        ).type === "rest"
+      );
+    } catch {
+      return false;
+    }
+  }, [goal, savedPlan, decision]);
+
+  useEffect(() => {
+    if (!decision) return;
+    const warnings = decision.staleness_warnings ?? [];
+    if (warnings.length === 0) return;
+    const key = `${recommendationEvent?.id ?? decision.final_workout}:${warnings.length}`;
+    if (trackedStaleWarningRef.current === key) return;
+    trackedStaleWarningRef.current = key;
+    trackProductEvent("stale_data_warning_shown", {
+      warning_count: warnings.length,
+      has_calendar_warning: warnings.some((w) => /calendar/i.test(w)),
+      has_recovery_warning: warnings.some((w) => /recovery|readiness/i.test(w)),
+      selected_action: decision.selected_action.name,
+      confidence_bucket: bucketConfidence(decision.confidence),
+    });
+  }, [decision, recommendationEvent]);
+
+  useEffect(() => {
+    if (!recommendationEvent || !decision) return;
+    const recoveryState = classifyRecoveryState(
+      todayReadiness,
+      readinessBaselines,
+    );
+    saveRecommendationEvent({
+      id: recommendationEvent.id,
+      date: recommendationEvent.date,
+      plannedWorkout: recommendationEvent.plannedLabel,
+      recommendedWorkout: recommendationEvent.recommendedLabel,
+      selectedAction: bucketSelectedAction(decision.selected_action.name),
+      confidence: bucketConfidence(decision.confidence),
+      recoveryScore: decision.recovery_score,
+      availableMinutes: decision.available_minutes,
+      userResponse: null,
+      context: {
+        calendarLoad: bucketCalendarLoad(decision.available_minutes),
+        sleepStatus: bucketSleepStatus(
+          todayReadiness?.sleep_hours,
+          readinessBaselines.sleep_hours,
+        ),
+        recoveryStatus: bucketRecoveryStatus(recoveryState),
+      },
+    });
+    // Intentionally omit `todayReadiness` / `readinessBaselines` from the
+    // dep list: the event's id is anchored to date + planned + recommended
+    // labels, so context-only changes (e.g. a freshly logged readiness)
+    // would otherwise re-fire saveRecommendationEvent — which is a no-op
+    // for an existing id but adds unnecessary churn. The dependencies we
+    // do listen on cover every input that can change the id itself.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recommendationEvent, decision]);
+
+  // Hydrate the post-workout check-in form from storage whenever the
+  // active recommendation changes (new day, plan rebuilt, etc.). The
+  // saveRecommendationEvent effect above runs first, so by the time
+  // this lookup fires there is guaranteed to be a record under this
+  // id when one is appropriate. We only read `actualWorkout` — every
+  // other field of the event is owned by other effects/handlers.
+  useEffect(() => {
+    if (!recommendationEvent) {
+      setSavedActual(null);
+      return;
+    }
+    const existing = getRecommendationEvent(recommendationEvent.id);
+    setSavedActual(existing?.actualWorkout ?? null);
+  }, [recommendationEvent]);
 
   // Calendar-aware plan refresh: fetch availability + travel for the full
   // plan horizon, run the multi-week adjuster, and decide whether to:
@@ -398,7 +762,25 @@ export default function DashboardPage() {
           apiFetch(`/availability/week?days=${horizonDays}`),
           apiFetch(`/travel?days=${travelHorizon}`),
         ]);
-        if (!availRes.ok || !travelRes.ok) return;
+        // When the backend's Google OAuth has expired (or the user
+        // never authorized the calendar at all) both endpoints return
+        // 503. Stamp a failure so the Profile page can swap the
+        // misleading "Last synced X days ago" subtitle for a
+        // "Couldn't reach Google · Reconnect" affordance. We don't
+        // surface anything inline on the dashboard — the saved plan
+        // path below still drives the UI — but the Profile becomes
+        // the source of truth for "calendar is offline right now".
+        if (!availRes.ok || !travelRes.ok) {
+          recordCalendarFailure();
+          trackProductEvent("calendar_sync_completed", {
+            outcome: "failed",
+            availability_ok: availRes.ok,
+            travel_ok: travelRes.ok,
+            horizon_days: horizonDays,
+            travel_horizon_days: travelHorizon,
+          });
+          return;
+        }
         const availJson = (await availRes.json()) as { days: DayAvailability[] };
         const travelJson = (await travelRes.json()) as { events: TravelEvent[] };
 
@@ -421,6 +803,16 @@ export default function DashboardPage() {
 
         if (cancelled) return;
 
+        trackProductEvent("calendar_sync_completed", {
+          outcome: "success",
+          horizon_days: horizonDays,
+          travel_horizon_days: travelHorizon,
+          week_count: base.length,
+          has_changes: fresh.hasChanges,
+          total_changes: fresh.totalChanges,
+          easy_only_day_count: fresh.easyOnlyDays.length,
+        });
+
         const saved = !isStaleSaved ? existing : null;
 
         if (!saved) {
@@ -438,6 +830,14 @@ export default function DashboardPage() {
           setSavedPlan(initial);
           setPending(null);
           setShowInitialBanner(fresh.hasChanges);
+          if (fresh.hasChanges) {
+            trackProductEvent("weekly_plan_recalibrated", {
+              surface: "dashboard_initial_generation",
+              outcome: "generated",
+              total_changes: fresh.totalChanges,
+              easy_only_day_count: fresh.easyOnlyDays.length,
+            });
+          }
         } else {
           // Ongoing refresh path. Only surface a suggestion when this
           // week's adjusted version differs from what's already saved.
@@ -463,6 +863,16 @@ export default function DashboardPage() {
       } catch {
         // Calendar refresh is best-effort; silently ignore failures.
         // The base plan persisted in step 1 keeps the UI functional.
+        // Stamp a failure so the Profile page can show the runner
+        // that the live calendar isn't reachable right now — the
+        // most common cause is the backend's Google OAuth token
+        // having expired.
+        recordCalendarFailure();
+        trackProductEvent("calendar_sync_completed", {
+          outcome: "failed",
+          availability_ok: false,
+          travel_ok: false,
+        });
       }
     })();
     return () => {
@@ -484,11 +894,51 @@ export default function DashboardPage() {
     setSavedPlan(next);
     setPending(null);
     setSuggestionStatus("accepted");
+    trackProductEvent("weekly_plan_recalibrated", {
+      surface: "dashboard_suggestion",
+      outcome: "accepted",
+      total_changes: pending.proposed.totalChanges,
+      week_adjustment_count: pending.weekChange.adjustments.length,
+      easy_only_day_count: pending.proposed.easyOnlyDays.length,
+    });
   }
 
   function rejectSuggestion() {
+    if (pending) {
+      trackProductEvent("weekly_plan_recalibrated", {
+        surface: "dashboard_suggestion",
+        outcome: "rejected",
+        total_changes: pending.proposed.totalChanges,
+        week_adjustment_count: pending.weekChange.adjustments.length,
+        easy_only_day_count: pending.proposed.easyOnlyDays.length,
+      });
+    }
     setPending(null);
     setSuggestionStatus("rejected");
+  }
+
+  function handleSeedDemoData(kind: "seed" | "reset") {
+    const result = kind === "reset" ? resetDemoData() : seedDemoData();
+    trackProductEvent("demo_data_control_used", {
+      action: kind,
+      plan_weeks: result.planWeeks,
+      readiness_entries: result.readinessEntries,
+      recommendation_events: result.recommendationEvents,
+    });
+    setDemoNotice(
+      kind === "reset"
+        ? `Demo reset: ${result.planWeeks} weeks seeded.`
+        : `Demo seeded: ${result.planWeeks} weeks, ${result.recommendationEvents} behavior events.`,
+    );
+    window.setTimeout(() => window.location.reload(), 450);
+  }
+
+  function handleClearDemoLearning() {
+    clearDemoLearning();
+    trackProductEvent("demo_data_control_used", {
+      action: "clear_learning",
+    });
+    setDemoNotice("Learned preferences cleared.");
   }
 
   if (!authChecked) {
@@ -500,7 +950,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <PageContainer className="relative mx-auto w-full max-w-4xl px-4 py-12 sm:py-16">
+    <PageContainer className="relative mx-auto w-full max-w-4xl px-4 py-8 sm:py-12">
       {/* Background motion (drifting gradient blobs + topographic texture) */}
       {/* is mounted globally in app/layout.tsx so every page shares the */}
       {/* same wash. Nothing to render here. */}
@@ -510,11 +960,23 @@ export default function DashboardPage() {
         initial="hidden"
         animate="show"
         variants={containerVariants}
-        className="space-y-10"
+        className="space-y-8"
       >
         {/* 1. Greeting + race countdown — warm, personalized opener. */}
         <motion.div variants={itemVariants}>
-          <Greeting profile={profile} goal={goal} />
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <Greeting profile={profile} goal={goal} />
+            <AIStatusBadge className="self-start" />
+          </div>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <DemoControls
+            notice={demoNotice}
+            onSeed={() => handleSeedDemoData("seed")}
+            onReset={() => handleSeedDemoData("reset")}
+            onClearLearning={handleClearDemoLearning}
+          />
         </motion.div>
 
         {/* 2. Banners — schedule notice / initial plan / pending suggestion. */}
@@ -612,10 +1074,24 @@ export default function DashboardPage() {
                 onAccept={() => {
                   setResponseStatus("accepted");
                   setTodayCompletion({ responseStatus: "accepted" });
+                  trackProductEvent("recommendation_response", {
+                    response: "accepted",
+                    selected_action: decision.selected_action.name,
+                    confidence_bucket: bucketConfidence(decision.confidence),
+                    staleness_warning_count: decision.staleness_warnings?.length ?? 0,
+                  });
+                  if (recommendationEvent) {
+                    updateRecommendationEvent(recommendationEvent.id, {
+                      userResponse: "accepted",
+                    });
+                  }
                 }}
                 onReject={() => {
-                  setResponseStatus("rejected");
-                  setTodayCompletion({ responseStatus: "rejected" });
+                  // Defer the responseStatus change until the user
+                  // picks a reason in the dialog. This keeps the
+                  // accept/reject row visible behind the modal so
+                  // dismissing returns the user to a clean state.
+                  setRejectDialogOpen(true);
                 }}
                 onMarkCompleted={() => {
                   setCompletionStatus("completed");
@@ -623,13 +1099,21 @@ export default function DashboardPage() {
                     completionStatus: "completed",
                     responseStatus,
                   });
+                  const offeredAdjustment =
+                    decision.selected_action.name !== "proceed";
+                  trackProductEvent("recommendation_completion", {
+                    status: "completed",
+                    response_status: responseStatus,
+                    selected_action: decision.selected_action.name,
+                    accepted_adjustment: offeredAdjustment
+                      ? responseStatus === "accepted"
+                      : null,
+                  });
                   if (goal && savedPlan) {
                     // Only attach the acceptedAdjustment flag when the engine
                     // actually offered an adjustment to consider. Otherwise
                     // there was nothing to accept/reject, so the field stays
                     // unset rather than misleadingly logging "false".
-                    const offeredAdjustment =
-                      decision.selected_action.name !== "proceed";
                     logTodayFromPlan(
                       "completed",
                       goalSignature(goal),
@@ -647,9 +1131,17 @@ export default function DashboardPage() {
                     completionStatus: "skipped",
                     responseStatus,
                   });
+                  const offeredAdjustment =
+                    decision.selected_action.name !== "proceed";
+                  trackProductEvent("recommendation_completion", {
+                    status: "skipped",
+                    response_status: responseStatus,
+                    selected_action: decision.selected_action.name,
+                    accepted_adjustment: offeredAdjustment
+                      ? responseStatus === "accepted"
+                      : null,
+                  });
                   if (goal && savedPlan) {
-                    const offeredAdjustment =
-                      decision.selected_action.name !== "proceed";
                     logTodayFromPlan(
                       "skipped",
                       goalSignature(goal),
@@ -669,12 +1161,59 @@ export default function DashboardPage() {
               />
             </motion.div>
 
+            {/* 4b. Post-workout check-in — appears once the runner has */}
+            {/*     marked the workout completed/skipped. Writes back into */}
+            {/*     the RecommendationEvent's actualWorkout field. */}
+            <AnimatePresence initial={false}>
+              {completionStatus !== "pending" && recommendationEvent && (
+                <motion.div
+                  key="post-workout-checkin"
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.22, ease: PREMIUM_EASE }}
+                >
+                  <PostWorkoutCheckIn
+                    defaultCompleted={completionStatus === "completed"}
+                    saved={savedActual ?? null}
+                    onEdit={() => setSavedActual(null)}
+                    onSubmit={({ completed, perceivedEffort, note }) => {
+                      const patch = {
+                        completed,
+                        ...(typeof perceivedEffort === "number"
+                          ? { perceivedEffort }
+                          : {}),
+                        ...(note ? { note } : {}),
+                      };
+                      const merged = updateRecommendationEvent(
+                        recommendationEvent.id,
+                        { actualWorkout: patch },
+                      );
+                      trackProductEvent("post_workout_checkin_saved", {
+                        completed,
+                        has_effort: typeof perceivedEffort === "number",
+                        has_user_reflection: Boolean(note),
+                        perceived_effort:
+                          typeof perceivedEffort === "number"
+                            ? perceivedEffort
+                            : null,
+                      });
+                      setSavedActual(merged?.actualWorkout ?? patch);
+                    }}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* 5. Reasoning — short bullets explaining the choice. */}
             <motion.section variants={itemVariants}>
               <ReasoningCard
                 decision={decision}
                 readiness={todayReadiness}
                 baselines={readinessBaselines}
+                aiReasoning={aiReasoning}
+                reasoningLoading={aiReasoningLoading}
+                restDay={todayIsRestDay}
               />
             </motion.section>
 
@@ -690,6 +1229,35 @@ export default function DashboardPage() {
           </>
         )}
       </motion.div>
+
+      {/* Rejection-reason dialog. Mounted at the page root so the */}
+      {/* backdrop covers the full viewport. Submission writes both */}
+      {/* responseStatus + rejectionReason to the behavior log, then */}
+      {/* advances the dashboard's two-step CTA to the completion step. */}
+      <RejectReasonDialog
+        open={rejectDialogOpen}
+        onClose={() => setRejectDialogOpen(false)}
+        onSelect={(reason) => {
+          setRejectDialogOpen(false);
+          setResponseStatus("rejected");
+          setTodayCompletion({ responseStatus: "rejected" });
+          trackProductEvent("recommendation_response", {
+            response: "rejected",
+            rejection_reason: reason,
+            selected_action: decision?.selected_action.name ?? "unknown",
+            confidence_bucket: decision
+              ? bucketConfidence(decision.confidence)
+              : "unknown",
+            staleness_warning_count: decision?.staleness_warnings?.length ?? 0,
+          });
+          if (recommendationEvent) {
+            updateRecommendationEvent(recommendationEvent.id, {
+              userResponse: "rejected",
+              rejectionReason: reason,
+            });
+          }
+        }}
+      />
     </PageContainer>
   );
 }
@@ -759,7 +1327,7 @@ function Greeting({
       </div>
       {/* Subtle stride waveform under the headline — visually anchors */}
       {/* the page in motion, fits the Kinetic brand. */}
-      <div className="mt-5 -ml-1" aria-hidden="true">
+      <div className="mt-3 -ml-1" aria-hidden="true">
         <StrideWave width={320} height={36} tone="blue" loop />
       </div>
     </header>
@@ -812,6 +1380,70 @@ function formatRaceDistance(d: RaceDistance | undefined): string {
   }
 }
 
+function DemoControls({
+  notice,
+  onSeed,
+  onReset,
+  onClearLearning,
+}: {
+  notice: string | null;
+  onSeed: () => void;
+  onReset: () => void;
+  onClearLearning: () => void;
+}) {
+  return (
+    <section className="flex flex-col gap-3 rounded-2xl border border-black/5 bg-white/45 px-4 py-3 text-sm shadow-sm backdrop-blur-md dark:border-white/10 dark:bg-neutral-900/45 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="h-2 w-2 rounded-full bg-blue-500" aria-hidden="true" />
+        <span className="truncate text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500 dark:text-neutral-400">
+          Demo tools
+        </span>
+        {notice && (
+          <span
+            role="status"
+            aria-live="polite"
+            className="hidden truncate text-xs text-neutral-500 dark:text-neutral-400 sm:inline"
+          >
+            {notice}
+          </span>
+        )}
+      </div>
+      <div className="grid grid-cols-3 gap-2 sm:flex sm:shrink-0">
+        <button
+          type="button"
+          onClick={onSeed}
+          className={`rounded-full border border-black/10 bg-white/80 px-3 py-2 text-xs font-medium text-neutral-700 hover:border-black/20 hover:bg-white dark:border-white/15 dark:bg-neutral-950/50 dark:text-neutral-200 dark:hover:bg-neutral-900 ${tokens.motion}`}
+        >
+          Seed
+        </button>
+        <button
+          type="button"
+          onClick={onReset}
+          className={`rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-medium text-blue-800 hover:bg-blue-100 dark:border-blue-900/40 dark:bg-blue-950/30 dark:text-blue-200 dark:hover:bg-blue-950/50 ${tokens.motion}`}
+        >
+          Reset
+        </button>
+        <button
+          type="button"
+          onClick={onClearLearning}
+          className={`rounded-full border border-black/10 bg-white/80 px-3 py-2 text-xs font-medium text-neutral-700 hover:border-black/20 hover:bg-white dark:border-white/15 dark:bg-neutral-950/50 dark:text-neutral-200 dark:hover:bg-neutral-900 ${tokens.motion}`}
+        >
+          Clear learning
+        </button>
+      </div>
+      {notice && (
+        <span
+          role="status"
+          aria-live="polite"
+          className="text-xs text-neutral-500 dark:text-neutral-400 sm:hidden"
+        >
+          {notice}
+        </span>
+      )}
+    </section>
+  );
+}
+
 // --- This week strip -------------------------------------------------------
 
 /**
@@ -833,20 +1465,17 @@ function ThisWeekStrip({
 }) {
   // Map workouts onto canonical Mon..Sun day labels so the strip
   // always renders 7 chips, even if the plan only schedules 4 runs.
-  const ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
-  type DayLabel = (typeof ORDER)[number];
-
   const byDay = useMemo(() => {
-    const map = new Map<DayLabel, Workout>();
+    const map = new Map<WeekdayLabel, Workout>();
     for (const w of week.workouts) {
-      const key = (w.day as DayLabel) ?? null;
-      if (key && ORDER.includes(key)) map.set(key, w);
+      const key = (w.day as WeekdayLabel) ?? null;
+      if (key && WEEKDAY_ORDER.includes(key)) map.set(key, w);
     }
     return map;
   }, [week.workouts]);
 
   const todayLabel = useMemo(() => {
-    return new Date().toLocaleDateString("en-US", { weekday: "short" }) as DayLabel;
+    return new Date().toLocaleDateString("en-US", { weekday: "short" }) as WeekdayLabel;
   }, []);
 
   // Total mileage + run count summary — surfaces the volume at a glance.
@@ -888,7 +1517,7 @@ function ThisWeekStrip({
         </p>
       </div>
       <div className="mt-5 grid grid-cols-7 gap-2">
-        {ORDER.map((day) => {
+        {WEEKDAY_ORDER.map((day) => {
           const w = byDay.get(day);
           const isToday = day === todayLabel;
           return (
@@ -955,7 +1584,9 @@ function shortWorkoutType(type: WorkoutType): string {
     case "long run":
       return "Long";
     case "intervals":
-      return "Intervals";
+      // "Reps" keeps the chip label short enough to fit the narrow 7-up
+      // day grid at 375px; "Intervals" (9 chars) overflowed the chip.
+      return "Reps";
     case "tempo":
       return "Tempo";
     case "race":
@@ -1039,6 +1670,11 @@ function HeroCard({
   }, [goal, planWeeks, planStart, decision.selected_action]);
 
   const headline = todays ? todays.headline : decision.selected_action.name;
+  const recoveryPct = Math.round(Math.max(0, Math.min(1, decision.recovery_score)) * 100);
+  const recoveryTone = recoveryToneForScore(decision.recovery_score);
+  const availabilityTone = availabilityToneForMinutes(decision.available_minutes);
+  const actionTone = actionMetricTone(decision.selected_action.name);
+  const actionLabel = formatActionLabel(decision.selected_action.name);
 
   // The engine surfaces three top-level actions: "proceed" (run the plan
   // as-is), "modify" (change intensity/duration), and "rest". Only the
@@ -1048,11 +1684,8 @@ function HeroCard({
   const needsAdjustment = decision.selected_action.name !== "proceed";
 
   return (
-    <GlassCard
-      interactive={false}
-      className="overflow-hidden bg-gradient-to-br from-blue-50/80 via-white/60 to-transparent p-8 backdrop-blur-md sm:p-10 dark:from-blue-950/40 dark:via-neutral-900/40 dark:to-transparent"
-    >
-      <div className="flex flex-col gap-10 sm:flex-row sm:items-start sm:justify-between">
+    <LiquidSurface className="p-6 sm:p-8 lg:p-10">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.12fr)_minmax(18rem,0.82fr)] lg:items-start">
         {/* Left: workout */}
         <div className="min-w-0 flex-1">
           <p className="text-xs font-medium uppercase tracking-[0.24em] text-neutral-500 dark:text-neutral-400">
@@ -1086,8 +1719,61 @@ function HeroCard({
           )}
         </div>
 
-        {/* Right: confidence */}
-        <ConfidenceBadge decision={decision} />
+        {/* Right: stage metrics */}
+        <div className="rounded-[1.75rem] border border-white/55 bg-white/48 p-4 shadow-[inset_0_1px_0_rgb(255_255_255/0.65),0_18px_40px_-30px_rgb(15_23_42/0.65)] backdrop-blur-md dark:border-white/10 dark:bg-neutral-950/34">
+          <div className="flex items-center gap-4">
+            <ProgressRing
+              value={decision.recovery_score}
+              size={116}
+              stroke={9}
+              tone={recoveryTone}
+              className="shrink-0"
+            >
+              <div className="text-center leading-none">
+                <AnimatedNumber
+                  value={recoveryPct}
+                  suffix="%"
+                  className="text-xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
+                />
+                <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500 dark:text-neutral-400">
+                  Ready
+                </p>
+              </div>
+            </ProgressRing>
+            <div className="min-w-0">
+              <p className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-500 dark:text-neutral-400">
+                Training state
+              </p>
+              <p className="mt-2 text-lg font-semibold leading-tight text-neutral-950 dark:text-neutral-50">
+                {formatStateLabel(decision.state)}
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+                {decision.key_factors[0] ?? "Deterministic engine result"}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <FloatingMetric
+              label="Window"
+              value={<AnimatedNumber value={decision.available_minutes} />}
+              unit="min"
+              detail="Available today"
+              tone={availabilityTone}
+            />
+            <FloatingMetric
+              label="Action"
+              value={actionLabel}
+              detail={actionMetricDetail(decision.selected_action.name)}
+              tone={actionTone}
+              valueClassName="text-xl leading-tight"
+            />
+          </div>
+
+          <div className="mt-3">
+            <ConfidenceBadge decision={decision} />
+          </div>
+        </div>
       </div>
 
       {todays && todays.segments.length > 0 ? (
@@ -1251,7 +1937,7 @@ function HeroCard({
           )}
         </AnimatePresence>
       </div>
-    </GlassCard>
+    </LiquidSurface>
   );
 }
 
@@ -1266,6 +1952,57 @@ function finalStatusLabel(
   }
   if (completion === "skipped") return "Skipped";
   return "";
+}
+
+function recoveryToneForScore(
+  score: number,
+): "blue" | "emerald" | "amber" | "rose" {
+  if (score >= 0.75) return "emerald";
+  if (score >= 0.5) return "amber";
+  return "rose";
+}
+
+function availabilityToneForMinutes(
+  minutes: number,
+): "blue" | "emerald" | "amber" | "rose" | "neutral" {
+  if (minutes >= 75) return "emerald";
+  if (minutes >= 45) return "blue";
+  if (minutes >= 25) return "amber";
+  return "rose";
+}
+
+function actionMetricTone(
+  action: string,
+): "blue" | "emerald" | "amber" | "rose" | "neutral" {
+  if (action === "proceed") return "emerald";
+  if (action === "rest") return "rose";
+  if (action === "modify") return "amber";
+  return "blue";
+}
+
+function formatActionLabel(action: string): string {
+  if (action === "proceed") return "Proceed";
+  if (action === "modify") return "Modify";
+  if (action === "rest") return "Rest";
+  return action
+    .split(/[_\s-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function actionMetricDetail(action: string): string {
+  if (action === "proceed") return "Plan fits";
+  if (action === "modify") return "Adjusted today";
+  if (action === "rest") return "Recovery first";
+  return "Engine choice";
+}
+
+function formatStateLabel(state: string): string {
+  if (state === "recovered") return "Recovered";
+  if (state === "fatigued") return "Fatigued";
+  if (state === "at_risk") return "At risk";
+  return formatActionLabel(state);
 }
 
 function WorkoutBreakdown({ segments }: { segments: WorkoutSegment[] }) {
@@ -1311,13 +2048,368 @@ function WorkoutBreakdown({ segments }: { segments: WorkoutSegment[] }) {
   );
 }
 
+/**
+ * Rejection-reason dialog. Shown when the runner declines an adjusted
+ * recommendation, before we commit `responseStatus = "rejected"` to
+ * state. Picking a reason confirms the rejection; pressing Esc, the
+ * Cancel link, or the backdrop dismisses without locking in.
+ *
+ * Visual: small GlassCard, centered, with a dim+blur backdrop. Reason
+ * options are stacked vertical pills that match the rest of the
+ * dashboard's button system. One-click flow — selecting a reason both
+ * confirms and writes; no extra Submit step.
+ */
+function RejectReasonDialog({
+  open,
+  onSelect,
+  onClose,
+}: {
+  open: boolean;
+  onSelect: (reason: RejectReason) => void;
+  onClose: () => void;
+}) {
+  // Esc to dismiss + lock body scroll while open. Both effects are
+  // bypassed when the dialog isn't mounted, so there's no listener or
+  // style mutation in the steady state.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [open, onClose]);
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          key="reject-backdrop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 backdrop-blur-sm"
+          onClick={onClose}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reject-dialog-title"
+        >
+          <motion.div
+            key="reject-card"
+            initial={{ opacity: 0, y: 8, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.97 }}
+            transition={{ duration: 0.22, ease: PREMIUM_EASE }}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm"
+          >
+            <GlassCard interactive={false} className="p-6 sm:p-7">
+              <p className="text-xs font-medium uppercase tracking-[0.24em] text-neutral-500 dark:text-neutral-400">
+                A quick note
+              </p>
+              <h3
+                id="reject-dialog-title"
+                className="mt-2 text-xl font-semibold leading-tight text-neutral-900 dark:text-neutral-50"
+              >
+                Why keep the original?
+              </h3>
+              <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
+                Helps Kinetic learn what works for you.
+              </p>
+              <div className="mt-5 flex flex-col gap-2">
+                {REJECT_REASONS.map((r) => (
+                  <motion.button
+                    key={r.value}
+                    type="button"
+                    onClick={() => onSelect(r.value)}
+                    whileHover={{ y: -1 }}
+                    whileTap={{ y: 0, scale: 0.98 }}
+                    transition={{ duration: 0.15, ease: PREMIUM_EASE }}
+                    className="rounded-xl border border-black/10 bg-white/70 px-4 py-3 text-left text-sm font-medium text-neutral-800 backdrop-blur hover:border-black/20 hover:bg-white hover:shadow-sm dark:border-white/10 dark:bg-neutral-900/40 dark:text-neutral-200 dark:hover:bg-neutral-900/60"
+                  >
+                    {r.label}
+                  </motion.button>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className={`mt-5 w-full text-xs font-medium text-neutral-500 underline-offset-4 hover:text-neutral-800 hover:underline dark:text-neutral-400 dark:hover:text-neutral-200 ${tokens.motion}`}
+              >
+                Cancel
+              </button>
+            </GlassCard>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+/**
+ * Post-workout check-in — a small, opinionated form for capturing
+ * how the day actually went. Three fields only:
+ *
+ *   1. Did you complete the workout? (yes/no)
+ *   2. Perceived effort (1-10)
+ *   3. Optional note
+ *
+ * Submission patches `actualWorkout` on the matching
+ * RecommendationEvent. Once saved, the form collapses into a quiet
+ * confirmation chip with an Edit affordance so the surface area on
+ * the dashboard stays small.
+ *
+ * Design intent: this should read as a 10-second check-in, never a
+ * form. The yes/no defaults to whatever the HeroCard recorded so most
+ * users land here with only a single number to pick.
+ */
+function PostWorkoutCheckIn({
+  defaultCompleted,
+  saved,
+  onSubmit,
+  onEdit,
+}: {
+  /** Pre-fills the yes/no toggle from the HeroCard's completion choice. */
+  defaultCompleted: boolean;
+  /** Previously saved actualWorkout, if any. When present, renders the collapsed chip. */
+  saved: NonNullable<RecommendationEvent["actualWorkout"]> | null;
+  onSubmit: (input: {
+    completed: boolean;
+    perceivedEffort?: number;
+    note?: string;
+  }) => void;
+  /** Switch the chip back into the editable form. */
+  onEdit: () => void;
+}) {
+  const [completed, setCompleted] = useState<boolean>(
+    saved?.completed ?? defaultCompleted,
+  );
+  const [effort, setEffort] = useState<number | null>(
+    saved?.perceivedEffort ?? null,
+  );
+  const [note, setNote] = useState<string>(saved?.note ?? "");
+
+  // Collapsed state: a quiet pill summarising what was logged, plus
+  // an Edit affordance. Hidden under AnimatePresence in the parent
+  // alongside the editable form so transitions stay smooth.
+  if (saved) {
+    return (
+      <GlassCard
+        interactive={false}
+        className="flex items-center justify-between gap-4 p-5 sm:p-6"
+      >
+        <div className="min-w-0">
+          <p className="text-xs font-medium uppercase tracking-[0.24em] text-neutral-500 dark:text-neutral-400">
+            Check-in logged
+          </p>
+          <p className="mt-1.5 truncate text-sm text-neutral-700 dark:text-neutral-300">
+            {saved.completed ? "Completed" : "Skipped"}
+            {typeof saved.perceivedEffort === "number" ? (
+              <>
+                <span className="mx-2 text-neutral-300 dark:text-neutral-600">
+                  ·
+                </span>
+                Effort{" "}
+                <span className="font-semibold text-neutral-900 dark:text-neutral-100 tabular-nums">
+                  {saved.perceivedEffort}
+                </span>
+                /10
+              </>
+            ) : null}
+            {saved.note ? (
+              <>
+                <span className="mx-2 text-neutral-300 dark:text-neutral-600">
+                  ·
+                </span>
+                <span className="italic text-neutral-600 dark:text-neutral-400">
+                  &ldquo;{saved.note}&rdquo;
+                </span>
+              </>
+            ) : null}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onEdit}
+          className={`shrink-0 text-xs font-medium text-neutral-500 underline-offset-4 hover:text-neutral-800 hover:underline dark:text-neutral-400 dark:hover:text-neutral-200 ${tokens.motion}`}
+        >
+          Edit
+        </button>
+      </GlassCard>
+    );
+  }
+
+  // Editable form. Stays inert-looking until the user lands on a
+  // perceived effort number — Save is disabled until then so accidental
+  // submits don't write a useless record.
+  const canSubmit = effort !== null;
+
+  return (
+    <GlassCard interactive={false} className="p-6 sm:p-7">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.24em] text-neutral-500 dark:text-neutral-400">
+            Quick check-in
+          </p>
+          <h3 className="mt-2 text-xl font-semibold leading-tight text-neutral-900 dark:text-neutral-50">
+            How did it go?
+          </h3>
+        </div>
+      </div>
+
+      {/* Yes / No */}
+      <div className="mt-5 flex gap-2">
+        <CheckInToggle
+          active={completed}
+          onClick={() => setCompleted(true)}
+          label="I did it"
+        />
+        <CheckInToggle
+          active={!completed}
+          onClick={() => setCompleted(false)}
+          label="Skipped"
+        />
+      </div>
+
+      {/* Perceived effort — only meaningful when they completed the workout. */}
+      {completed ? (
+        <div className="mt-6">
+          <div className="flex items-baseline justify-between">
+            <label className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400">
+              Perceived effort
+            </label>
+            <span className="text-xs tabular-nums text-neutral-500 dark:text-neutral-400">
+              {effort ?? "—"}
+              <span className="text-neutral-400 dark:text-neutral-500">/10</span>
+            </span>
+          </div>
+          <div className="mt-2 grid grid-cols-10 gap-1.5">
+            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => {
+              const isActive = effort === n;
+              return (
+                <motion.button
+                  key={n}
+                  type="button"
+                  onClick={() => setEffort(n)}
+                  whileHover={{ y: -1 }}
+                  whileTap={{ y: 0, scale: 0.95 }}
+                  transition={{ duration: 0.12, ease: PREMIUM_EASE }}
+                  className={`flex h-10 items-center justify-center rounded-lg text-sm font-medium tabular-nums transition-colors ${
+                    isActive
+                      ? "bg-neutral-900 text-white shadow-sm dark:bg-white dark:text-neutral-900"
+                      : "border border-black/10 bg-white/70 text-neutral-700 hover:border-black/20 hover:bg-white dark:border-white/10 dark:bg-neutral-900/40 dark:text-neutral-300 dark:hover:bg-neutral-900/60"
+                  }`}
+                  aria-pressed={isActive}
+                  aria-label={`Effort ${n} of 10`}
+                >
+                  {n}
+                </motion.button>
+              );
+            })}
+          </div>
+          <div className="mt-1.5 flex justify-between text-[10px] uppercase tracking-[0.18em] text-neutral-400 dark:text-neutral-500">
+            <span>Easy</span>
+            <span>All out</span>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Optional note */}
+      <div className="mt-6">
+        <label
+          htmlFor="checkin-note"
+          className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400"
+        >
+          Note <span className="text-neutral-400">(optional)</span>
+        </label>
+        <textarea
+          id="checkin-note"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          rows={2}
+          maxLength={240}
+          placeholder="Anything worth remembering?"
+          className="mt-2 w-full resize-none rounded-xl border border-black/10 bg-white/70 px-3 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 backdrop-blur focus:border-black/30 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-neutral-900/40 dark:text-neutral-100 dark:placeholder:text-neutral-500"
+        />
+      </div>
+
+      <div className="mt-6 flex items-center justify-end">
+        <motion.button
+          type="button"
+          onClick={() =>
+            onSubmit({
+              completed,
+              // Effort is only relevant when they completed the workout.
+              // Strip it on "Skipped" so the actualWorkout record stays
+              // honest (no phantom effort score for a session that
+              // didn't happen).
+              perceivedEffort:
+                completed && effort !== null ? effort : undefined,
+              note: note.trim() ? note.trim() : undefined,
+            })
+          }
+          disabled={completed && !canSubmit}
+          whileHover={completed && !canSubmit ? undefined : { y: -1 }}
+          whileTap={completed && !canSubmit ? undefined : { y: 0, scale: 0.97 }}
+          transition={{ duration: 0.18, ease: PREMIUM_EASE }}
+          className={`rounded-full px-6 py-2.5 text-sm font-semibold ${
+            completed && !canSubmit
+              ? "cursor-not-allowed bg-neutral-200 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-600"
+              : tokens.primary.solid
+          }`}
+        >
+          Save check-in
+        </motion.button>
+      </div>
+    </GlassCard>
+  );
+}
+
+function CheckInToggle({
+  active,
+  onClick,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+}) {
+  return (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      whileHover={{ y: -1 }}
+      whileTap={{ y: 0, scale: 0.97 }}
+      transition={{ duration: 0.15, ease: PREMIUM_EASE }}
+      className={`flex-1 rounded-full px-4 py-2.5 text-sm font-medium transition-colors ${
+        active
+          ? "bg-neutral-900 text-white shadow-sm dark:bg-white dark:text-neutral-900"
+          : "border border-black/10 bg-white/70 text-neutral-700 hover:border-black/20 hover:bg-white dark:border-white/10 dark:bg-neutral-900/40 dark:text-neutral-300 dark:hover:bg-neutral-900/60"
+      }`}
+      aria-pressed={active}
+    >
+      {label}
+    </motion.button>
+  );
+}
+
+
 function ConfidenceBadge({
   decision,
 }: {
   decision: DecisionOutput;
 }) {
   const confidence = decision.confidence;
-  const warnings = decision.staleness_warnings ?? [];
+  const warnings = useMemo(
+    () => decision.staleness_warnings ?? [],
+    [decision.staleness_warnings],
+  );
   const [isOpen, setIsOpen] = useState(false);
   const insightsId = "confidence-insights";
 
@@ -1653,10 +2745,16 @@ function ReasoningCard({
   decision,
   readiness,
   baselines,
+  aiReasoning,
+  reasoningLoading = false,
+  restDay = false,
 }: {
   decision: DecisionOutput;
   readiness?: ManualReadiness | null;
   baselines?: ReadinessBaselines;
+  aiReasoning?: DailyReasoning | null;
+  reasoningLoading?: boolean;
+  restDay?: boolean;
 }) {
   // The user-facing recovery score is computed client-side (see
   // `lib/recoveryScore.ts`) so the number quoted in this card always
@@ -1670,8 +2768,8 @@ function ReasoningCard({
   // Concise top-line summary — translates the engine's structured output
   // into one calm sentence the runner can read at a glance.
   const summary = useMemo(
-    () => buildReasoningSummary(decision, displayScore),
-    [decision, displayScore],
+    () => aiReasoning?.summary ?? buildReasoningSummary(decision, displayScore, restDay),
+    [aiReasoning, decision, displayScore, restDay],
   );
 
   // Three canonical factors. We translate the backend's free-form
@@ -1680,14 +2778,17 @@ function ReasoningCard({
   // bullets. Each factor renders as a card with an icon, title, and a
   // short explanation.
   const factors = useMemo(
-    () => buildReasoningFactors(decision, displayScore),
-    [decision, displayScore],
+    () =>
+      aiReasoning
+        ? aiReasoning.factors.slice(0, 3).map(reasoningFactorFromAI)
+        : buildReasoningFactors(decision, displayScore, restDay),
+    [aiReasoning, decision, displayScore, restDay],
   );
 
   return (
     <section>
       <p className="text-xs font-medium uppercase tracking-[0.24em] text-neutral-500 dark:text-neutral-400">
-        Reasoning
+        Reasoning {aiReasoning ? "· bounded AI" : reasoningLoading ? "· loading AI" : "· deterministic"}
       </p>
       <h3 className="mt-2 text-xl font-semibold tracking-tight">
         Why this recommendation
@@ -1701,6 +2802,19 @@ function ReasoningCard({
           <ReasoningFactorCard key={f.key} factor={f} />
         ))}
       </div>
+
+      {aiReasoning ? (
+        <div className="mt-4 rounded-2xl border border-black/5 bg-white/50 p-4 text-xs leading-relaxed text-neutral-600 backdrop-blur-md dark:border-white/10 dark:bg-white/[0.03] dark:text-neutral-300">
+          <p>{aiReasoning.tradeoff}</p>
+          <p className="mt-2 text-neutral-500 dark:text-neutral-400">
+            {aiReasoning.confidence_note}
+          </p>
+        </div>
+      ) : reasoningLoading ? (
+        <p className="mt-4 text-xs text-neutral-500 dark:text-neutral-400">
+          Checking the bounded AI explanation. Deterministic reasoning is shown meanwhile.
+        </p>
+      ) : null}
     </section>
   );
 }
@@ -1717,6 +2831,33 @@ type ReasoningFactor = {
   icon: "heart" | "calendar" | "trend";
 };
 
+function reasoningFactorFromAI(
+  factor: DailyReasoning["factors"][number],
+  index: number,
+): ReasoningFactor {
+  const title = factor.title.trim() || `Factor ${index + 1}`;
+  const lower = title.toLowerCase();
+  const icon: ReasoningFactor["icon"] =
+    /calendar|time|schedule|window/.test(lower)
+      ? "calendar"
+      : /progress|build|plan|training|mileage|load/.test(lower)
+        ? "trend"
+        : "heart";
+  const tone: ReasoningTone =
+    factor.impact === "positive"
+      ? "positive"
+      : factor.impact === "negative"
+        ? "caution"
+        : "neutral";
+  return {
+    key: `${index}-${title}`,
+    title,
+    explanation: factor.explanation,
+    tone,
+    icon,
+  };
+}
+
 /**
  * Build a single calm sentence summarising why the engine landed on
  * today's recommendation. Voice shifts with the dominant signal:
@@ -1729,6 +2870,7 @@ type ReasoningFactor = {
 function buildReasoningSummary(
   decision: DecisionOutput,
   displayScore: number,
+  restDay = false,
 ): string {
   const score = displayScore;
   const minutes = decision.available_minutes ?? 0;
@@ -1742,6 +2884,12 @@ function buildReasoningSummary(
   // read it as falling behind.
   if (action === "rest") {
     return "Readiness is below your baseline today — a planned rest is what protects the next quality session.";
+  }
+  // Scheduled rest day: the plan has no run today even though the engine
+  // would otherwise proceed. Frame it as intentional recovery so it
+  // never reads like a quality session.
+  if (restDay) {
+    return "Today is a scheduled rest day — easy mobility or a walk at most. Recovery is where this block's work gets absorbed.";
   }
   if (score < 0.6) {
     return `Readiness is low at ${score.toFixed(2)}. Today is dialled back so the rest of your block stays on course — that's the smart trade.`;
@@ -1778,10 +2926,16 @@ function buildReasoningSummary(
 function buildReasoningFactors(
   decision: DecisionOutput,
   displayScore: number,
+  restDay = false,
 ): ReasoningFactor[] {
   const score = displayScore;
   const state = decision.state;
   const action = decision.selected_action.name.toLowerCase();
+  // A scheduled rest day the engine simply proceeded with (the plan has
+  // no run today). The `action === "rest"` branches below already cover
+  // an engine-forced rest; this flag handles the "fresh, but nothing
+  // scheduled" case so the cards never imply a quality session.
+  const scheduledRest = restDay && action !== "rest";
 
   // Recovery — confident when HRV/sleep are aligned, supportive when
   // the body is asking for less. The chosen action wins over the raw
@@ -1796,19 +2950,29 @@ function buildReasoningFactors(
   const recoveryExplanation =
     action === "rest"
       ? `Recovery ${score.toFixed(2)} — your body's asking for less today. Resting now protects the next quality session.`
-      : score >= 0.85
-        ? `Recovery ${score.toFixed(2)} — HRV and sleep are dialled in. Green light for quality work today.`
-        : score >= 0.6
-          ? `Recovery ${score.toFixed(2)} — readiness is workable. The engine kept the stimulus and eased the dose.`
-          : `Recovery ${score.toFixed(2)} — your body's asking for less today. Listening now is what keeps the block compounding.`;
+      : scheduledRest
+        ? `Recovery ${score.toFixed(2)} — you're fresh, and a scheduled rest day banks that freshness for the next quality session.`
+        : score >= 0.85
+          ? `Recovery ${score.toFixed(2)} — HRV and sleep are dialled in. Green light for quality work today.`
+          : score >= 0.6
+            ? `Recovery ${score.toFixed(2)} — readiness is workable. The engine kept the stimulus and eased the dose.`
+            : `Recovery ${score.toFixed(2)} — your body's asking for less today. Listening now is what keeps the block compounding.`;
 
   // Calendar load — confident when there's room, practical when the
   // window is tight. Always frame the trade-off, never apologise for it.
   const minutes = decision.available_minutes ?? 0;
-  const calendarTone: ReasoningTone =
-    minutes >= 60 ? "positive" : minutes >= 30 ? "neutral" : "caution";
-  const calendarExplanation =
-    minutes <= 0
+  const calendarTone: ReasoningTone = scheduledRest
+    ? "neutral"
+    : minutes >= 60
+      ? "positive"
+      : minutes >= 30
+        ? "neutral"
+        : "caution";
+  const calendarExplanation = scheduledRest
+    ? minutes > 0
+      ? `${minutes} minutes free, but today's a rest day — spend it recovering, not adding load.`
+      : "Today's a rest day — no session to fit. Let the recovery do the work."
+    : minutes <= 0
       ? "No clear window today — today's session is sized to slot into whatever break opens up."
       : minutes >= 60
         ? `${minutes} minutes free — full runway for warm-up, the main set, and a proper cool-down.`
@@ -1828,11 +2992,13 @@ function buildReasoningFactors(
     progressionFromEngine ??
     (action === "rest"
       ? "A planned pause. Rest is what makes the next quality day possible — it keeps you progressing."
-      : intensity >= 1 && duration >= 1
-        ? "On-plan, on-pace — the kind of session that moves the needle."
-        : intensity < 1 || duration < 1
-          ? "Reshaped to your current state. Same stimulus family, lower dose — the block stays on track."
-          : "Holding course — today matches the prescribed phase.");
+      : scheduledRest
+        ? "A scheduled recovery day — planned rest is part of how the block builds. Nothing to chase today."
+        : intensity >= 1 && duration >= 1
+          ? "On-plan, on-pace — the kind of session that moves the needle."
+          : intensity < 1 || duration < 1
+            ? "Reshaped to your current state. Same stimulus family, lower dose — the block stays on track."
+            : "Holding course — today matches the prescribed phase.");
   const progressionTone: ReasoningTone =
     intensity < 0.85 || duration < 0.85 ? "caution" : "neutral";
 

@@ -1,11 +1,11 @@
 // Smoke test for adjustPlanForWeek: verifies swap, shorten, and drop paths.
 
-import { generateTrainingPlan } from "../lib/planGenerator";
+import { generateTrainingPlan, type PlanWeek } from "../lib/planGenerator";
 import { adjustPlanForWeek, type CalendarAvailability } from "../lib/planAdjuster";
 import { formatPace } from "../lib/paceCalculator";
 import type { Goal } from "../lib/types";
 
-function dump(label: string, week: any, availability: CalendarAvailability) {
+function dump(label: string, week: PlanWeek, availability: CalendarAvailability) {
   const adjusted = adjustPlanForWeek(week, availability);
   console.log("--- " + label + " ---");
   console.log("Availability:", availability);

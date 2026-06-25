@@ -3,6 +3,12 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --font-geist-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-geist-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo,
+    monospace;
+  --font-space-grotesk: "Segoe UI", ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 @theme inline {
@@ -25,11 +31,8 @@
 
 body {
   color: var(--foreground);
-  /* Use the Geist sans variable wired up in app/layout.tsx; the Tailwind
-     gradient utility handles the actual background, so we don't set one
-     here. */
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
-    "Segoe UI", Roboto, sans-serif;
+  /* System font stack only: production builds must not fetch remote fonts. */
+  font-family: var(--font-geist-sans);
   /* Smooth, premium-feeling text rendering across browsers. */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

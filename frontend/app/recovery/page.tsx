@@ -209,7 +209,10 @@ export default function RecoveryPage() {
   // ratio against the runner's own history (matches the backend's
   // formula and the dashboard ring).
   const baselines: ReadinessBaselines = useMemo(
-    () => getReadinessBaselines(30),
+    () => {
+      void log;
+      return getReadinessBaselines(30);
+    },
     [log],
   );
 

@@ -16,3 +16,6 @@ secrets/*
 # OS noise
 Thumbs.db
 .DS_Store
+
+# Local runtime logs
+backend/.uvicorn.*.log

@@ -42,8 +42,10 @@ function makeGoal(opts: {
   weeklyMiles?: number;
   weeksOut: number;
 }): Goal {
-  // Anchor target_date to a fixed point so the plan length is deterministic.
-  const start = new Date(2026, 4, 4); // Mon May 4 2026
+  // Anchor target_date to the run date so this smoke does not decay as
+  // real time passes and the old fixed target slips into the past.
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
   const target = new Date(start);
   target.setDate(target.getDate() + opts.weeksOut * 7);
   return {
@@ -62,6 +64,16 @@ function totalMiles(week: PlanWeek): number {
 
 function findByType(week: PlanWeek, type: PlanWeek["workouts"][number]["type"]) {
   return week.workouts.find((w) => w.type === type);
+}
+
+function findComparisonWeek(plan: PlanWeek[]): number {
+  const index = plan.findIndex((week) => {
+    const hasEasy = Boolean(findByType(week, "easy"));
+    const hasQuality = Boolean(findByType(week, "intervals") ?? findByType(week, "tempo"));
+    const hasLong = Boolean(findByType(week, "long run"));
+    return hasEasy && hasQuality && hasLong;
+  });
+  return index >= 0 ? index : 0;
 }
 
 // --- Case 1: strong PR -> faster paces --------------------------------------
@@ -90,8 +102,9 @@ console.log("=== Case 1: strong PR -> faster paces ===");
     makeGoal({ race: "10k", level: "intermediate", prs: fastPRs, weeklyMiles: 30, weeksOut: 8 })
   );
 
-  // Compare paces on week 4 (mid-build) to avoid taper noise.
-  const w = 3;
+  // Compare the first week that contains easy, quality, and long-run
+  // workouts. This keeps the smoke durable when taper/race timing shifts.
+  const w = findComparisonWeek(slow);
   const slowEasy = findByType(slow[w], "easy");
   const fastEasy = findByType(fast[w], "easy");
   const slowQual = findByType(slow[w], "intervals") ?? findByType(slow[w], "tempo");

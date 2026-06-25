@@ -1,13 +1,17 @@
 import { generateTrainingPlan } from "../lib/planGenerator";
 import { formatPace } from "../lib/paceCalculator";
-import { getTodaysWorkout, todayDayLabel } from "../lib/todaysWorkout";
+import {
+  getTodaysWorkout,
+  todayDayLabel,
+  type RecommendationAction,
+} from "../lib/todaysWorkout";
 import type { Goal } from "../lib/types";
 
 const day = todayDayLabel();
 console.log("Today is " + day);
 console.log("");
 
-function dump(label: string, goal: Goal, action?: any) {
+function dump(label: string, goal: Goal, action?: RecommendationAction) {
   const plan = generateTrainingPlan(goal);
   const tw = getTodaysWorkout(goal, plan, action);
   const actionLabel = action ? action.name : "proceed";

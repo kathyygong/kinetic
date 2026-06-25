@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 
 type MotionBackgroundProps = {
   /**
@@ -38,6 +38,9 @@ export default function MotionBackground({
 }: MotionBackgroundProps) {
   const isHero = variant === "hero";
   const showContours = contours ?? isHero;
+  // Respect the user's reduced-motion preference: render the gradient
+  // wash but hold the blobs still instead of drifting them forever.
+  const reduceMotion = useReducedMotion();
   // Sizing + tint amplifies for hero pages so the wash feels like a
   // proper backdrop, not a hint.
   const blobSize = isHero ? "h-[42rem] w-[42rem]" : "h-[34rem] w-[34rem]";
@@ -57,33 +60,49 @@ export default function MotionBackground({
       <motion.div
         className={`absolute -top-40 right-[-20%] rounded-full bg-gradient-to-br blur-3xl ${blobSize} ${tintA}`}
         initial={{ x: 0, y: 0, scale: 1 }}
-        animate={{
-          x: [0, -40, 24, 0],
-          y: [0, 28, -16, 0],
-          scale: [1, 1.06, 0.97, 1],
-        }}
-        transition={{
-          duration: 32,
-          ease: "easeInOut",
-          repeat: Infinity,
-          repeatType: "loop",
-        }}
+        animate={
+          reduceMotion
+            ? undefined
+            : {
+                x: [0, -40, 24, 0],
+                y: [0, 28, -16, 0],
+                scale: [1, 1.06, 0.97, 1],
+              }
+        }
+        transition={
+          reduceMotion
+            ? undefined
+            : {
+                duration: 32,
+                ease: "easeInOut",
+                repeat: Infinity,
+                repeatType: "loop",
+              }
+        }
       />
       {/* Blob B — drifts the opposite direction for a balanced parallax. */}
       <motion.div
         className={`absolute -bottom-40 left-[-20%] rounded-full bg-gradient-to-tr blur-3xl ${blobSize} ${tintB}`}
         initial={{ x: 0, y: 0, scale: 1 }}
-        animate={{
-          x: [0, 36, -28, 0],
-          y: [0, -22, 14, 0],
-          scale: [1, 0.97, 1.05, 1],
-        }}
-        transition={{
-          duration: 38,
-          ease: "easeInOut",
-          repeat: Infinity,
-          repeatType: "loop",
-        }}
+        animate={
+          reduceMotion
+            ? undefined
+            : {
+                x: [0, 36, -28, 0],
+                y: [0, -22, 14, 0],
+                scale: [1, 0.97, 1.05, 1],
+              }
+        }
+        transition={
+          reduceMotion
+            ? undefined
+            : {
+                duration: 38,
+                ease: "easeInOut",
+                repeat: Infinity,
+                repeatType: "loop",
+              }
+        }
       />
 
       {showContours && <ContourTexture />}

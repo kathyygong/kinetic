@@ -1,7 +1,8 @@
 import { generateTrainingPlan } from "../lib/planGenerator";
 import { formatPace } from "../lib/paceCalculator";
+import type { Goal } from "../lib/types";
 
-function summarize(label: string, goal: any) {
+function summarize(label: string, goal: Goal) {
   const plan = generateTrainingPlan(goal);
   console.log("--- " + label + " (" + plan.length + " weeks) ---");
   for (const w of plan) {

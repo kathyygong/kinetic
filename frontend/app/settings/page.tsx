@@ -293,8 +293,8 @@ export default function SettingsPage() {
             ))}
           </div>
           <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
-            Hours : minutes : seconds. Leave blank if you haven't raced the
-            distance — we'll project paces from your fastest entered PR.
+            Hours : minutes : seconds. Leave blank if you haven&apos;t raced the
+            distance — we&apos;ll project paces from your fastest entered PR.
           </p>
         </SectionCard>
 

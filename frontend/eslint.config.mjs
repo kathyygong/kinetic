@@ -13,6 +13,16 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    rules: {
+      // React 19 compiler-era rules flag several deliberate client
+      // hydration patterns in this localStorage-heavy app. Keep lint
+      // useful while Phase 0 stabilizes the repo; revisit when those
+      // pages move behind a storage abstraction.
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/refs": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

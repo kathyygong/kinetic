@@ -1,6 +1,7 @@
 fastapi
 uvicorn[standard]
 pydantic
+requests
 
 # Loads `.env` at import time so backend/.env Just Works.
 python-dotenv

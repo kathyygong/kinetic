@@ -174,8 +174,7 @@ function blendedProjectionTo(
  * which already reflects performance at every distance they've raced.
  */
 export function getTrainingPaces(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  race_distance: RaceDistance,
+  _race_distance: RaceDistance,
   current_prs: Partial<CurrentPRs> | undefined
 ): TrainingPaces {
   const fiveKSeconds = best5KEquivalent(current_prs);

@@ -10,8 +10,14 @@ import { motion, type HTMLMotionProps, type Variants } from "framer-motion";
 import Avatar from "@/components/Avatar";
 import GlassCard from "@/components/GlassCard";
 import HMSInput from "@/components/HMSInput";
+import LearningCard from "@/components/LearningCard";
 import PageContainer from "@/components/PageContainer";
 import { auth, signOutUser, type User } from "@/lib/firebase";
+import {
+  fetchCalendarHealth,
+  type CalendarHealthResponse,
+} from "@/lib/api";
+import { clearCalendarFailure, isCalendarUnhealthy } from "@/lib/dataFreshness";
 import {
   connectGoogleCalendar,
   disconnectGoogleCalendar,
@@ -152,6 +158,28 @@ export default function ProfilePage() {
     Partial<Record<ConnectedService, string>>
   >({});
   const [gcalEmail, setGcalEmail] = useState<string | undefined>();
+  // Google Calendar can be "connected" (token present) but failing
+  // to reach Google through the backend (token expired, scopes
+  // revoked, etc.). When that's true we swap the "Last synced"
+  // subtitle for a clear "Couldn't reach Google · Reconnect"
+  // affordance so the runner can actually fix it instead of
+  // trusting a misleading green pill.
+  const [gcalUnhealthy, setGcalUnhealthy] = useState(false);
+  // The *backend's* view of its own Google OAuth state. This is the
+  // authoritative signal: a 503 on /availability/week could mean any
+  // number of things, but `health.status` tells us whether the runner
+  // clicking Reconnect would actually help (token thing on Realm A)
+  // or whether the operator needs to fix the server (Realm B). We
+  // keep the client-side `gcalUnhealthy` flag as a fallback for when
+  // the health endpoint itself is unreachable.
+  const [gcalHealth, setGcalHealth] = useState<CalendarHealthResponse | null>(
+    null,
+  );
+  // True while we're re-probing /integrations/calendar/health from a
+  // user-initiated "Check again" click. Drives the button's loading
+  // affordance so the runner sees their click did something even when
+  // the response is the same amber state.
+  const [gcalHealthChecking, setGcalHealthChecking] = useState(false);
 
   useEffect(() => {
     const stored = getUserProfile();
@@ -164,6 +192,12 @@ export default function ProfilePage() {
     // token's existence as the source of truth for "connected" here.
     const gcal = getGoogleCalendarConnection();
     setGcalEmail(gcal?.email);
+    // Independent of the token's existence: the *backend's* calendar
+    // integration may have failed recently. The dashboard stamps a
+    // failure in localStorage whenever `/availability/week` or
+    // `/travel` doesn't come back 2xx; we read that here so the
+    // Profile row can show the runner where to act.
+    setGcalUnhealthy(isCalendarUnhealthy());
     setServiceStatus({
       google_calendar:
         gcal || stored?.connected_services?.google_calendar?.connected
@@ -181,6 +215,65 @@ export default function ProfilePage() {
     const unsub = onAuthStateChanged(auth, setAuthUser);
     return () => unsub();
   }, []);
+
+  // Keep the "calendar offline" pill honest as the user moves between
+  // tabs. The dashboard is what stamps the failure (via its
+  // `/availability/week` fetch), so the most common path is:
+  // user-opens-dashboard → 503 → comes-back-to-profile. We re-check
+  // on focus, visibility change, and on cross-tab storage writes so
+  // the affordance shows up without a full reload.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const recheck = () => setGcalUnhealthy(isCalendarUnhealthy());
+    const onStorage = (e: StorageEvent) => {
+      if (
+        e.key === "kinetic_calendar_last_failure" ||
+        e.key === "kinetic_calendar_last_sync"
+      ) {
+        recheck();
+      }
+    };
+    window.addEventListener("focus", recheck);
+    document.addEventListener("visibilitychange", recheck);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener("focus", recheck);
+      document.removeEventListener("visibilitychange", recheck);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
+
+  // Ask the backend for the authoritative health of its own Google
+  // Calendar OAuth. The dashboard's 503-based heuristic answers "did
+  // the last calendar fetch fail", but only the server knows *why* —
+  // which determines whether "Reconnect" in the UI would actually
+  // help (frontend OAuth) or whether the operator needs to step in
+  // (server-side token/credentials). We probe on mount and again on
+  // focus so a fix-on-the-server self-heals without a reload.
+  useEffect(() => {
+    if (!authUser) return;
+    let cancelled = false;
+    const probe = async () => {
+      try {
+        const h = await fetchCalendarHealth();
+        if (!cancelled) setGcalHealth(h);
+      } catch {
+        // The endpoint itself was unreachable (server down, network
+        // blip). Fall back to the client-side heuristic by leaving
+        // gcalHealth null; the UI uses gcalUnhealthy in that case.
+        if (!cancelled) setGcalHealth(null);
+      }
+    };
+    probe();
+    const onFocus = () => probe();
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+    };
+  }, [authUser]);
 
   const handleSignOut = async () => {
     await signOutUser();
@@ -291,6 +384,30 @@ export default function ProfilePage() {
         last_synced_at: new Date().toISOString(),
       });
       setServiceStatus((prev) => ({ ...prev, [key]: "connected" }));
+      // Optimistically clear the "calendar offline" pill. The next
+      // dashboard load will call `recordCalendarSync` (or stamp a
+      // fresh failure) and become the real source of truth — we
+      // just don't want the pill lingering after the user did the
+      // thing it asked them to do.
+      //
+      // We also clear the localStorage failure stamp itself (not just
+      // in-memory state) so the storage-event listener and any other
+      // tab can't re-derive `unhealthy=true` from a stale flag.
+      if (key === "google_calendar") {
+        setGcalUnhealthy(false);
+        clearCalendarFailure();
+        // Re-probe the backend health: the frontend OAuth doesn't
+        // touch the server's token, so the server view is still
+        // independently true and we shouldn't lie about it. If the
+        // probe still says non-ok, the row stays amber with the
+        // server's own message — better than a misleading flash of
+        // green.
+        fetchCalendarHealth()
+          .then((h) => setGcalHealth(h))
+          .catch(() => {
+            /* fall back to heuristic */
+          });
+      }
     } catch (err) {
       const message =
         err instanceof FirebaseError
@@ -311,6 +428,32 @@ export default function ProfilePage() {
     persistService(key, { connected: false });
     setServiceStatus((prev) => ({ ...prev, [key]: "idle" }));
     setServiceErrors((prev) => ({ ...prev, [key]: undefined }));
+  };
+
+  // Re-probe the backend's calendar health on demand. We use this for
+  // the "Check again" button on the not-user-actionable amber state:
+  // the runner can't fix the underlying problem (it's on the server),
+  // but they CAN find out whether the operator fixed it. Without this
+  // affordance the row is a dead end — they see a problem with no way
+  // to verify recovery short of reloading the whole page.
+  const handleRetryGcalHealth = async () => {
+    setGcalHealthChecking(true);
+    try {
+      const h = await fetchCalendarHealth();
+      setGcalHealth(h);
+      // If the backend is now healthy, also drop the client-side
+      // failure stamp so the heuristic fallback agrees.
+      if (h.status === "ok") {
+        clearCalendarFailure();
+        setGcalUnhealthy(false);
+      }
+    } catch {
+      // Probe itself failed — leave gcalHealth as-is so the row falls
+      // back to the heuristic. Surfacing this as a hard error would be
+      // noise; the row stays amber and the runner can try again.
+    } finally {
+      setGcalHealthChecking(false);
+    }
   };
 
   // Prefer the saved profile values; fall back to Firebase auth so the
@@ -517,7 +660,15 @@ export default function ProfilePage() {
             )}
           </SectionCard>
 
-          {/* 4 — Connected services */}
+          {/* 4 — Kinetic is learning. Reads recommendation history out of
+              localStorage and surfaces conservative behavioral patterns the
+              backend's /behavior-insights endpoint returned. Sits between
+              the static profile facts above and the integrations below so
+              the page flows: things you told us → things we noticed →
+              external sources we can read from. */}
+          <LearningCard motionProps={{ variants: itemVariants }} />
+
+          {/* 5 — Connected services */}
           <SectionCard
             title="Connected services"
             description="External data sources Kinetic can read from."
@@ -528,8 +679,37 @@ export default function ProfilePage() {
                 const conn = profile?.connected_services?.[key];
                 const status = serviceStatus[key];
                 const connected = status === "connected" || !!conn?.connected;
-                const subtitle =
-                  key === "google_calendar" && connected && gcalEmail
+                // Google Calendar "connected but failing" is its own
+                // visual state. The backend's health endpoint is the
+                // authoritative source — when it answered, we use its
+                // `message` and `user_actionable` flag directly. When
+                // it didn't (network blip, server down), we fall back
+                // to the dashboard's 503-derived heuristic.
+                const isGcalDegraded =
+                  key === "google_calendar" &&
+                  connected &&
+                  (gcalHealth ? gcalHealth.status !== "ok" : gcalUnhealthy);
+                // Default to NOT user-actionable when we don't have
+                // a fresh health response. The frontend OAuth flow
+                // (Realm A) can only re-grant access on this device —
+                // it cannot fix the backend's stored Google token
+                // (Realm B). So unless the backend explicitly tells
+                // us "this is something the runner can fix from
+                // here," we shouldn't offer a Reconnect button that
+                // can't actually help. Showing the informational
+                // "Needs attention" state is more honest.
+                const gcalUserActionable = gcalHealth?.user_actionable ?? false;
+                // We surface "Reconnect" only when the runner can
+                // actually do something about it. Otherwise we show
+                // a calm informational state with the server's own
+                // message so they don't keep retrying a button that
+                // won't help.
+                const needsReconnect = isGcalDegraded && gcalUserActionable;
+                const needsAttentionInfo = isGcalDegraded && !gcalUserActionable;
+                const subtitle = isGcalDegraded
+                  ? gcalHealth?.message ??
+                    "Couldn't reach Google · Reconnect to sync your schedule"
+                  : key === "google_calendar" && connected && gcalEmail
                     ? gcalEmail
                     : connected && conn?.last_synced_at
                       ? `Last synced ${formatDate(conn.last_synced_at)}`
@@ -548,7 +728,13 @@ export default function ProfilePage() {
                           {label}
                         </p>
                         {subtitle && (
-                          <p className="mt-0.5 truncate text-xs text-neutral-500">
+                          <p
+                            className={`mt-0.5 text-xs ${
+                              isGcalDegraded
+                                ? tokens.warning.text
+                                : "truncate text-neutral-500"
+                            }`}
+                          >
                             {subtitle}
                           </p>
                         )}
@@ -563,8 +749,18 @@ export default function ProfilePage() {
                       status={status}
                       connected={connected}
                       flow={flow}
+                      needsReconnect={needsReconnect}
+                      needsAttentionInfo={needsAttentionInfo}
+                      retrying={
+                        key === "google_calendar" && gcalHealthChecking
+                      }
                       onConnect={() => handleConnect(key, flow)}
                       onDisconnect={() => handleDisconnect(key)}
+                      onRetry={
+                        key === "google_calendar"
+                          ? handleRetryGcalHealth
+                          : undefined
+                      }
                     />
                   </li>
                 );
@@ -805,16 +1001,112 @@ function ConnectControl({
   status,
   connected,
   flow,
+  needsReconnect = false,
+  needsAttentionInfo = false,
+  retrying = false,
   onConnect,
   onDisconnect,
+  onRetry,
 }: {
   status: ServiceStatus;
   connected: boolean;
   flow: "real" | "mock";
+  /**
+   * `connected === true` but the integration is currently failing in
+   * a way the runner can fix from the UI (e.g. they need to grant
+   * Google access again from their own account). We show an amber
+   * "Calendar offline" pill plus a primary Reconnect button.
+   */
+  needsReconnect?: boolean;
+  /**
+   * `connected === true` but the failure is server-side and the
+   * runner can't fix it from here (operator needs to re-authorize
+   * the backend, or `credentials.json` is missing). We still need
+   * to give them SOMETHING to click — a dead row is worse than a
+   * placebo. So we show a "Check again" button that re-probes the
+   * health endpoint; if the operator fixed it the row flips green.
+   */
+  needsAttentionInfo?: boolean;
+  /** True while a Check-again probe is in flight. */
+  retrying?: boolean;
   onConnect: () => void;
   onDisconnect: () => void;
+  /**
+   * Called when the runner clicks "Check again" on the
+   * `needsAttentionInfo` variant. Optional because the other
+   * services (Apple Health, Garmin, Oura) don't have a backend
+   * health probe yet.
+   */
+  onRetry?: () => void;
 }) {
   const connecting = status === "connecting";
+
+  if (connected && needsReconnect) {
+    // Amber "needs attention" state. The Reconnect button is the
+    // primary action; Disconnect stays available as a quiet text link
+    // for runners who want to fully unlink instead.
+    return (
+      <div className="flex shrink-0 items-center gap-3">
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${tokens.warning.soft}`}
+        >
+          <span className={`h-1.5 w-1.5 rounded-full ${tokens.warning.dot}`} />
+          Calendar offline
+        </span>
+        <button
+          type="button"
+          onClick={onConnect}
+          disabled={connecting}
+          className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-70 ${tokens.warning.solid} ${tokens.motion}`}
+        >
+          {connecting ? "Reconnecting…" : "Reconnect"}
+        </button>
+        <button
+          type="button"
+          onClick={onDisconnect}
+          className={`text-xs font-medium text-neutral-500 underline-offset-4 hover:text-neutral-800 hover:underline dark:text-neutral-400 dark:hover:text-neutral-200 ${tokens.motion}`}
+        >
+          Disconnect
+        </button>
+      </div>
+    );
+  }
+
+  if (connected && needsAttentionInfo) {
+    // Server-side failure: same amber pill so the runner knows
+    // something's off, but a "Check again" button instead of
+    // "Reconnect" — because their browser-side OAuth can't fix a
+    // backend-side problem. The retry just re-probes the health
+    // endpoint so they can verify recovery the moment the operator
+    // fixes it. Disconnect stays available as a quiet escape hatch.
+    return (
+      <div className="flex shrink-0 items-center gap-3">
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${tokens.warning.soft}`}
+        >
+          <span className={`h-1.5 w-1.5 rounded-full ${tokens.warning.dot}`} />
+          Needs attention
+        </span>
+        {onRetry && (
+          <button
+            type="button"
+            onClick={onRetry}
+            disabled={retrying}
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border border-black/10 bg-white/70 px-3 py-1.5 text-xs font-medium text-neutral-700 shadow-sm hover:border-black/20 hover:bg-white disabled:cursor-not-allowed disabled:opacity-70 dark:border-white/15 dark:bg-neutral-900/60 dark:text-neutral-200 dark:hover:bg-neutral-900 ${tokens.motion}`}
+          >
+            {retrying ? "Checking…" : "Check again"}
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={onDisconnect}
+          className={`text-xs font-medium text-neutral-500 underline-offset-4 hover:text-neutral-800 hover:underline dark:text-neutral-400 dark:hover:text-neutral-200 ${tokens.motion}`}
+        >
+          Disconnect
+        </button>
+      </div>
+    );
+  }
 
   if (connected) {
     // Compact "Connected" indicator + Disconnect text-button. Keeping the

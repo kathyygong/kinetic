@@ -9,7 +9,6 @@ import { generateTrainingPlan } from "../lib/planGenerator";
 import {
   refreshWeekWithCalendar,
   type DayAvailability,
-  type TravelEvent,
 } from "../lib/planRefresh";
 import type { Goal } from "../lib/types";
 

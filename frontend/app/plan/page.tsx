@@ -32,6 +32,16 @@ import {
   type MidPlanProgress,
   type WorkoutLogEntry,
 } from "@/lib/workoutLog";
+import {
+  buildWeeklyRecalibrationTrace,
+  hasRecalibrationChanges,
+  type WeeklyRecalibrationTrace,
+} from "@/lib/weeklyRecalibrationTrace";
+import {
+  fetchWeeklyReasoning,
+  type WeeklyReasoningResponse,
+} from "@/lib/api";
+import { trackProductEvent } from "@/lib/instrumentation";
 
 // Until we track a real plan start date, week 1 is "this week".
 const CURRENT_WEEK = 1;
@@ -115,6 +125,17 @@ export default function PlanPage() {
           plan={plan}
           planStart={savedPlan?.planStart ?? startOfWeek().toISOString()}
           log={workoutLog}
+        />
+      ) : null}
+
+      {/* Premium read on this week's adaptation. Renders a deterministic */}
+      {/* "currently aligned" message when there are no week-1 changes,  */}
+      {/* otherwise calls /weekly-reasoning for the LLM-generated story. */}
+      {goal ? (
+        <ThisWeeksAdaptationCard
+          goal={goal}
+          profile={profile}
+          savedPlan={savedPlan}
         />
       ) : null}
 
@@ -501,6 +522,236 @@ function ProjectedRaceCard({ goal }: { goal: Goal }) {
           Based on your current fitness and a full training block.
         </p>
       )}
+    </GlassCard>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// ThisWeeksAdaptationCard
+// ---------------------------------------------------------------------------
+//
+// Premium read on how the plan moved this week. Builds a local trace by
+// diffing the deterministic base week against `savedPlan.weeks[0]`,
+// short-circuits to a calm "aligned" message when nothing changed, and
+// otherwise hits `POST /weekly-reasoning` for an LLM-written summary
+// (changes, preserved workouts, tradeoff, confidence note).
+//
+// We render across four states:
+//
+//   - Hydrating: no goal yet → nothing rendered (parent gate)
+//   - No changes: success-toned single line, the exact spec copy
+//   - Loading: subdued skeleton with the eyebrow preserved
+//   - Loaded: the five-field premium card
+//   - Error: silent fallback to the no-changes copy so the page is never
+//     visually broken if the backend is offline. The detail-level
+//     `CalendarAwareBanner` below still surfaces the raw bullets in that
+//     case, so no information is lost.
+//
+function ThisWeeksAdaptationCard({
+  goal,
+  profile,
+  savedPlan,
+}: {
+  goal: Goal;
+  profile: UserProfile | null;
+  savedPlan: SavedPlan | null;
+}) {
+  const trace = useMemo<WeeklyRecalibrationTrace | null>(() => {
+    if (!savedPlan) return null;
+    if (savedPlan.goalSig !== planSignature(goal, profile)) return null;
+    const adjustedWeek = savedPlan.weeks[0];
+    if (!adjustedWeek) return null;
+    const baseWeeks = applyPreferredDays(
+      generateTrainingPlan(goal),
+      profile?.preferred_training_days,
+    );
+    const originalWeek = baseWeeks[0];
+    if (!originalWeek) return null;
+    return buildWeeklyRecalibrationTrace({
+      originalWeek,
+      adjustedWeek,
+      reasoning: savedPlan.reasoning ?? [],
+      easyOnlyDays: (savedPlan.easyOnlyDays ?? []).filter(
+        (e) => e.weekIndex === 0,
+      ),
+    });
+  }, [goal, profile, savedPlan]);
+
+  const aligned = !trace || !hasRecalibrationChanges(trace);
+
+  const [reasoning, setReasoning] = useState<WeeklyReasoningResponse | null>(
+    null,
+  );
+  const [loading, setLoading] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  // Refetch whenever the trace meaningfully changes. We key off a stable
+  // JSON serialisation so React doesn't refire for identity-only changes
+  // (the memo above already protects us, but this keeps the effect
+  // honest if upstream ever drops memoisation).
+  const traceKey = useMemo(
+    () => (trace && !aligned ? JSON.stringify(trace) : null),
+    [trace, aligned],
+  );
+
+  useEffect(() => {
+    if (!traceKey || !trace) return;
+    let cancelled = false;
+    const startedAt = performance.now();
+    setLoading(true);
+    setFailed(false);
+    fetchWeeklyReasoning(trace)
+      .then((res) => {
+        if (!cancelled) {
+          setReasoning(res);
+          trackProductEvent("ai_reasoning_completed", {
+            surface: "plan_weekly",
+            outcome: "success",
+            ui_fallback_used: false,
+            latency_ms: Math.round(performance.now() - startedAt),
+            modified_workout_count: trace.modified_workouts.length,
+            dropped_workout_count: trace.dropped_workouts.length,
+            preserved_workout_count: trace.preserved_workouts.length,
+          });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setFailed(true);
+          trackProductEvent("ai_reasoning_completed", {
+            surface: "plan_weekly",
+            outcome: "client_fallback",
+            ui_fallback_used: true,
+            latency_ms: Math.round(performance.now() - startedAt),
+            modified_workout_count: trace.modified_workouts.length,
+            dropped_workout_count: trace.dropped_workouts.length,
+            preserved_workout_count: trace.preserved_workouts.length,
+          });
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [traceKey, trace]);
+
+  // No recalibration this week → calm, premium one-liner.
+  if (aligned) {
+    return (
+      <GlassCard interactive={false} className="mb-8 p-6">
+        <p className="text-xs font-medium uppercase tracking-[0.24em] text-neutral-500">
+          This week&apos;s adaptation
+        </p>
+        <p className="mt-3 text-sm text-gray-700 dark:text-gray-300">
+          Your plan is currently aligned with your schedule.
+        </p>
+      </GlassCard>
+    );
+  }
+
+  // Loading the LLM read — keep the eyebrow stable so the layout
+  // doesn't jitter when the response lands.
+  if (loading || (!reasoning && !failed)) {
+    return (
+      <GlassCard interactive={false} className="mb-8 p-6">
+        <p className="text-xs font-medium uppercase tracking-[0.24em] text-neutral-500">
+          This week&apos;s adaptation
+        </p>
+        <div className="mt-4 space-y-2.5" aria-busy="true">
+          <div className="h-3 w-3/4 animate-pulse rounded bg-neutral-200/70 dark:bg-neutral-800/70" />
+          <div className="h-3 w-2/3 animate-pulse rounded bg-neutral-200/70 dark:bg-neutral-800/70" />
+          <div className="h-3 w-1/2 animate-pulse rounded bg-neutral-200/70 dark:bg-neutral-800/70" />
+        </div>
+        <p className="mt-4 text-xs text-neutral-500">
+          Reading this week…
+        </p>
+      </GlassCard>
+    );
+  }
+
+  // Backend unreachable → fall back to the spec copy. The detail-level
+  // CalendarAwareBanner still renders below.
+  if (failed || !reasoning) {
+    return (
+      <GlassCard interactive={false} className="mb-8 p-6">
+        <p className="text-xs font-medium uppercase tracking-[0.24em] text-neutral-500">
+          This week&apos;s adaptation
+        </p>
+        <p className="mt-3 text-sm text-gray-700 dark:text-gray-300">
+          Your plan is currently aligned with your schedule.
+        </p>
+      </GlassCard>
+    );
+  }
+
+  return (
+    <GlassCard interactive={false} className="mb-8 p-6">
+      <header className="flex items-center gap-2">
+        <span
+          className={`h-1.5 w-1.5 rounded-full ${tokens.primary.dot}`}
+          aria-hidden
+        />
+        <p className="text-xs font-medium uppercase tracking-[0.24em] text-neutral-500">
+          This week&apos;s adaptation
+        </p>
+      </header>
+
+      <p className="mt-3 text-[15px] leading-relaxed text-neutral-900 dark:text-neutral-100">
+        {reasoning.summary}
+      </p>
+
+      {reasoning.changes.length > 0 ? (
+        <ul className="mt-5 space-y-3">
+          {reasoning.changes.map((c, i) => (
+            <li key={i} className="flex gap-3">
+              <span
+                className={`mt-2 h-1 w-1 shrink-0 rounded-full ${tokens.primary.dot}`}
+                aria-hidden
+              />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                  {c.title}
+                </p>
+                <p className="mt-0.5 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+                  {c.explanation}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      {reasoning.preserved.length > 0 ? (
+        <div className="mt-5">
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-neutral-500">
+            Preserved
+          </p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {reasoning.preserved.map((p, i) => (
+              <span
+                key={i}
+                className={`rounded-full border px-2.5 py-1 text-xs ${tokens.success.soft}`}
+              >
+                {p}
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {reasoning.tradeoff ? (
+        <p className="mt-5 border-t border-black/5 pt-4 text-sm italic text-gray-600 dark:border-white/10 dark:text-gray-400">
+          {reasoning.tradeoff}
+        </p>
+      ) : null}
+
+      {reasoning.confidence_note ? (
+        <p className="mt-3 text-xs text-neutral-500">
+          {reasoning.confidence_note}
+        </p>
+      ) : null}
     </GlassCard>
   );
 }

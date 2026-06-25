@@ -4,31 +4,33 @@
 
 [![Project Status: Active Development](https://img.shields.io/badge/Status-Active%20Development-green)](https://github.com/kathyygong/kinetic)
 
+Product requirements live in [PRD.md](./PRD.md), and the execution plan lives in [BUILD_PLAN.md](./BUILD_PLAN.md). The product philosophy and AI systems rationale live in [productreasoning](./productreasoning).
+
 ## 🏃 The Problem
 Most running apps provide static plans that exist in a vacuum. When life happens (e.g. a late-night meeting, poor sleep, or an unexpected trip) the plan breaks. Users are left to manually adjust their training or, more often, lose consistency and abandon the plan entirely.
 
 **Kinetic** solves the "Consistency Gap" by transforming the training plan from a static document into a dynamic, living agent that responds to a user's real-time constraints.
 
-## ✨ Key Product Features
-* **Three-Tier Calendar Sync:** * **Strategic (Months):** Pre-builds plans around known blockers (vacations, busy work cycles, or travel).
-    * **Tactical (Weekly):** Updates the upcoming week's mileage based on current availability.
-    * **Reactive (24-Hour):** Adjusts or swaps workouts in real-time for last-minute schedule shifts.
-* **Biometric Throttling:** Integrates recovery data (Heart Rate Variability, Sleep) to automatically "throttle" intensity, prioritizing long-term injury prevention over rigid adherence to a schedule.
-* **Adaptive Recovery Logic:** If a workout is missed, Kinetic doesn't just "push it to tomorrow." It re-optimizes the entire week's load to maintain the physiological objective of the training block.
+## ✨ Current Product Direction
+* **Deterministic Training Core:** Generates and adjusts running plans with explicit safety constraints, including mileage progression and recovery-aware workout selection.
+* **Calendar-Aware Adjustment:** Uses schedule constraints to adapt the upcoming week while keeping the plan explainable and user-controlled.
+* **Manual Readiness Input:** Lets runners log sleep, soreness, stress, and recovery signals without requiring wearable integrations for the demo.
+* **Grounded AI Reasoning:** Uses bounded reasoning for decision explanations, recalibration summaries, behavior patterns, and evals. Deterministic validation remains the authority for plan changes.
+* **Offline-Friendly Demo:** Supports deterministic fallback behavior so the demo does not require paid hosted AI.
 
 ## 🛠 The AI Stack & Strategy
-Kinetic is built to explore the frontier of **AI-assisted development** and **Agentic Orchestration**.
+Kinetic is designed as a hybrid deterministic + AI product.
 
-* **Antigravity (AI Orchestration):** Used to build the core "reasoning engine." Rather than a simple decision tree, Antigravity allows the app to treat the training plan as a multi-variable optimization problem, synthesizing calendar data and biometrics into actionable plan shifts.
-* **LLM-as-a-Judge (Evaluation Strategy):** Engineered an automated evaluation framework to benchmark plan safety. Every generated workout is "judged" by a secondary model against sports science constraints (e.g., preventing excessive weekly mileage spikes) to ensure plan integrity and prevent hallucinated overtraining.
-* **Cursor (Development Velocity):** Leveraged AI-native pair programming to move from PRD to a functional full-stack MVP in weeks. This allowed for a "Product-First" development cycle, focusing on core logic and backend architecture.
-* **Constraint-Based Logic:** Designed prompts and logic layers to ensure outputs remain grounded in sports science principles (e.g., adhering to the 10% rule for weekly mileage increases).
+* **Deterministic Safety Layer:** Owns training changes, safety caps, and persisted workout decisions.
+* **Reasoning Layer:** Produces typed, schema-validated explanations and summaries that are safe to ignore or regenerate.
+* **AI Runtime Modes:** Supports fallback, disabled, and optional local Ollama modes, reported through `GET /ai/status`.
+* **Eval Harness:** Tests AI boundaries, fallback behavior, sparse-data warnings, schema validity, no medical claims, and no-drift guarantees before demo ship.
 
 ## 📈 Roadmap & Product Evolution
-- [X] **Phase 1 (MVP):** Direct Google Calendar integration and automated rescheduling logic.
-- [X] **Phase 2:** Biometric integration (Apple HealthKit) for automated intensity throttling.
-- [X] **Phase 3:** "Contextual Grounding" using RAG (Retrieval-Augmented Generation) to allow the AI to "remember" a user's past performance trends and preferred workout types.
-- [ ] **Phase 4:** Mobile app with Apple Health integration for automatic biometric data retrieval.
+- [X] **Foundation:** Deterministic planning, calendar-aware adjustment, manual readiness flows, and core API/frontend surfaces.
+- [ ] **Shippable Demo:** AI status visibility, hardened explanation/fallback flows, dashboard UI vertical slice, seed/reset controls, and eval report.
+- [ ] **Beta-Ready Foundation:** Firebase persistence, security rules, privacy-conscious instrumentation, and broader UI polish.
+- [ ] **Later Integrations:** Native mobile app, Apple Health/Garmin/Oura ingestion, hosted AI provider option, coach sharing, and push notifications.
 ---
 
 # 👩‍💻 About the Author

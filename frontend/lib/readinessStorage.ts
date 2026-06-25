@@ -212,6 +212,16 @@ export function clearReadinessForDate(date: string): void {
   saveReadinessLog(log);
 }
 
+/** Remove every manual readiness entry. Used by repeatable demo reset. */
+export function clearReadinessLog(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(READINESS_STORAGE_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 // --- Validation ------------------------------------------------------------
 
 function isReadinessLog(value: unknown): value is ReadinessLog {

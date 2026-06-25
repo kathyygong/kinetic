@@ -76,6 +76,16 @@ export function markRanAt(check: ScheduleCheck, now: Date = new Date()): void {
   writeState(state);
 }
 
+/** Clear all remembered scheduled-check timestamps. Used by demo reset. */
+export function clearScheduleState(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 /** Human-friendly reason text for a due check (for the suggestion card). */
 export function checkReason(check: ScheduleCheck): string {
   switch (check) {
