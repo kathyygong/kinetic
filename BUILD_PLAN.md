@@ -309,13 +309,13 @@ Implemented as domain slices; emulator execution remains a beta gate.
 - Existing storage helpers remain local-first and mirror writes in the background; unavailable Firebase never blocks the recommendation flow.
 - Remote records live under `users/{uid}/kinetic/{domain}`. The local cache records its authenticated owner and is cleared before a different UID hydrates, preventing cross-user migration.
 - Added `firestore.rules` with authenticated owner-only access and default denial, plus `firebase.json`.
-- Added persistence smoke coverage for migration, UID isolation, remote hydration, offline behavior, and deletion tombstones.
-- Added a Firestore emulator test for owner access, cross-user denial, and guest denial. The test is checked in as `npm run test:firestore-rules`; it could not be executed in this environment because `firebase-tools` is not installed and package download permission was unavailable.
+- Added persistence smoke coverage for migration, authenticated cache-owner switching, UID isolation, remote hydration, offline behavior, and deletion tombstones.
+- Added a Firestore emulator test for owner access, cross-user denial, guest denial, and unknown-domain denial. The test is checked in as `npm run test:firestore-rules`. An ephemeral Firebase CLI was downloaded successfully on 2026-06-27, but the emulator could not start because Java is not installed on this machine (`spawn java ENOENT`).
 - Added a Profile data-control action that clears local training state and the signed-in Firebase mirror. Existing demo reset, learning reset, and integration disconnect controls remain available.
 
 Beta-ready gate still open:
 
-- Run `npm run test:firestore-rules` inside the Firebase emulator and capture a passing result.
+- Install a supported Java runtime, then run `npx firebase-tools emulators:exec --project kinetic-rules-test --only auth,firestore "npm --prefix frontend run test:firestore-rules"` and capture a passing result.
 - Complete an authenticated two-session browser test against a configured Firebase project or emulator.
 
 ## Phase 4: AI Expansion
@@ -438,7 +438,7 @@ Start with the Dashboard vertical slice in Phase 2. Do not rewrite every page un
 
 ### Status - Updated 2026-06-27
 
-Implementation complete. Core visual system is proven and rolled out across all primary pages. The worktree remains uncommitted only because this environment cannot write `.git/index.lock`.
+Implementation complete. Core visual system is proven and rolled out across all primary pages and checkpointed with the persistence/memory vertical slice.
 
 Direction decisions:
 
@@ -622,12 +622,13 @@ Demo packaging is complete.
 
 ## Worktree Checkpoint - Updated 2026-06-27
 
-Reviewed, but commit is blocked by repository permissions in this environment.
+Reviewed and checkpointed.
 
 - `git status --short` and `git diff --check` were run before implementation.
 - `.edge-qa*` profiles and temporary screenshots were left untouched and must remain excluded from any product commit.
 - Product changes were reviewed as UI, persistence/memory, What-if/evals, and documentation slices.
-- A selective commit was attempted, but Git could not create `.git/index.lock`; the environment denied the required elevated write. No commit was fabricated and no user artifact was deleted.
+- The reviewed UI, persistence/memory, What-if/eval, and documentation slices were selectively committed as `5d13c38`.
+- No user artifact was deleted.
 
 ## Backend Local Start Checkpoint - Updated 2026-06-25
 
@@ -658,4 +659,4 @@ Completed.
 - Local Ollama can be slow; every user-facing AI path must remain async or fallback-safe.
 - Natural-language intake and training summaries remain intentionally behind the current authenticated persistence/QA gate.
 - Firebase persistence is not beta-ready until the checked-in emulator test passes and authenticated cross-session/deletion behavior is verified live.
-- The current product work remains uncommitted because `.git` is read-only to this execution environment; QA profiles/screenshots must not be staged with it.
+- `.edge-qa*` profiles and temporary screenshots remain intentionally untracked and must not be included in product commits.

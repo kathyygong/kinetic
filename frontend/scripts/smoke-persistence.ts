@@ -50,6 +50,10 @@ async function main() {
   const { createStorageRepository } = await import(
     "../lib/persistence/storageRepository"
   );
+  const {
+    claimLocalCacheForUser,
+    prepareLocalCacheForUser,
+  } = await import("../lib/persistence/localCacheOwnership");
   const repository = createStorageRepository<{ name: string }>({
     domain: "profile",
     storageKey: "kinetic_profile",
@@ -97,6 +101,33 @@ async function main() {
   expect(
     repository.readLocal() === null,
     "remote tombstones must prevent stale local re-migration",
+  );
+
+  let cacheClears = 0;
+  expect(
+    prepareLocalCacheForUser(localStorage, "runner-a", () => {
+      cacheClears += 1;
+    }) === "unowned",
+    "an unowned demo cache should be eligible for first-user migration",
+  );
+  expect(cacheClears === 0, "first-user migration must preserve local data");
+  claimLocalCacheForUser(localStorage, "runner-a");
+  expect(
+    prepareLocalCacheForUser(localStorage, "runner-a", () => {
+      cacheClears += 1;
+    }) === "same-user",
+    "the same user should retain their offline cache",
+  );
+  expect(cacheClears === 0, "same-user hydration must preserve local data");
+  expect(
+    prepareLocalCacheForUser(localStorage, "runner-b", () => {
+      cacheClears += 1;
+    }) === "switched-user",
+    "a new UID should be recognized as a user switch",
+  );
+  expect(
+    cacheClears === 1,
+    "switching UIDs must clear the previous user's training cache",
   );
 
   console.log("OK - local-first persistence is isolated and idempotent");

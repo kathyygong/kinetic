@@ -15,9 +15,12 @@ import {
   type RemoteDocumentStore,
   type StorageRepository,
 } from "@/lib/persistence/storageRepository";
+import {
+  claimLocalCacheForUser,
+  prepareLocalCacheForUser,
+} from "@/lib/persistence/localCacheOwnership";
 
 type JsonValue = unknown;
-const LOCAL_OWNER_KEY = "kinetic_persistence_owner_uid";
 
 const DOMAIN_KEYS: Array<{
   domain: PersistenceDomain;
@@ -97,10 +100,9 @@ const byStorageKey = new Map<string, StorageRepository<JsonValue>>(
 );
 
 export async function hydrateUserStorage(userId: string): Promise<void> {
-  const previousOwner = window.localStorage.getItem(LOCAL_OWNER_KEY);
-  if (previousOwner && previousOwner !== userId) {
+  prepareLocalCacheForUser(window.localStorage, userId, () => {
     repositories.forEach((repository) => repository.clearLocal());
-  }
+  });
 
   await Promise.all(
     repositories.map(async (repository) => {
@@ -112,7 +114,7 @@ export async function hydrateUserStorage(userId: string): Promise<void> {
     }),
   );
 
-  window.localStorage.setItem(LOCAL_OWNER_KEY, userId);
+  claimLocalCacheForUser(window.localStorage, userId);
 }
 
 export function mirrorPersistedStorageKey(storageKey: string): void {
