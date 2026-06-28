@@ -15,7 +15,9 @@
 // localStorage). Callers run the check on mount and persist the
 // timestamp via `markRanAt`.
 
-const STORAGE_KEY = "kinetic_schedule";
+import { mirrorLocalStorageKey } from "./persistence/mirror";
+
+export const STORAGE_KEY = "kinetic_schedule";
 
 type ScheduleState = {
   /** ISO date (YYYY-MM-DD) of the last weekly refresh. */
@@ -81,6 +83,7 @@ export function clearScheduleState(): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.removeItem(STORAGE_KEY);
+    mirrorLocalStorageKey(STORAGE_KEY);
   } catch {
     // ignore
   }
@@ -148,6 +151,7 @@ function writeState(state: ScheduleState): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    mirrorLocalStorageKey(STORAGE_KEY);
   } catch {
     // ignore (private mode, quota)
   }

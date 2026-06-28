@@ -14,7 +14,9 @@
 // Keeping this in its own tiny store makes the dashboard hydration
 // deterministic without coupling it to the plan's shape.
 
-const STORAGE_KEY = "kinetic_today_completion";
+import { mirrorLocalStorageKey } from "./persistence/mirror";
+
+export const STORAGE_KEY = "kinetic_today_completion";
 
 export type ResponseStatus = "pending" | "accepted" | "rejected";
 export type CompletionStatus = "pending" | "completed" | "skipped";
@@ -76,6 +78,7 @@ export function setTodayCompletion(
       ...patch,
     };
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    mirrorLocalStorageKey(STORAGE_KEY);
   } catch {
     // ignore — non-fatal, the in-memory state still reflects the click
   }
@@ -87,6 +90,7 @@ export function clearTodayCompletion(): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.removeItem(STORAGE_KEY);
+    mirrorLocalStorageKey(STORAGE_KEY);
   } catch {
     // ignore
   }

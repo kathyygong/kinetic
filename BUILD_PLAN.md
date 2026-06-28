@@ -5,7 +5,7 @@
 Turn Kinetic into a resume-grade shippable demo with a beta-ready foundation:
 
 - Fast deterministic training decisions.
-- A grounded AI layer for explanation, recalibration summaries, behavior learning, and evals, with intake, what-if analysis, and broader training summaries staged for later.
+- A grounded AI layer for explanation, recalibration summaries, behavior learning, read-only what-if analysis, and evals, with intake and broader training summaries staged for later.
 - No paid AI dependency.
 - A polished Apple-inspired UI/UX refresh.
 - Honest documentation and repeatable verification.
@@ -77,7 +77,7 @@ Make the repo reliable enough to change quickly without guessing whether failure
 - Frontend production build does not require network access for fonts.
 - Backend smoke tests run with demo/fallback AI mode.
 
-### Status - Updated 2026-06-25
+### Status - Updated 2026-06-26
 
 Completed.
 
@@ -128,13 +128,14 @@ Make the product story clear, honest, and interview-ready.
 - README links to PRD and build plan.
 - The AI claims do not overstate autonomy or production readiness.
 
-### Status - Updated 2026-06-25
+### Status - Updated 2026-06-27
 
-Checkpoint complete.
+Completed for the shippable demo.
 
-- README now links to PRD, BUILD_PLAN, and `productreasoning`.
-- README describes FastAPI, Next.js, Firebase auth, deterministic decisioning, AI runtime modes, and eval/smoke checks without presenting future integrations as complete.
-- Remaining documentation polish belongs to demo packaging: concise architecture diagram/README section and a tighter walkthrough script once the dashboard vertical slice is visually final.
+- README links to PRD, BUILD_PLAN, `productreasoning`, the architecture summary, demo walkthrough, and generated eval report.
+- [ARCHITECTURE.md](./ARCHITECTURE.md) documents the deterministic authority boundary, optional AI runtime, local-first persistence, and verification model.
+- [DEMO_SCRIPT.md](./DEMO_SCRIPT.md) provides a focused five-minute walkthrough.
+- README now separates completed demo capabilities from beta work and does not present future integrations as complete.
 
 ## Phase 2: Demo Ship Vertical Slice
 
@@ -243,12 +244,10 @@ Fixed: rest-day reasoning/decision consistency (2026-06-25).
 - Verified live: hero "Rest day · no workout scheduled" now matches the reasoning ("Today is a scheduled rest day — easy mobility or a walk at most…", "…a scheduled rest day banks that freshness…", "75 minutes free, but today's a rest day — spend it recovering…", "A scheduled recovery day — planned rest is part of how the block builds.").
 - Checks: `npm run lint` clean, `npm run build` succeeded (all 16 routes), `npm run smoke` all suites passed. Only `frontend/app/dashboard/page.tsx` changed; backend code untouched (the fix relies on existing `/decision` echo behavior).
 
-Still to implement or verify.
+Remaining optional demo enhancements:
 
-- Hero primary CTA is still below the desktop fold; bringing it fully above the fold needs section reordering, which is a broader layout change deferred out of this scoped QA pass.
-- Decide whether `LiquidSurface` / `FloatingMetric` should be reused on Plan/Profile before broad UI refresh work.
-- Optional debug/export UI for the local instrumentation log, if useful for the demo walkthrough.
-- Optional local Ollama eval/reporting path for live AI demo mode.
+- Optional debug/export UI for the privacy-filtered local instrumentation log.
+- Optional local Ollama benchmark report; it remains separate from the deterministic release gate.
 
 ### Acceptance Criteria
 
@@ -301,6 +300,24 @@ Move from local-only state toward beta-ready authenticated persistence while tre
 - No training recommendation depends on unavailable remote persistence.
 - Sensitive/raw health-adjacent data is not written into analytics events.
 
+### Status - Updated 2026-06-27
+
+Implemented as domain slices; emulator execution remains a beta gate.
+
+- Added the generic `StorageRepository<T>` contract with synchronous local reads/writes, asynchronous remote mirroring, Firebase hydration, idempotent migration markers, and deletion tombstones.
+- Added Firebase-backed repositories for profile/goal, plan/readiness/workout log, recommendation history/preferences, today completion, and calendar-freshness metadata.
+- Existing storage helpers remain local-first and mirror writes in the background; unavailable Firebase never blocks the recommendation flow.
+- Remote records live under `users/{uid}/kinetic/{domain}`. The local cache records its authenticated owner and is cleared before a different UID hydrates, preventing cross-user migration.
+- Added `firestore.rules` with authenticated owner-only access and default denial, plus `firebase.json`.
+- Added persistence smoke coverage for migration, UID isolation, remote hydration, offline behavior, and deletion tombstones.
+- Added a Firestore emulator test for owner access, cross-user denial, and guest denial. The test is checked in as `npm run test:firestore-rules`; it could not be executed in this environment because `firebase-tools` is not installed and package download permission was unavailable.
+- Added a Profile data-control action that clears local training state and the signed-in Firebase mirror. Existing demo reset, learning reset, and integration disconnect controls remain available.
+
+Beta-ready gate still open:
+
+- Run `npm run test:firestore-rules` inside the Firebase emulator and capture a passing result.
+- Complete an authenticated two-session browser test against a configured Firebase project or emulator.
+
 ## Phase 4: AI Expansion
 
 ### Objectives
@@ -348,6 +365,15 @@ Preserve the first wedge from Phase 2: daily reasoning, weekly recalibration, an
 - AI output cannot directly mutate a plan.
 - AI can be demonstrated live at no cost with local Ollama.
 
+### Status - Updated 2026-06-27
+
+What-if vertical slice completed; later workflows remain intentionally sequenced.
+
+- Added deterministic, pure What-if simulation on Plan. It previews day, duration, and easy-only changes without mutating the saved plan.
+- Added `POST /ai/what-if` with a typed `what-if.v1` envelope, explicit deterministic grounding, timeout protection, and the existing bounded weekly reasoning fallback.
+- Added malformed-output and timeout eval cases and frontend no-mutation smoke coverage.
+- Natural-language intake and weekly/monthly training summaries remain the next AI workflows. They will not begin until the persistence/memory and authenticated QA gates are closed.
+
 ## Phase 5: Full UI/UX Refresh
 
 ### Objectives
@@ -367,7 +393,6 @@ Scale the validated Dashboard visual system across the app, borrowing interactio
 ### Reusable UI Primitives
 
 - `LiquidSurface`
-- `ProductStage`
 - `FloatingMetric`
 - `HighlightRail`
 - `RevealSection`
@@ -410,6 +435,70 @@ Start with the Dashboard vertical slice in Phase 2. Do not rewrite every page un
 - Dashboard, Plan, Profile, Recovery, Onboarding, and Login pass desktop/mobile visual QA.
 - No core interaction is hidden behind decorative motion.
 - The demo feels polished within the first viewport.
+
+### Status - Updated 2026-06-27
+
+Implementation complete. Core visual system is proven and rolled out across all primary pages. The worktree remains uncommitted only because this environment cannot write `.git/index.lock`.
+
+Direction decisions:
+
+- Palette is **blue** (system-wide). A bold lavender variant was prototyped to prove the floating-card effect, then fully reverted per user direction — color was not the point; the substantive design patterns were.
+- The two core elements the user prioritized are **real athletic photography** and **Apple-style scroll-reveal**, applied across pages so nothing feels half-updated.
+
+Primitives:
+
+- Built/validated: `LiquidSurface`, `FloatingMetric`, `AIStatusBadge`, `RevealSection` (scroll-linked fade/lift/settle, `prefers-reduced-motion` aware; uses a module-scope `MOTION_TAGS` map to avoid the `react-hooks/static-components` lint error), `MetricArc` (semicircle gauge), `HighlightRail`, and `PhoneFrame`.
+- New: `AthleticImage` — full-bleed `next/image` frame with a blue duotone wash (`bg-blue-600/12 mix-blend-multiply`), bottom-up legibility gradient, slow hover zoom (motion-reduce guarded), and an editorial overlay (gradient eyebrow dot + `h2` title + subtitle). Height is set by the caller via `className`.
+- New: `KineticPreviewStack` — photo-backed onboarding product stage built from `AthleticImage` + three compact `PhoneFrame` previews; side screens collapse away on narrow mobile.
+- `ProductStage` was removed from the backlog; the established primitives already cover that role without another overlapping abstraction.
+
+Assets: 4 verified running photos in `frontend/public/images/athletic/` — `track-lanes.jpg` (blue dawn silhouette, primary hero), `runner-trail.jpg` (blue-sky road), `runner-track.jpg` (aerial track), `runner-sunset.jpg` (mountain trail). A shoe photo was removed (visible trademark + off-palette).
+
+Page work landed:
+
+- Dashboard: `MetricArc` recovery gauge as the stage centerpiece; editorial headlines + gradient eyebrow dots; canvas/blob/shadow palette on blue. Mount-stagger (not scroll-reveal) since it's above the fold.
+- Dashboard follow-up: recommendation now leads the page as a wider photo-backed `LiquidSurface` stage using `AthleticImage` (`track-lanes.jpg`), with week context and demo tooling moved below the primary workout moment. Added a dashboard `HighlightRail` for action/recovery/window/week signals, tightened the greeting scale, removed tight/negative heading letter-spacing from the dashboard/image/rail path, and made the workout breakdown horizontally safe on narrow screens.
+- Mobile app-shell follow-up: authenticated routes now use a fixed 64px left navigation rail below `sm`, replacing the duplicated mobile top header. The rail owns the Kinetic home mark at the top, icon + label destinations in the middle (`Today`, `Plan`, `Recovery`, `Settings`), and the signed-in profile avatar at the bottom. The content lane reserves the rail width plus matching 16px left/right outer gutters; desktop keeps the existing horizontal top navigation. `lucide-react` was added for familiar navigation icons. `KineticLogo` now generates a unique SVG gradient ID per instance so hidden desktop/mobile instances cannot collide.
+- Narrow-screen resilience: the dashboard photo stage and headings were tightened for the reduced content lane, while `MetricArc` and `StrideWave` now scale to their containers instead of overflowing fixed pixel widths.
+- Login: split hero — blue dawn-silhouette `AthleticImage` beside the form card (`lg` grid; image hidden on mobile to keep auth fast).
+- Plan: `runner-sunset` banner header ("The Plan") + Apple-style `HighlightRail` block summary + every section wrapped in `RevealSection` + per-week list reveals.
+- Recovery: `runner-trail` banner header + reveals on the metric cards (kept the existing centered `ProgressRing` score hero).
+- Profile: `runner-track` cover banner inside the existing mount-stagger.
+- Onboarding welcome: `runner-sunset` `KineticPreviewStack` under the stride wave, with layered phone-like product previews inspired by the pasted fitness mockup.
+- Settings: `track-lanes` banner header.
+- Onboarding step forms (`goal`/`integrations`/`preview`/`prs`) intentionally left clean to keep the flow focused.
+
+Validation: `npm run lint`, `npm run build` (16 routes), `npm run smoke`, and the escape-corruption scan are green. Live browser QA confirmed the login split-hero and plan banner render correctly on the blue canvas; the later responsive sweep below covered the newest dashboard shell, mobile rail, onboarding stack, and plan rail.
+
+Bug fixed during QA: `WeekCard` rendered its own `<li>`, so wrapping it in `RevealSection as="li"` produced nested `<li>` (hydration error). Fixed by making the `RevealSection` the list item and removing `WeekCard`'s inner `<li>`.
+
+Completed: responsive visual QA and scoped usability follow-up (2026-06-27).
+
+- Ran the requested route sweep at desktop (1440x900), tablet (1024x768), 375x812, and 320x568. Plan, Recovery, Profile, Settings, Login, and Onboarding rendered in the isolated browser; Dashboard correctly redirected the signed-out session to Login, so its authenticated stage still relies on the prior 2026-06-25 live pass plus the strict-auth follow-up noted below.
+- Verified the mobile shell geometry at true CSS viewport sizes:
+  - fixed rail is 64px wide and full viewport height
+  - content starts at 80px and ends 16px before the viewport edge
+  - app content width is 279px at 375 and 224px at 320
+  - Plan / Recovery / Settings active states expose `aria-current="page"` live; Today uses the same mapped branch and was reviewed structurally because Dashboard requires authentication
+  - rail destinations are 51x56px and the logo target is 51x64px
+  - the bottom sign-in/profile slot remains anchored by the rail's `mt-auto` section
+- Verified `documentElement.scrollWidth === innerWidth` on every requested route at 375px and 320px. No content text crossed the viewport bounds; the only intentionally off-canvas elements are the fixed, pointer-events-none ambient gradient blobs.
+- Verified the photo-overlay headlines and subtitles remain legible and wrap cleanly on Recovery, Profile, and Settings down to 320px; desktop/tablet Login and Recovery also retain clear image/form hierarchy.
+- Fixed onboarding's mobile CTA hierarchy by moving **Get started** ahead of `KineticPreviewStack`. The CTA is now visible in the first viewport at both narrow sizes (y=398 at 320px; y=403 at 375px).
+- Added a mobile 44px minimum control height within `#app-content`, without changing the 56px rail rows or compact desktop treatment.
+- Rebuilt Recovery's fatigue/soreness range styling so the visual track stays 6px while the interactive target is 44px high.
+- Tightened the narrow Recovery sleep fields: labels carry the unit context, redundant inline suffixes hide below `sm`, and both inputs retain readable values with at least a 24px-wide by 44px-high target at 320px.
+- The isolated QA browser intentionally did not import an authenticated Firebase profile. The live rail check therefore exercised the bottom **Sign in** fallback; the authenticated avatar uses the same anchored container and was verified structurally in `top-nav.tsx`, but an end-to-end signed-in avatar session remains part of the broader strict-auth browser check.
+- Post-fix validation is green: `npm run lint`, `npm run build` (16 static pages), and `npm run smoke` (9 suites).
+
+Remaining for Phase 5:
+
+- Authenticated Dashboard/avatar browser QA and a live dark-mode pass remain open because the in-app browser has not exposed a reusable signed-in session.
+- `AthleticImage` now supports a configurable `h1`/`h2`; page banners use `h1`.
+- Image priority was audited: visible page heroes remain priority while the below-fold onboarding preview no longer preloads.
+- Plan now includes the What-if panel.
+- Profile now includes the training-memory center with confirmed preferences, tentative patterns, confidence/support context, sparse-history messaging, confirm/dismiss/remove/clear controls, and repository persistence.
+- Recovery freshness/confidence explanation depth remains optional polish.
 
 ## Phase 6: Evals And Verification
 
@@ -475,6 +564,15 @@ Targets:
 - Optional local AI evals do not block baseline CI/dev checks.
 - Failures distinguish product-risk issues from local-model availability.
 
+### Status - Updated 2026-06-27
+
+Baseline deterministic release proof completed.
+
+- Added [EVAL_REPORT.md](./EVAL_REPORT.md), generated by `python -m evals.generate_report`.
+- The current report passes 13 cases covering runtime fallback, daily and weekly schema/safety, no medical claims, no recommendation drift, sparse-history behavior, no AI mutation, What-if no-mutation, malformed output, and timeout fallback.
+- Added frontend smoke suites for persistence migration/deletion, memory lifecycle actions, and deterministic What-if behavior.
+- Optional local Ollama measurements remain informational and do not block the baseline gate.
+
 ## Phase 7: Demo Packaging And Optional Beta Expansion
 
 ### Objectives
@@ -504,35 +602,32 @@ Package the product so it is easy to show, explain, and extend.
 - The architecture story is clear in under two minutes.
 - The next beta steps are obvious and grounded.
 
+### Status - Updated 2026-06-27
+
+Demo packaging is complete.
+
+- Added the architecture summary and five-minute walkthrough.
+- README links directly to the proof artifacts and separates demo-complete from beta work.
+- Added a user-facing training-data deletion control.
+- Deployment/monitoring guidance can expand when a hosted beta target is selected; hosted AI, wearable ingestion, native mobile, and autonomous AI mutation remain out of scope.
+
 ## Execution Order
 
-1. Stabilize build and tooling.
-2. Fix documentation and product claims.
-3. Build the demo ship vertical slice.
-4. Add persistence, security rules, and privacy-conscious instrumentation.
-5. Expand AI beyond the first wedge only after eval gates are stable.
-6. Scale the UI refresh across pages.
-7. Add broader deterministic evals and smoke coverage.
-8. Add demo script and architecture materials.
+1. Close and checkpoint the current UI slice without adding QA artifacts.
+2. Keep the shippable-demo proof green: readable eval report, architecture summary, and five-minute walkthrough.
+3. Build persistence by domain behind the local-first repository boundary; require UID scoping, idempotent migration, offline fallback, rules, and emulator tests.
+4. Deliver training memory on that repository boundary; tentative patterns never score and confirmed preferences remain bounded nudges.
+5. Expand AI one read-only workflow at a time: deterministic What-if plus explanation first, natural-language intake second, and training summaries last.
+6. Do not begin hosted AI, wearable ingestion, native mobile, or autonomous plan mutation.
 
-## Worktree Checkpoint - Updated 2026-06-25
+## Worktree Checkpoint - Updated 2026-06-27
 
-Completed.
+Reviewed, but commit is blocked by repository permissions in this environment.
 
-- `git status --short` was reviewed before continuing Dashboard visual work.
-- No tracked generated artifacts were found.
-- Ignored runtime byproducts are present but already covered by ignore rules:
-  - `backend/.uvicorn.*.log`
-  - backend `__pycache__/` and `.pyc` files
-- Current review buckets:
-  - Build reliability: `.gitignore`, frontend lint/build config, local `tsx`, backend requirements, README reliability notes.
-  - AI runtime/evals: backend AI runtime, LLM client, reasoning/cache modules, safety guards, eval harness, `/ai/status`, frontend API types.
-  - Behavior learning: backend behavior insights/scoring, frontend behavior storage/types, `LearningCard`, confirmed-preference request wiring.
-  - Demo controls: `frontend/lib/demoData.ts`, Dashboard demo toolbar, seed/reset smoke.
-  - Product/UI groundwork: Dashboard/Plan/Profile/Recovery/Settings updates already in the dirty tree.
-  - Docs/source docs: `PRD.md`, `BUILD_PLAN.md`, `README.md`.
-  - Probe scripts: backend local Ollama/decision probe scripts remain untracked and should be reviewed before commit.
-- No files were deleted during this checkpoint; cleanup stayed non-invasive to avoid removing potentially useful local artifacts.
+- `git status --short` and `git diff --check` were run before implementation.
+- `.edge-qa*` profiles and temporary screenshots were left untouched and must remain excluded from any product commit.
+- Product changes were reviewed as UI, persistence/memory, What-if/evals, and documentation slices.
+- A selective commit was attempted, but Git could not create `.git/index.lock`; the environment denied the required elevated write. No commit was fabricated and no user artifact was deleted.
 
 ## Backend Local Start Checkpoint - Updated 2026-06-25
 
@@ -556,11 +651,11 @@ Completed.
 
 ## Current Known Risks
 
-- Several AI and behavior-learning files are currently untracked and should be intentionally reviewed before commit.
 - Strict Firebase auth has been verified only at Admin SDK initialization level; end-to-end signed-in frontend token verification still needs a browser/auth check. Local demo mode can keep `KINETIC_AUTH_REQUIRED=false`.
-- Dashboard browser visual QA was completed (2026-06-25) at desktop (1440x900) and mobile (375x812); three scoped issues (Action-metric truncation, missing reduced-motion handling, first-viewport density) were fixed and verified live. Remaining layout watch items: hero CTA still below the desktop fold (needs section reorder), and `ThisWeekStrip` chips are tight on 375px for long workout labels.
+- Dashboard browser visual QA was completed (2026-06-25) at desktop (1440x900) and mobile (375x812); three scoped issues (Action-metric truncation, missing reduced-motion handling, first-viewport density) were fixed and verified live. The recommendation-first reorder has since addressed the old desktop CTA hierarchy concern. The newer photo-backed shell and mobile left rail received responsive QA on 2026-06-27; the isolated browser could not complete an authenticated Dashboard/avatar walkthrough, so that remains coupled to the strict Firebase auth browser check. `ThisWeekStrip` chips remain a watch item at narrow widths with long workout labels.
 - Local Ollama mode is wired but not performance-tested on this machine; every user-facing path must remain fallback-safe.
 - `npm audit` still reports dependency vulnerabilities from the frontend dependency tree; these have not been triaged yet.
 - Local Ollama can be slow; every user-facing AI path must remain async or fallback-safe.
-- Scope can sprawl if natural-language intake, what-if planning, and training summaries start before the first AI wedge is stable.
-- Firebase persistence is not beta-ready until security rules, reset/delete controls, and privacy boundaries are implemented.
+- Natural-language intake and training summaries remain intentionally behind the current authenticated persistence/QA gate.
+- Firebase persistence is not beta-ready until the checked-in emulator test passes and authenticated cross-session/deletion behavior is verified live.
+- The current product work remains uncommitted because `.git` is read-only to this execution environment; QA profiles/screenshots must not be staged with it.

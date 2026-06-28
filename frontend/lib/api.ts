@@ -198,6 +198,36 @@ export async function fetchBehaviorInsights(
   return (await res.json()) as BehaviorInsightsResponse;
 }
 
+// --- Read-only What-if reasoning -------------------------------------------
+
+export type WhatIfResponse = {
+  mode: AIRuntimeMode;
+  source: string;
+  schema_version: "what-if.v1";
+  grounding: {
+    deterministic_authority: true;
+    fields: string[];
+  };
+  fallback_used: boolean;
+  warnings: string[];
+  simulation: import("@/lib/whatIf").WhatIfSimulation;
+  explanation: import("@/lib/whatIf").WhatIfExplanation;
+};
+
+export async function fetchWhatIfExplanation(
+  simulation: import("@/lib/whatIf").WhatIfSimulation,
+): Promise<WhatIfResponse> {
+  const response = await apiFetch("/ai/what-if", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ simulation }),
+  });
+  if (!response.ok) {
+    throw new Error(`what-if failed: HTTP ${response.status}`);
+  }
+  return (await response.json()) as WhatIfResponse;
+}
+
 // --- AI runtime ------------------------------------------------------------
 
 export type AIRuntimeMode = "fallback" | "local_ollama" | "disabled";

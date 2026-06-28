@@ -1,6 +1,7 @@
 """FastAPI app exposing the Kinetic decision engine."""
 
 import logging
+import copy
 import os
 from dataclasses import asdict
 from typing import List
@@ -261,6 +262,75 @@ def weekly_reasoning(payload: WeeklyReasoningRequest):
         summary = generate_weekly_recalibration_summary({})
 
     return summary
+
+
+class WhatIfRequest(BaseModel):
+    """Read-only deterministic simulation produced by the frontend planner."""
+
+    simulation: dict
+
+
+@app.post("/ai/what-if", dependencies=[RequireAuth])
+def explain_what_if(payload: WhatIfRequest):
+    """Explain, but never apply, a deterministic What-if simulation.
+
+    The adjusted week is already final when it arrives. This handler echoes an
+    immutable copy and asks the bounded weekly reasoning layer only to explain
+    the tradeoff. No storage or plan-mutation code is reachable here.
+    """
+
+    simulation = copy.deepcopy(payload.simulation)
+    original = simulation.get("original_week_plan", [])
+    adjusted = simulation.get("simulated_week_plan", [])
+    adjustments = simulation.get("adjustments", [])
+    preserved = simulation.get("preserved_workouts", [])
+
+    modified = []
+    dropped = []
+    if isinstance(adjustments, list):
+        for adjustment in adjustments:
+            if not isinstance(adjustment, dict):
+                continue
+            if adjustment.get("action") == "dropped":
+                dropped.append(adjustment)
+            elif adjustment.get("action") != "kept":
+                modified.append(adjustment)
+
+    trace = {
+        "original_week_plan": original if isinstance(original, list) else [],
+        "adjusted_week_plan": adjusted if isinstance(adjusted, list) else [],
+        "calendar_changes": [simulation.get("scenario_summary", "")]
+        if simulation.get("scenario_summary")
+        else [],
+        "recovery_trends": [],
+        "preserved_workouts": preserved if isinstance(preserved, list) else [],
+        "modified_workouts": modified,
+        "dropped_workouts": dropped,
+        "confidence": 0.8,
+    }
+    explanation = generate_weekly_recalibration_summary(trace)
+    status = runtime_status()
+
+    return {
+        "mode": status["mode"],
+        "source": status["source"],
+        "schema_version": "what-if.v1",
+        "grounding": {
+            "deterministic_authority": True,
+            "fields": [
+                "original_week_plan",
+                "simulated_week_plan",
+                "adjustments",
+                "scenario_summary",
+            ],
+        },
+        "fallback_used": status["fallback_used"],
+        "warnings": [
+            "Read-only preview. Nothing changes until a deterministic plan action is explicitly accepted."
+        ],
+        "simulation": simulation,
+        "explanation": explanation,
+    }
 
 
 # The endpoint short-circuits to the deterministic fallback when the

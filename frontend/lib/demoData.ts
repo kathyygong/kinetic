@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  clearDismissedPreferences,
   clearRecommendationLog,
   clearLearnedPreferences,
   saveRecommendationEvent,
@@ -83,6 +84,7 @@ export function resetDemoData(now: Date = new Date()): DemoSeedResult {
 
 export function clearDemoLearning(): void {
   clearLearnedPreferences();
+  clearDismissedPreferences();
 }
 
 function clearDemoData(): void {
@@ -92,6 +94,7 @@ function clearDemoData(): void {
   clearReadinessLog();
   clearRecommendationLog();
   clearLearnedPreferences();
+  clearDismissedPreferences();
   clearCalendarFreshness();
   clearScheduleState();
 }

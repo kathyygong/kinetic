@@ -6,6 +6,7 @@ import { useState } from "react";
 import { motion, type Variants } from "framer-motion";
 
 import { tokens } from "@/lib/tokens";
+import KineticPreviewStack from "@/components/KineticPreviewStack";
 import KineticLogo from "@/components/KineticLogo";
 import StrideWave from "@/components/StrideWave";
 
@@ -113,7 +114,7 @@ export default function OnboardingWelcomePage() {
         {/* Primary CTA + quiet sign-in affordance */}
         <motion.div
           variants={itemVariants}
-          className="mt-14 flex flex-col items-center gap-5"
+          className="mt-10 flex flex-col items-center gap-3 sm:mt-12 sm:gap-5"
         >
           {/* motion.button instead of <Link> so we can drive the */}
           {/* page-exit fade before navigation, plus a subtle */}
@@ -134,6 +135,14 @@ export default function OnboardingWelcomePage() {
           >
             Already have an account? Sign in
           </Link>
+        </motion.div>
+
+        {/* Photo-backed app preview: real runner image underneath, */}
+        {/* Kinetic product surfaces layered above like the reference. */}
+        {/* The CTA deliberately leads this deeper product preview so the */}
+        {/* next step remains visible in the first narrow-mobile viewport. */}
+        <motion.div variants={itemVariants} className="mx-auto mt-12 max-w-3xl">
+          <KineticPreviewStack />
         </motion.div>
       </motion.div>
     </main>

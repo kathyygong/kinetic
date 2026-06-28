@@ -12,6 +12,8 @@
 //
 // All helpers are SSR-safe — they no-op when window is undefined.
 
+import { mirrorLocalStorageKey } from "./persistence/mirror";
+
 export const READINESS_STORAGE_KEY = "kinetic_readiness";
 
 /** 1 = fresh, 5 = wiped. */
@@ -74,6 +76,7 @@ function saveReadinessLog(log: ReadinessLog): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(READINESS_STORAGE_KEY, JSON.stringify(log));
+    mirrorLocalStorageKey(READINESS_STORAGE_KEY);
   } catch {
     // Storage unavailable — silently ignore.
   }
@@ -217,6 +220,7 @@ export function clearReadinessLog(): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.removeItem(READINESS_STORAGE_KEY);
+    mirrorLocalStorageKey(READINESS_STORAGE_KEY);
   } catch {
     // ignore
   }

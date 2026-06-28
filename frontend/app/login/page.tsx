@@ -15,6 +15,7 @@ import {
   mergeAuthIntoProfile,
 } from "@/lib/profileStorage";
 import { tokens } from "@/lib/tokens";
+import AthleticImage from "@/components/AthleticImage";
 import KineticLogo from "@/components/KineticLogo";
 import StrideWave from "@/components/StrideWave";
 
@@ -100,13 +101,40 @@ function LoginInner() {
   };
 
   return (
-    <main className="relative flex flex-1 items-center justify-center px-4 py-12">
-      <motion.div
-        initial={{ opacity: 0, y: 16, scale: 0.985 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-sm"
-      >
+    <main className="relative flex flex-1 items-center justify-center px-4 py-10 sm:py-14">
+      <div className="grid w-full max-w-4xl items-stretch gap-8 lg:grid-cols-[1.05fr_minmax(0,22rem)]">
+        {/* Athletic hero — full-bleed photography that sets the tone */}
+        {/* before the runner signs in. Hidden on small screens so the */}
+        {/* auth form stays front-and-centre on mobile. */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="hidden lg:block"
+        >
+          <AthleticImage
+            src="/images/athletic/track-lanes.jpg"
+            alt="Runners training together at dawn"
+            eyebrow="Adaptive training"
+            title={
+              <>
+                Train with your body,
+                <br />
+                not against it.
+              </>
+            }
+            subtitle="Kinetic reads your readiness, your plan, and your day — then tells you exactly what to run."
+            className="h-full min-h-[32rem]"
+            priority
+          />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 16, scale: 0.985 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          className="w-full self-center"
+        >
         <div className="relative space-y-6 overflow-hidden rounded-3xl border border-white/40 bg-white/80 p-8 shadow-[0_20px_60px_-20px_rgb(15_23_42/0.18)] backdrop-blur-xl dark:border-white/10 dark:bg-neutral-900/70">
           {/* Decorative stride wave inside the top of the card — */}
           {/* fades into the title area and reinforces brand motion. */}
@@ -220,7 +248,8 @@ function LoginInner() {
           </button>
         </p>
         </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </main>
   );
 }

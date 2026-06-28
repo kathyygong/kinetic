@@ -13,6 +13,7 @@ import type {
 } from "@/lib/types";
 import GlassCard from "@/components/GlassCard";
 import HMSInput from "@/components/HMSInput";
+import AthleticImage from "@/components/AthleticImage";
 import PageContainer from "@/components/PageContainer";
 import { tokens } from "@/lib/tokens";
 
@@ -176,12 +177,16 @@ export default function SettingsPage() {
   return (
     <PageContainer className="mx-auto w-full max-w-3xl px-2 py-12 sm:py-16">
       <header className="mb-10">
-        <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">Kinetic</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight">Settings</h1>
-        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Configure your training goal and athlete profile. Changes regenerate
-          your plan.
-        </p>
+        <AthleticImage
+          src="/images/athletic/track-lanes.jpg"
+          alt="Runners training together at dawn"
+          eyebrow="Goal & profile"
+          title="Settings"
+          headingLevel="h1"
+          subtitle="Configure your training goal and athlete profile. Changes regenerate your plan."
+          className="h-48 sm:h-56"
+          priority
+        />
       </header>
 
       <form onSubmit={handleSave} className="space-y-6">

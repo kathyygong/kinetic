@@ -24,6 +24,11 @@ import { getUserProfile } from "@/lib/profileStorage";
 import type { Goal, RaceDistance, UserProfile } from "@/lib/types";
 import PageContainer from "@/components/PageContainer";
 import GlassCard from "@/components/GlassCard";
+import AthleticImage from "@/components/AthleticImage";
+import HighlightRail, {
+  type HighlightRailItem,
+} from "@/components/HighlightRail";
+import RevealSection from "@/components/RevealSection";
 import AnimatedNumber from "@/components/AnimatedNumber";
 import { tokens } from "@/lib/tokens";
 import {
@@ -42,6 +47,7 @@ import {
   type WeeklyReasoningResponse,
 } from "@/lib/api";
 import { trackProductEvent } from "@/lib/instrumentation";
+import WhatIfPanel from "@/components/WhatIfPanel";
 
 // Until we track a real plan start date, week 1 is "this week".
 const CURRENT_WEEK = 1;
@@ -102,54 +108,86 @@ export default function PlanPage() {
 
   return (
     <PageContainer className="mx-auto w-full max-w-3xl px-2 py-12 sm:py-16">
-      <header className="mb-8">
-        <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">Kinetic</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight">Plan</h1>
-        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{planSummary(goal, plan)}</p>
-      </header>
+      <RevealSection as="header" className="mb-8" y={18}>
+        <AthleticImage
+          src="/images/athletic/runner-sunset.jpg"
+          alt="Runner climbing a mountain trail above the clouds"
+          eyebrow="Your training block"
+          title="The Plan"
+          headingLevel="h1"
+          subtitle={planSummary(goal, plan)}
+          className="h-56 sm:h-64"
+          priority
+        />
+      </RevealSection>
 
-      <ProjectedRaceCard goal={goal} />
+      <RevealSection className="mb-8" delay={0.02}>
+        <PlanHighlightRail
+          goal={goal}
+          plan={plan}
+          savedPlan={savedPlan}
+        />
+      </RevealSection>
+
+      <RevealSection delay={0.03}>
+        <ProjectedRaceCard goal={goal} />
+      </RevealSection>
 
       {/* Plan-level training progression — a calm, scannable read on how */}
       {/* the block builds toward race day. Sits above the per-week list */}
       {/* so the runner gets the meta-view before drilling into details. */}
-      <ProgressionInsightsCard plan={plan} />
+      <RevealSection delay={0.03}>
+        <ProgressionInsightsCard plan={plan} />
+      </RevealSection>
 
       {/* Mid-plan progress — where the runner is *inside* this block. */}
       {/* Renders for any plan length ≥ 2; uses the saved plan's start */}
       {/* date when available, otherwise today's start-of-week so the */}
       {/* card still appears for fallback (deterministic) plans. */}
       {goal && plan.length >= 2 ? (
-        <MidPlanProgressCard
-          goal={goal}
-          plan={plan}
-          planStart={savedPlan?.planStart ?? startOfWeek().toISOString()}
-          log={workoutLog}
-        />
+        <RevealSection delay={0.03}>
+          <MidPlanProgressCard
+            goal={goal}
+            plan={plan}
+            planStart={savedPlan?.planStart ?? startOfWeek().toISOString()}
+            log={workoutLog}
+          />
+        </RevealSection>
       ) : null}
 
       {/* Premium read on this week's adaptation. Renders a deterministic */}
       {/* "currently aligned" message when there are no week-1 changes,  */}
       {/* otherwise calls /weekly-reasoning for the LLM-generated story. */}
       {goal ? (
-        <ThisWeeksAdaptationCard
-          goal={goal}
-          profile={profile}
-          savedPlan={savedPlan}
-        />
+        <RevealSection delay={0.03}>
+          <ThisWeeksAdaptationCard
+            goal={goal}
+            profile={profile}
+            savedPlan={savedPlan}
+          />
+        </RevealSection>
+      ) : null}
+
+      {plan[0] ? (
+        <RevealSection delay={0.03}>
+          <WhatIfPanel week={plan[0]} />
+        </RevealSection>
       ) : null}
 
       {isCalendarAware && savedPlan ? (
-        <CalendarAwareBanner saved={savedPlan} />
+        <RevealSection delay={0.03}>
+          <CalendarAwareBanner saved={savedPlan} />
+        </RevealSection>
       ) : null}
 
       <ol className="space-y-4">
-        {plan.map((week) => (
-          <WeekCard
-            key={week.weekNumber}
-            week={week}
-            isCurrent={week.weekNumber === CURRENT_WEEK}
-          />
+        {plan.map((week, i) => (
+          <RevealSection as="li" key={week.weekNumber} delay={Math.min(i * 0.04, 0.2)}>
+            <WeekCard
+              week={week}
+              isCurrent={week.weekNumber === CURRENT_WEEK}
+            />
+          </RevealSection>
         ))}
       </ol>
     </PageContainer>
@@ -157,6 +195,67 @@ export default function PlanPage() {
 }
 
 // --- Components -------------------------------------------------------------
+
+function PlanHighlightRail({
+  goal,
+  plan,
+  savedPlan,
+}: {
+  goal: Goal;
+  plan: PlanWeek[];
+  savedPlan: SavedPlan | null;
+}) {
+  const items = useMemo<HighlightRailItem[]>(() => {
+    const insights = buildProgressionInsights(plan);
+    const changeCount = savedPlan?.reasoning.length ?? 0;
+    const easyOnlyCount = savedPlan?.easyOnlyDays.length ?? 0;
+    const adaptationDetail =
+      changeCount > 0
+        ? `${changeCount} calendar-aware change${
+            changeCount === 1 ? "" : "s"
+          }${easyOnlyCount > 0 ? `, ${easyOnlyCount} easy-only day${easyOnlyCount === 1 ? "" : "s"}` : ""}`
+        : "No saved calendar changes in this block";
+
+    return [
+      {
+        label: "Goal",
+        value: RACE_LABEL[goal.race_distance],
+        detail: `Race day ${formatTargetDate(goal.target_date)}`,
+        tone: "blue",
+      },
+      {
+        label: "Peak week",
+        value: insights ? `${insights.peakMileage} mi` : "--",
+        detail: insights
+          ? `Highest volume in Week ${insights.peakMileageWeek}`
+          : "Volume builds conservatively",
+        tone: "neutral",
+      },
+      {
+        label: "Long run",
+        value: insights ? `${insights.longRunPeak} mi` : "--",
+        detail: insights
+          ? `${insights.longRunDelta > 0 ? `+${insights.longRunDelta} mi` : "Steady"} across the block`
+          : "Long run protects the aerobic build",
+        tone: "emerald",
+      },
+      {
+        label: "Adaptation",
+        value: changeCount > 0 ? String(changeCount) : "Aligned",
+        detail: adaptationDetail,
+        tone: changeCount > 0 ? "amber" : "blue",
+      },
+    ];
+  }, [goal, plan, savedPlan]);
+
+  return (
+    <HighlightRail
+      eyebrow="Get the highlights"
+      title="The block at a glance"
+      items={items}
+    />
+  );
+}
 
 /**
  * Plan-level progression insights. Three stat cells separated by hairline
@@ -816,8 +915,7 @@ function WeekCard({ week, isCurrent }: { week: PlanWeek; isCurrent: boolean }) {
   const totalMiles = week.workouts.reduce((sum, w) => sum + w.distance, 0);
 
   return (
-    <li>
-      <GlassCard
+    <GlassCard
         className={[
           "p-5",
           isCurrent ? "ring-1 ring-black/10 dark:ring-white/15" : "",
@@ -870,7 +968,6 @@ function WeekCard({ week, isCurrent }: { week: PlanWeek; isCurrent: boolean }) {
           ))}
         </ul>
       </GlassCard>
-    </li>
   );
 }
 
@@ -932,6 +1029,17 @@ function planSummary(goal: Goal, plan: PlanWeek[]): string {
   );
   const label = RACE_LABEL[goal.race_distance] ?? "Race";
   return `${label} · ${weeks}-week plan · ${totalMiles.toFixed(0)} mi total`;
+}
+
+function formatTargetDate(value: string): string {
+  if (!value) return "not set";
+  const d = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 // --- Progression insights ---------------------------------------------------

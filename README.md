@@ -6,6 +6,10 @@
 
 Product requirements live in [PRD.md](./PRD.md), and the execution plan lives in [BUILD_PLAN.md](./BUILD_PLAN.md). The product philosophy and AI systems rationale live in [productreasoning](./productreasoning).
 
+For a fast technical review, see [ARCHITECTURE.md](./ARCHITECTURE.md), the
+[five-minute demo script](./DEMO_SCRIPT.md), and the generated
+[deterministic AI eval report](./EVAL_REPORT.md).
+
 ## 🏃 The Problem
 Most running apps provide static plans that exist in a vacuum. When life happens (e.g. a late-night meeting, poor sleep, or an unexpected trip) the plan breaks. Users are left to manually adjust their training or, more often, lose consistency and abandon the plan entirely.
 
@@ -28,7 +32,8 @@ Kinetic is designed as a hybrid deterministic + AI product.
 
 ## 📈 Roadmap & Product Evolution
 - [X] **Foundation:** Deterministic planning, calendar-aware adjustment, manual readiness flows, and core API/frontend surfaces.
-- [ ] **Shippable Demo:** AI status visibility, hardened explanation/fallback flows, dashboard UI vertical slice, seed/reset controls, and eval report.
+- [X] **Demo Vertical Slice:** AI status visibility, hardened explanation/fallback flows, behavior learning, seed/reset controls, and the full responsive UI system.
+- [ ] **Demo Release Gate:** Complete the signed-in browser/auth pass and keep the generated eval report green.
 - [ ] **Beta-Ready Foundation:** Firebase persistence, security rules, privacy-conscious instrumentation, and broader UI polish.
 - [ ] **Later Integrations:** Native mobile app, Apple Health/Garmin/Oura ingestion, hosted AI provider option, coach sharing, and push notifications.
 ---

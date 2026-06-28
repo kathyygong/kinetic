@@ -39,3 +39,70 @@ body {
   text-rendering: optimizeLegibility;
   font-feature-settings: "cv11", "ss01", "ss03";
 }
+
+.kinetic-range {
+  height: 2.75rem;
+  background: transparent;
+}
+
+.kinetic-range::-webkit-slider-runnable-track {
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: rgb(15 23 42 / 0.1);
+}
+
+.kinetic-range::-webkit-slider-thumb {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: -0.4375rem;
+  appearance: none;
+  border: 3px solid white;
+  border-radius: 9999px;
+  background: #2563eb;
+  box-shadow: 0 2px 8px rgb(30 58 138 / 0.28);
+}
+
+.kinetic-range::-moz-range-track {
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: rgb(15 23 42 / 0.1);
+}
+
+.kinetic-range::-moz-range-thumb {
+  width: 1rem;
+  height: 1rem;
+  border: 3px solid white;
+  border-radius: 9999px;
+  background: #2563eb;
+  box-shadow: 0 2px 8px rgb(30 58 138 / 0.28);
+}
+
+@media (prefers-color-scheme: dark) {
+  .kinetic-range::-webkit-slider-runnable-track {
+    background: rgb(255 255 255 / 0.15);
+  }
+
+  .kinetic-range::-moz-range-track {
+    background: rgb(255 255 255 / 0.15);
+  }
+}
+
+@media (max-width: 639px) {
+  #mobile-primary-nav ~ #app-content {
+    width: calc(100% - 6rem);
+    margin-left: 5rem;
+  }
+
+  /*
+   * Keep touch controls comfortably operable in the narrow app lane.
+   * The navigation rail already uses 56px rows; this covers page-level
+   * controls without changing the compact desktop treatment.
+   */
+  #app-content :where(a, button, input, select, textarea) {
+    min-height: 2.75rem;
+  }
+
+  #app-content input[type="range"] {
+    min-height: 2.75rem;
+  }
+}

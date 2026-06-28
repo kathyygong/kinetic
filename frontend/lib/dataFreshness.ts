@@ -16,6 +16,7 @@
 // All helpers are SSR-safe — they no-op when window is undefined.
 
 import { getReadinessLog } from "./readinessStorage";
+import { mirrorLocalStorageKey } from "./persistence/mirror";
 
 export const CALENDAR_SYNC_STORAGE_KEY = "kinetic_calendar_last_sync";
 /**
@@ -74,6 +75,8 @@ export function recordCalendarSync(at: Date = new Date()): void {
       at.toISOString(),
     );
     window.localStorage.removeItem(CALENDAR_FAILURE_STORAGE_KEY);
+    mirrorLocalStorageKey(CALENDAR_SYNC_STORAGE_KEY);
+    mirrorLocalStorageKey(CALENDAR_FAILURE_STORAGE_KEY);
   } catch {
     // Best-effort; storage may be disabled. We'll just not flag staleness.
   }
@@ -97,6 +100,7 @@ export function recordCalendarFailure(at: Date = new Date()): void {
       CALENDAR_FAILURE_STORAGE_KEY,
       at.toISOString(),
     );
+    mirrorLocalStorageKey(CALENDAR_FAILURE_STORAGE_KEY);
   } catch {
     // ignore
   }
@@ -116,6 +120,7 @@ export function clearCalendarFailure(): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.removeItem(CALENDAR_FAILURE_STORAGE_KEY);
+    mirrorLocalStorageKey(CALENDAR_FAILURE_STORAGE_KEY);
   } catch {
     // ignore
   }
@@ -127,6 +132,8 @@ export function clearCalendarFreshness(): void {
   try {
     window.localStorage.removeItem(CALENDAR_SYNC_STORAGE_KEY);
     window.localStorage.removeItem(CALENDAR_FAILURE_STORAGE_KEY);
+    mirrorLocalStorageKey(CALENDAR_SYNC_STORAGE_KEY);
+    mirrorLocalStorageKey(CALENDAR_FAILURE_STORAGE_KEY);
   } catch {
     // ignore
   }

@@ -21,11 +21,13 @@
 // stored log. Older logs are silently dropped on read.
 
 import type { LearnedPreference, RecommendationEvent } from "./behaviorTypes";
+import { mirrorLocalStorageKey } from "./persistence/mirror";
 
 // --- Storage shape ----------------------------------------------------------
 
-const RECOMMENDATION_LOG_KEY = "kinetic_recommendation_log";
-const LEARNED_PREFERENCE_KEY = "kinetic_learned_preferences";
+export const RECOMMENDATION_LOG_KEY = "kinetic_recommendation_log";
+export const LEARNED_PREFERENCE_KEY = "kinetic_learned_preferences";
+export const DISMISSED_PREFERENCE_KEY = "kinetic_dismissed_preferences";
 const BEHAVIOR_LOG_VERSION = 1;
 
 type RecommendationLog = {
@@ -38,6 +40,11 @@ type PreferenceLog = {
   version: number;
   /** preference id -> LearnedPreference. */
   preferences: Record<string, LearnedPreference>;
+};
+
+type DismissedPreferenceLog = {
+  version: number;
+  dismissed: Record<string, string>;
 };
 
 // --- ID helper --------------------------------------------------------------
@@ -206,6 +213,7 @@ export function clearRecommendationLog(): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.removeItem(RECOMMENDATION_LOG_KEY);
+    mirrorLocalStorageKey(RECOMMENDATION_LOG_KEY);
   } catch {
     // ignore — see file-level note on best-effort writes
   }
@@ -246,6 +254,38 @@ export function clearLearnedPreferences(): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.removeItem(LEARNED_PREFERENCE_KEY);
+    mirrorLocalStorageKey(LEARNED_PREFERENCE_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+export function listDismissedPreferenceIds(): string[] {
+  if (typeof window === "undefined") return [];
+  return Object.keys(readDismissedPreferenceLog().dismissed);
+}
+
+export function dismissPreference(id: string): void {
+  if (typeof window === "undefined") return;
+  const log = readDismissedPreferenceLog();
+  log.dismissed[id] = new Date().toISOString();
+  writeDismissedPreferenceLog(log);
+}
+
+export function restoreDismissedPreference(id: string): void {
+  if (typeof window === "undefined") return;
+  const log = readDismissedPreferenceLog();
+  if (id in log.dismissed) {
+    delete log.dismissed[id];
+    writeDismissedPreferenceLog(log);
+  }
+}
+
+export function clearDismissedPreferences(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(DISMISSED_PREFERENCE_KEY);
+    mirrorLocalStorageKey(DISMISSED_PREFERENCE_KEY);
   } catch {
     // ignore
   }
@@ -270,6 +310,7 @@ function readRecommendationLog(): RecommendationLog {
 function writeRecommendationLog(log: RecommendationLog): void {
   try {
     window.localStorage.setItem(RECOMMENDATION_LOG_KEY, JSON.stringify(log));
+    mirrorLocalStorageKey(RECOMMENDATION_LOG_KEY);
   } catch {
     // ignore — see file-level note
   }
@@ -292,6 +333,33 @@ function readPreferenceLog(): PreferenceLog {
 function writePreferenceLog(log: PreferenceLog): void {
   try {
     window.localStorage.setItem(LEARNED_PREFERENCE_KEY, JSON.stringify(log));
+    mirrorLocalStorageKey(LEARNED_PREFERENCE_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+function readDismissedPreferenceLog(): DismissedPreferenceLog {
+  try {
+    const raw = window.localStorage.getItem(DISMISSED_PREFERENCE_KEY);
+    if (!raw) return { version: BEHAVIOR_LOG_VERSION, dismissed: {} };
+    const parsed = JSON.parse(raw) as DismissedPreferenceLog;
+    if (parsed.version !== BEHAVIOR_LOG_VERSION || !parsed.dismissed) {
+      return { version: BEHAVIOR_LOG_VERSION, dismissed: {} };
+    }
+    return parsed;
+  } catch {
+    return { version: BEHAVIOR_LOG_VERSION, dismissed: {} };
+  }
+}
+
+function writeDismissedPreferenceLog(log: DismissedPreferenceLog): void {
+  try {
+    window.localStorage.setItem(
+      DISMISSED_PREFERENCE_KEY,
+      JSON.stringify(log),
+    );
+    mirrorLocalStorageKey(DISMISSED_PREFERENCE_KEY);
   } catch {
     // ignore
   }

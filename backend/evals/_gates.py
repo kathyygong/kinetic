@@ -14,6 +14,8 @@ from fastapi.testclient import TestClient
 
 from app.ai_safety import contains_medical_claim, contradicts_selected_action
 from app.api import app
+from app.llm_client import LLMUnavailable
+from app import weekly_reasoning as weekly_reasoning_module
 from evals.eval_cases import BEHAVIOR_INSIGHT_CASES, DAILY_REASONING_CASES
 
 
@@ -175,11 +177,85 @@ def check_weekly_reasoning() -> None:
     _assert(trace == before, "weekly trace mutated by reasoning")
 
 
+def check_what_if() -> None:
+    simulation = {
+        "original_week_plan": [
+            {"day": "Wed", "type": "tempo", "duration": 45},
+            {"day": "Sun", "type": "long run", "duration": 90},
+        ],
+        "simulated_week_plan": [
+            {"day": "Wed", "type": "tempo", "duration": 30},
+            {"day": "Sun", "type": "long run", "duration": 90},
+        ],
+        "adjustments": [
+            {
+                "day": "Wed",
+                "type": "tempo",
+                "action": "shortened",
+                "reason": "Only 30 minutes available.",
+            }
+        ],
+        "preserved_workouts": [
+            {"day": "Sun", "type": "long run", "duration": 90}
+        ],
+        "scenario_summary": "Wednesday is limited to 30 minutes.",
+    }
+    before = copy.deepcopy(simulation)
+    res = client.post("/ai/what-if", json={"simulation": simulation})
+    _assert(res.status_code == 200, f"/ai/what-if HTTP {res.status_code}")
+    body = res.json()
+    _assert(body["schema_version"] == "what-if.v1", "bad what-if schema")
+    _assert(
+        body["grounding"]["deterministic_authority"] is True,
+        "what-if deterministic authority missing",
+    )
+    _weekly_schema(body["explanation"])
+    _assert(not contains_medical_claim(body), "what-if medical claim")
+    _assert(body["simulation"] == before, "what-if simulation mutated")
+    _assert(simulation == before, "what-if request mutated")
+
+
+def check_what_if_failure_fallbacks() -> None:
+    trace = {
+        "original_week_plan": [{"day": "Wed", "workout": "Tempo 45 min"}],
+        "adjusted_week_plan": [{"day": "Wed", "workout": "Tempo 30 min"}],
+        "modified_workouts": [
+            {
+                "day": "Wed",
+                "workout": "Tempo 30 min",
+                "reason": "Only 30 minutes available.",
+            }
+        ],
+        "preserved_workouts": [],
+        "dropped_workouts": [],
+    }
+    original_call = weekly_reasoning_module.call_llm
+    try:
+        weekly_reasoning_module.call_llm = lambda *args, **kwargs: "not json"
+        malformed = weekly_reasoning_module.generate_weekly_recalibration_summary(
+            trace
+        )
+        _weekly_schema(malformed)
+
+        def _timeout(*args, **kwargs):
+            raise LLMUnavailable("simulated timeout")
+
+        weekly_reasoning_module.call_llm = _timeout
+        timed_out = weekly_reasoning_module.generate_weekly_recalibration_summary(
+            trace
+        )
+        _weekly_schema(timed_out)
+    finally:
+        weekly_reasoning_module.call_llm = original_call
+
+
 def main() -> None:
     checks = [
         ("ai status", check_ai_status),
         ("daily reasoning", check_daily_reasoning),
         ("weekly reasoning", check_weekly_reasoning),
+        ("what-if reasoning", check_what_if),
+        ("what-if failure fallbacks", check_what_if_failure_fallbacks),
         ("behavior insights", check_behavior_insights),
     ]
     for label, fn in checks:

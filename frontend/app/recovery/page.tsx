@@ -6,6 +6,8 @@ import { AnimatePresence, motion, type Variants } from "framer-motion";
 
 import GlassCard from "@/components/GlassCard";
 import PageContainer from "@/components/PageContainer";
+import AthleticImage from "@/components/AthleticImage";
+import RevealSection from "@/components/RevealSection";
 import ProgressRing from "@/components/ProgressRing";
 import AnimatedNumber from "@/components/AnimatedNumber";
 import {
@@ -345,10 +347,18 @@ export default function RecoveryPage() {
 
   return (
     <PageContainer className="mx-auto w-full max-w-3xl px-2 py-12 sm:py-16">
-      <header className="mb-10">
-        <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">Kinetic</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight">Recovery</h1>
-      </header>
+      <RevealSection as="header" className="mb-10" y={18}>
+        <AthleticImage
+          src="/images/athletic/runner-trail.jpg"
+          alt="Runner on an open road under a clear blue sky"
+          eyebrow="Readiness & recovery"
+          title="Recovery"
+          headingLevel="h1"
+          subtitle="How recovered you are today — and the signals behind it."
+          className="h-52 sm:h-60"
+          priority
+        />
+      </RevealSection>
 
       {/* Hero — large recovery score, centered, framed by an */}
       {/* animated progress ring so the number reads at a glance. */}
@@ -453,27 +463,33 @@ export default function RecoveryPage() {
 
       {/* Metric cards */}
       <div className="space-y-5">
-        <MetricCard
-          name="HRV"
-          unit="ms"
-          series={hrv}
-          higherIsBetter
-          format={(n) => n.toFixed(0)}
-        />
-        <MetricCard
-          name="Sleep"
-          unit="hr"
-          series={sleep}
-          higherIsBetter
-          format={(n) => n.toFixed(1)}
-        />
-        <MetricCard
-          name="Resting HR"
-          unit="bpm"
-          series={rhr}
-          higherIsBetter={false}
-          format={(n) => n.toFixed(0)}
-        />
+        <RevealSection delay={0.03}>
+          <MetricCard
+            name="HRV"
+            unit="ms"
+            series={hrv}
+            higherIsBetter
+            format={(n) => n.toFixed(0)}
+          />
+        </RevealSection>
+        <RevealSection delay={0.06}>
+          <MetricCard
+            name="Sleep"
+            unit="hr"
+            series={sleep}
+            higherIsBetter
+            format={(n) => n.toFixed(1)}
+          />
+        </RevealSection>
+        <RevealSection delay={0.09}>
+          <MetricCard
+            name="Resting HR"
+            unit="bpm"
+            series={rhr}
+            higherIsBetter={false}
+            format={(n) => n.toFixed(0)}
+          />
+        </RevealSection>
       </div>
     </PageContainer>
   );
@@ -708,7 +724,7 @@ function SleepField({
           min={0}
           max={24}
           value={hours}
-          placeholder="e.g. 7"
+          placeholder="7"
           onChange={(v) => onChange(v, minutes)}
         />
         <SleepUnitInput
@@ -717,7 +733,7 @@ function SleepField({
           min={0}
           max={59}
           value={minutes}
-          placeholder="e.g. 30"
+          placeholder="30"
           onChange={(v) => onChange(hours, v)}
         />
       </div>
@@ -779,7 +795,7 @@ function SleepUnitInput({
       </label>
       <div
         className={[
-          "flex items-center gap-2 rounded-xl border bg-white/60 px-3 py-2 transition-colors dark:bg-neutral-900/30",
+          "flex items-center gap-1 rounded-xl border bg-white/60 px-2 py-2 transition-colors dark:bg-neutral-900/30",
           isSet
             ? "border-black/15 dark:border-white/15"
             : "border-black/10 dark:border-white/10",
@@ -796,9 +812,9 @@ function SleepUnitInput({
           value={text}
           placeholder={placeholder}
           onChange={(e) => commit(e.target.value)}
-          className="w-full bg-transparent text-base font-medium tabular-nums text-neutral-900 placeholder:text-neutral-400 focus:outline-none dark:text-neutral-100 dark:placeholder:text-neutral-500"
+          className="min-w-0 flex-1 bg-transparent text-base font-medium tabular-nums text-neutral-900 placeholder:text-neutral-400 focus:outline-none dark:text-neutral-100 dark:placeholder:text-neutral-500"
         />
-        <span className="shrink-0 text-sm font-medium text-neutral-500 dark:text-neutral-400">
+        <span className="hidden shrink-0 text-sm font-medium text-neutral-500 sm:inline dark:text-neutral-400">
           {unit}
         </span>
       </div>
@@ -978,7 +994,7 @@ function LevelSliderField<T extends number>({
           aria-valuenow={isSet ? value : undefined}
           aria-valuetext={isSet ? `${value} of ${max} — ${activeLabel}` : undefined}
           onChange={(e) => onChange(Number(e.target.value) as T)}
-          className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-black/10 accent-blue-600 outline-none dark:bg-white/15"
+          className="kinetic-range w-full cursor-pointer appearance-none accent-blue-600 outline-none"
         />
         {isSet && (
           <button

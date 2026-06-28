@@ -45,17 +45,36 @@ export default function MotionBackground({
   // proper backdrop, not a hint.
   const blobSize = isHero ? "h-[42rem] w-[42rem]" : "h-[34rem] w-[34rem]";
   const tintA = isHero
-    ? "from-blue-400/30 via-sky-400/15 to-transparent"
-    : "from-blue-400/20 via-sky-400/10 to-transparent";
+    ? "from-blue-400/42 via-sky-400/22 to-transparent"
+    : "from-blue-400/32 via-sky-400/16 to-transparent";
   const tintB = isHero
-    ? "from-blue-300/25 via-sky-300/12 to-transparent"
-    : "from-blue-300/15 via-sky-300/8 to-transparent";
+    ? "from-sky-400/38 via-blue-400/20 to-transparent"
+    : "from-sky-400/28 via-blue-400/14 to-transparent";
+  // Cyan accent — keeps the wash lively while staying in the blue family.
+  const tintC = isHero
+    ? "from-cyan-400/30 via-sky-400/18 to-transparent"
+    : "from-cyan-400/22 via-sky-400/12 to-transparent";
+  const blobSizeC = isHero ? "h-[38rem] w-[38rem]" : "h-[30rem] w-[30rem]";
+  // Indigo accent — a deeper blue corner glow for added depth.
+  const tintD = isHero
+    ? "from-indigo-400/26 via-blue-400/14 to-transparent"
+    : "from-indigo-400/18 via-blue-400/10 to-transparent";
+  const blobSizeD = isHero ? "h-[30rem] w-[30rem]" : "h-[26rem] w-[26rem]";
 
   return (
     <div
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
     >
+      {/* Soft lavender wash — a periwinkle gradient anchored to the top
+          of the viewport that warms the whole page beneath the blobs. */}
+      <div
+        className={`absolute inset-0 ${
+          isHero
+            ? "bg-[radial-gradient(120%_85%_at_50%_-10%,rgba(59,130,246,0.18),transparent_58%)]"
+            : "bg-[radial-gradient(120%_85%_at_50%_-10%,rgba(59,130,246,0.11),transparent_58%)]"
+        } dark:opacity-50`}
+      />
       {/* Blob A — drifts diagonally bottom-left ↔ top-right. */}
       <motion.div
         className={`absolute -top-40 right-[-20%] rounded-full bg-gradient-to-br blur-3xl ${blobSize} ${tintA}`}
@@ -98,6 +117,58 @@ export default function MotionBackground({
             ? undefined
             : {
                 duration: 38,
+                ease: "easeInOut",
+                repeat: Infinity,
+                repeatType: "loop",
+              }
+        }
+      />
+
+      {/* Blob C — lavender accent that breathes near the upper-center,
+          giving the wash its periwinkle warmth on a slower loop. */}
+      <motion.div
+        className={`absolute -top-32 left-1/3 rounded-full bg-gradient-to-b blur-3xl ${blobSizeC} ${tintC}`}
+        initial={{ x: 0, y: 0, scale: 1 }}
+        animate={
+          reduceMotion
+            ? undefined
+            : {
+                x: [0, 30, -22, 0],
+                y: [0, 18, 30, 0],
+                scale: [1, 1.05, 0.96, 1],
+              }
+        }
+        transition={
+          reduceMotion
+            ? undefined
+            : {
+                duration: 44,
+                ease: "easeInOut",
+                repeat: Infinity,
+                repeatType: "loop",
+              }
+        }
+      />
+
+      {/* Blob D — warm coral glow drifting along the lower-right, the
+          mockup's orange "energy" accent kept low and slow. */}
+      <motion.div
+        className={`absolute bottom-[-12%] right-[-10%] rounded-full bg-gradient-to-tl blur-3xl ${blobSizeD} ${tintD}`}
+        initial={{ x: 0, y: 0, scale: 1 }}
+        animate={
+          reduceMotion
+            ? undefined
+            : {
+                x: [0, -26, 16, 0],
+                y: [0, -18, 12, 0],
+                scale: [1, 1.04, 0.97, 1],
+              }
+        }
+        transition={
+          reduceMotion
+            ? undefined
+            : {
+                duration: 50,
                 ease: "easeInOut",
                 repeat: Infinity,
                 repeatType: "loop",

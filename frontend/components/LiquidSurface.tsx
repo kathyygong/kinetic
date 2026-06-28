@@ -29,7 +29,7 @@ export default function LiquidSurface({
       {...motionProps}
       whileHover={reduceMotion ? undefined : { y: -2 }}
       transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-      className={`relative overflow-hidden rounded-[2rem] border border-white/45 bg-[linear-gradient(138deg,rgba(255,255,255,0.84),rgba(239,246,255,0.66)_44%,rgba(255,255,255,0.46)),linear-gradient(18deg,rgba(20,184,166,0.12),rgba(59,130,246,0.08)_46%,rgba(244,114,182,0.08))] shadow-[0_24px_70px_-42px_rgb(15_23_42/0.55)] backdrop-blur-xl dark:border-white/10 dark:bg-[linear-gradient(138deg,rgba(23,23,23,0.78),rgba(15,23,42,0.68)_44%,rgba(10,10,10,0.72)),linear-gradient(18deg,rgba(20,184,166,0.14),rgba(59,130,246,0.12)_46%,rgba(244,114,182,0.10))] ${className}`}
+      className={`relative overflow-hidden rounded-[2.5rem] border border-white/60 bg-[linear-gradient(138deg,rgba(255,255,255,0.92),rgba(239,246,255,0.78)_44%,rgba(255,255,255,0.6)),linear-gradient(18deg,rgba(56,189,248,0.10),rgba(59,130,246,0.08)_46%,rgba(14,165,233,0.07))] shadow-[0_40px_90px_-46px_rgb(30_58_138/0.46),0_8px_24px_-16px_rgb(30_58_138/0.18)] backdrop-blur-xl dark:border-white/10 dark:bg-[linear-gradient(138deg,rgba(23,23,23,0.78),rgba(15,23,42,0.68)_44%,rgba(10,10,10,0.72)),linear-gradient(18deg,rgba(56,189,248,0.16),rgba(59,130,246,0.12)_46%,rgba(14,165,233,0.10))] dark:shadow-[0_40px_90px_-46px_rgb(0_0_0/0.7)] ${className}`}
     >
       <div
         aria-hidden="true"

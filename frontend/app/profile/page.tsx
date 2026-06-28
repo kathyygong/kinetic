@@ -8,9 +8,10 @@ import { FirebaseError } from "firebase/app";
 import { motion, type HTMLMotionProps, type Variants } from "framer-motion";
 
 import Avatar from "@/components/Avatar";
+import AthleticImage from "@/components/AthleticImage";
 import GlassCard from "@/components/GlassCard";
 import HMSInput from "@/components/HMSInput";
-import LearningCard from "@/components/LearningCard";
+import MemoryCenter from "@/components/MemoryCenter";
 import PageContainer from "@/components/PageContainer";
 import { auth, signOutUser, type User } from "@/lib/firebase";
 import {
@@ -28,6 +29,8 @@ import {
   planAffectingFieldsChanged,
   saveUserProfile,
 } from "@/lib/profileStorage";
+import { clearProductEvents } from "@/lib/instrumentation";
+import { clearAllUserStorage } from "@/lib/persistence/firebasePersistence";
 import { clearSavedPlan } from "@/lib/storage";
 import { tokens } from "@/lib/tokens";
 import type {
@@ -180,6 +183,7 @@ export default function ProfilePage() {
   // affordance so the runner sees their click did something even when
   // the response is the same amber state.
   const [gcalHealthChecking, setGcalHealthChecking] = useState(false);
+  const [deletingData, setDeletingData] = useState(false);
 
   useEffect(() => {
     const stored = getUserProfile();
@@ -278,6 +282,23 @@ export default function ProfilePage() {
   const handleSignOut = async () => {
     await signOutUser();
     router.replace("/login");
+  };
+
+  const handleDeleteTrainingData = async () => {
+    const confirmed = window.confirm(
+      "Delete your Kinetic profile, plan, readiness, workout history, and training memory? This cannot be undone.",
+    );
+    if (!confirmed) return;
+
+    setDeletingData(true);
+    try {
+      await clearAllUserStorage(authUser?.uid);
+      clearProductEvents();
+      setProfile(null);
+      router.replace("/onboarding");
+    } finally {
+      setDeletingData(false);
+    }
   };
 
   // --- Inline edit handlers ----------------------------------------------
@@ -477,15 +498,18 @@ export default function ProfilePage() {
         animate="show"
         variants={contentVariants}
       >
-        <motion.header variants={itemVariants} className="mb-10">
-          <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">
-            Kinetic
-          </p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Profile</h1>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Your athlete identity and connected data sources.
-          </p>
-        </motion.header>
+        <motion.div variants={itemVariants} className="mb-10">
+          <AthleticImage
+            src="/images/athletic/runner-track.jpg"
+            alt="Aerial view of runners striding across a track"
+            eyebrow="Athlete profile"
+            title="Profile"
+            headingLevel="h1"
+            subtitle="Your athlete identity and connected data sources."
+            className="h-52 sm:h-60"
+            priority
+          />
+        </motion.div>
 
         <div className="space-y-6">
           {/* 1 — Identity header */}
@@ -666,7 +690,7 @@ export default function ProfilePage() {
               the static profile facts above and the integrations below so
               the page flows: things you told us → things we noticed →
               external sources we can read from. */}
-          <LearningCard motionProps={{ variants: itemVariants }} />
+          <MemoryCenter motionProps={{ variants: itemVariants }} />
 
           {/* 5 — Connected services */}
           <SectionCard
@@ -766,6 +790,27 @@ export default function ProfilePage() {
                 );
               })}
             </ul>
+          </SectionCard>
+
+          <SectionCard
+            title="Data controls"
+            description="Your training history stays yours. Delete the local copy and, when signed in, its Firebase mirror."
+            motionProps={{ variants: itemVariants }}
+          >
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="max-w-xl text-sm text-neutral-600 dark:text-neutral-400">
+                Connected-service authorization is managed separately above.
+                Deleting Kinetic data does not delete data at those providers.
+              </p>
+              <button
+                type="button"
+                onClick={handleDeleteTrainingData}
+                disabled={deletingData}
+                className={`min-h-11 shrink-0 rounded-full border border-rose-300/70 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100 disabled:cursor-wait disabled:opacity-60 dark:border-rose-400/30 dark:bg-rose-400/10 dark:text-rose-300 dark:hover:bg-rose-400/15 ${tokens.motion}`}
+              >
+                {deletingData ? "Deleting…" : "Delete training data"}
+              </button>
+            </div>
           </SectionCard>
 
           {/* Empty-state hint, only when nothing has been saved yet */}

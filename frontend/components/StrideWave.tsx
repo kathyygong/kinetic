@@ -85,7 +85,7 @@ export default function StrideWave({
       width={width}
       height={height}
       viewBox={`0 0 ${width} ${height}`}
-      className={className}
+      className={`h-auto max-w-full ${className}`}
       aria-hidden="true"
       fill="none"
     >

@@ -49,12 +49,12 @@ export default function GlassCard({
 }: GlassCardProps) {
   const hover = interactive
     ? {
-        // Slightly stronger lift than before: a touch of vertical motion
-        // plus a wider, softer shadow so the card visibly "comes forward"
-        // without ever feeling jumpy.
-        y: -2,
+        // Stronger lift: a touch of vertical motion plus a wider, softer
+        // violet-tinted shadow so the card visibly "comes forward" off the
+        // lavender canvas without ever feeling jumpy.
+        y: -3,
         boxShadow:
-          "0 12px 32px -12px rgb(0 0 0 / 0.18), 0 4px 12px -8px rgb(0 0 0 / 0.10)",
+          "0 26px 60px -28px rgb(30 58 138 / 0.38), 0 8px 20px -12px rgb(30 58 138 / 0.16)",
       }
     : undefined;
   return (
@@ -62,7 +62,7 @@ export default function GlassCard({
       whileHover={hover}
       transition={{ type: "tween", duration: 0.18, ease: "easeOut" }}
       {...motionProps}
-      className={`rounded-2xl border border-white/20 bg-white/60 shadow-sm backdrop-blur-md ${className}`}
+      className={`rounded-3xl border border-white/70 bg-white/80 shadow-[0_22px_54px_-30px_rgb(30_58_138/0.30),0_4px_14px_-10px_rgb(30_58_138/0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.06] dark:shadow-[0_22px_54px_-30px_rgb(0_0_0/0.6)] ${className}`}
     >
       {children}
     </motion.div>

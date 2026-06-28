@@ -31,11 +31,9 @@ import {
   type BehaviorPattern,
 } from "@/lib/api";
 import {
-  listLearnedPreferences,
-  listRecommendationEvents,
-  removeLearnedPreference,
-  saveLearnedPreference,
-} from "@/lib/behaviorStorage";
+  behaviorRepository,
+} from "@/lib/persistence/behaviorRepository";
+import type { LearnedPreference } from "@/lib/behaviorTypes";
 import { auth } from "@/lib/firebase";
 import { trackProductEvent } from "@/lib/instrumentation";
 import { tokens } from "@/lib/tokens";
@@ -104,13 +102,18 @@ type LoadState =
 
 // --- Card ------------------------------------------------------------------
 
-export default function LearningCard({
+export default function MemoryCenter({
   motionProps,
 }: {
   motionProps?: HTMLMotionProps<"div">;
 }) {
   const [state, setState] = useState<LoadState>({ kind: "loading" });
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [confirmedPreferences, setConfirmedPreferences] = useState<
+    LearnedPreference[]
+  >([]);
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+  const [historyCount, setHistoryCount] = useState(0);
   // Id of the pattern that was *just* confirmed — used to render the
   // transient "Preference saved…" success note inside its row. Cleared
   // by a timer below so the card returns to its quiet resting state.
@@ -131,7 +134,8 @@ export default function LearningCard({
     const startedAt = performance.now();
     try {
       await auth.authStateReady();
-      const events = listRecommendationEvents();
+      const events = behaviorRepository.listEvents();
+      setHistoryCount(events.length);
       const data = await fetchBehaviorInsights(events);
       setState({ kind: "ready", data });
       trackProductEvent("ai_reasoning_completed", {
@@ -167,8 +171,11 @@ export default function LearningCard({
   // sessions. Runs once on mount; subsequent updates flow through
   // `togglePattern` which keeps `savedIds` in sync with storage.
   useEffect(() => {
-    const ids = new Set(listLearnedPreferences().map((p) => p.id));
+    const preferences = behaviorRepository.listConfirmedPreferences();
+    const ids = new Set(preferences.map((p) => p.id));
     setSavedIds(ids);
+    setConfirmedPreferences(preferences);
+    setDismissedIds(new Set(behaviorRepository.listDismissedPatternIds()));
   }, []);
 
   const togglePattern = useCallback((p: BehaviorPattern) => {
@@ -180,13 +187,16 @@ export default function LearningCard({
         // if it happens to be showing for this row. Removing is purely
         // local — it never touches plan storage, which is the contract
         // documented at the top of this file.
-        removeLearnedPreference(id);
+        behaviorRepository.removeConfirmedPreference(id);
         trackProductEvent("learned_preference_updated", {
           action: "dismissed",
           preference_type: p.preference_type,
           confidence: p.confidence,
         });
         next.delete(id);
+        setConfirmedPreferences(
+          behaviorRepository.listConfirmedPreferences(),
+        );
         setJustSavedId((current) => (current === id ? null : current));
       } else {
         // Confirm: persist the LearnedPreference with userConfirmed:true
@@ -194,7 +204,7 @@ export default function LearningCard({
         // engine consults learned preferences as a soft input — it never
         // rewrites the existing plan on its own, which is what the
         // success copy promises the user.
-        saveLearnedPreference({
+        behaviorRepository.confirmPreference({
           id,
           type: p.preference_type,
           description: p.description,
@@ -208,6 +218,9 @@ export default function LearningCard({
           confidence: p.confidence,
         });
         next.add(id);
+        setConfirmedPreferences(
+          behaviorRepository.listConfirmedPreferences(),
+        );
         setJustSavedId(id);
         if (noticeTimerRef.current) clearTimeout(noticeTimerRef.current);
         noticeTimerRef.current = setTimeout(() => {
@@ -217,6 +230,31 @@ export default function LearningCard({
       }
       return next;
     });
+  }, []);
+
+  const dismissPattern = useCallback((p: BehaviorPattern) => {
+    const id = buildPreferenceId(p);
+    behaviorRepository.dismissPattern(id);
+    setDismissedIds((current) => new Set(current).add(id));
+    trackProductEvent("learned_preference_updated", {
+      action: "dismissed",
+      preference_type: p.preference_type,
+      confidence: p.confidence,
+    });
+  }, []);
+
+  const clearMemory = useCallback(() => {
+    if (
+      !window.confirm(
+        "Clear all confirmed and dismissed training preferences? Recommendation history will be kept.",
+      )
+    ) {
+      return;
+    }
+    behaviorRepository.clearMemory();
+    setSavedIds(new Set());
+    setConfirmedPreferences([]);
+    setDismissedIds(new Set());
   }, []);
 
   // Clear any pending notice timer on unmount so we don't call
@@ -237,6 +275,13 @@ export default function LearningCard({
     if (state.kind !== "ready") return null;
     return state.data;
   }, [state]);
+  const visiblePatterns = useMemo(
+    () =>
+      view?.patterns.filter(
+        (pattern) => !dismissedIds.has(buildPreferenceId(pattern)),
+      ) ?? [],
+    [dismissedIds, view],
+  );
 
   return (
     <GlassCard
@@ -255,45 +300,105 @@ export default function LearningCard({
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h2 className="text-base font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
-              Kinetic is learning
+              Training memory
             </h2>
             <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-              Patterns we&apos;ve noticed from your recent recommendations.
+              Review what Kinetic has noticed and what it may use.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={refresh}
-            disabled={state.kind === "loading"}
-            className={`shrink-0 text-xs font-medium text-neutral-500 underline-offset-4 hover:text-neutral-800 hover:underline disabled:opacity-40 dark:text-neutral-400 dark:hover:text-neutral-200 ${tokens.motion}`}
-            aria-label="Refresh behavior insights"
-          >
-            {state.kind === "loading" ? "Refreshing…" : "Refresh"}
-          </button>
+          <div className="flex shrink-0 flex-col items-end gap-2">
+            <span className="rounded-full border border-black/5 bg-white/60 px-2.5 py-1 text-[11px] font-medium text-neutral-500 dark:border-white/10 dark:bg-white/5 dark:text-neutral-400">
+              {historyCount} history {historyCount === 1 ? "record" : "records"}
+            </span>
+            <button
+              type="button"
+              onClick={refresh}
+              disabled={state.kind === "loading"}
+              className={`text-xs font-medium text-neutral-500 underline-offset-4 hover:text-neutral-800 hover:underline disabled:opacity-40 dark:text-neutral-400 dark:hover:text-neutral-200 ${tokens.motion}`}
+              aria-label="Refresh behavior insights"
+            >
+              {state.kind === "loading" ? "Refreshing…" : "Refresh"}
+            </button>
+          </div>
         </div>
         <p className="mt-3 text-xs leading-relaxed text-neutral-500 dark:text-neutral-400">
           These observations never change your plan unless you confirm them.
         </p>
       </header>
 
+      {confirmedPreferences.length > 0 ? (
+        <section className="mb-5 rounded-2xl border border-emerald-200/70 bg-emerald-50/55 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-emerald-950 dark:text-emerald-100">
+                Confirmed preferences
+              </h3>
+              <p className="mt-0.5 text-xs text-emerald-800/70 dark:text-emerald-200/65">
+                Used only as bounded scoring nudges.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={clearMemory}
+              className="text-xs font-medium text-emerald-800 underline-offset-4 hover:underline dark:text-emerald-200"
+            >
+              Clear all
+            </button>
+          </div>
+          <ul className="mt-3 space-y-2">
+            {confirmedPreferences.map((preference) => (
+              <li
+                key={preference.id}
+                className="flex items-start justify-between gap-3 rounded-xl bg-white/65 px-3 py-2.5 dark:bg-white/5"
+              >
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-emerald-950 dark:text-emerald-100">
+                    {PREFERENCE_LABELS[preference.type]}
+                  </p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-emerald-900/75 dark:text-emerald-100/70">
+                    {preference.description}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    behaviorRepository.removeConfirmedPreference(preference.id);
+                    const preferences =
+                      behaviorRepository.listConfirmedPreferences();
+                    setConfirmedPreferences(preferences);
+                    setSavedIds(new Set(preferences.map((item) => item.id)));
+                  }}
+                  className="shrink-0 text-xs font-medium text-emerald-800 underline-offset-4 hover:underline dark:text-emerald-200"
+                  aria-label={`Remove ${PREFERENCE_LABELS[preference.type]} preference`}
+                >
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       {state.kind === "loading" ? (
         <LoadingState />
       ) : state.kind === "error" ? (
         <ErrorState message={state.message} onRetry={refresh} />
-      ) : view && view.patterns.length === 0 ? (
+      ) : view && visiblePatterns.length === 0 ? (
         <EmptyState warnings={view.warnings} />
       ) : view ? (
         <div className="space-y-3">
           {view.warnings.length > 0 && (
             <WarningNote warnings={view.warnings} />
           )}
-          {view.patterns.map((p) => (
+          {visiblePatterns.map((p) => (
             <PatternRow
               key={buildPreferenceId(p)}
               pattern={p}
               saved={savedIds.has(buildPreferenceId(p))}
               justSaved={justSavedId === buildPreferenceId(p)}
               onToggle={() => togglePattern(p)}
+              onDismiss={() => dismissPattern(p)}
+              historyCount={historyCount}
             />
           ))}
         </div>
@@ -309,11 +414,15 @@ function PatternRow({
   saved,
   justSaved,
   onToggle,
+  onDismiss,
+  historyCount,
 }: {
   pattern: BehaviorPattern;
   saved: boolean;
   justSaved: boolean;
   onToggle: () => void;
+  onDismiss: () => void;
+  historyCount: number;
 }) {
   const conf = CONFIDENCE_STYLES[pattern.confidence];
   const typeLabel = PREFERENCE_LABELS[pattern.preference_type];
@@ -343,6 +452,10 @@ function PatternRow({
             </span>{" "}
             {pattern.suggested_adjustment}
           </p>
+          <p className="mt-2 text-[11px] text-neutral-400 dark:text-neutral-500">
+            Based on {historyCount} recent recommendation{" "}
+            {historyCount === 1 ? "record" : "records"}.
+          </p>
         </div>
         <span
           className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${conf.className}`}
@@ -352,7 +465,16 @@ function PatternRow({
         </span>
       </div>
 
-      <div className="mt-3 flex items-center justify-end">
+      <div className="mt-3 flex items-center justify-end gap-2">
+        {!saved ? (
+          <button
+            type="button"
+            onClick={onDismiss}
+            className="inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-100"
+          >
+            Dismiss
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={onToggle}

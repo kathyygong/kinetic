@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import TopNav from "@/components/top-nav";
 import MotionBackground from "@/components/MotionBackground";
+import PersistenceBoundary from "@/components/PersistenceBoundary";
 
 export const metadata: Metadata = {
   title: "Kinetic — Adaptive training",
@@ -27,7 +28,7 @@ export default function RootLayout({
           - centered content column capped at max-w-6xl with generous
             horizontal padding that scales up on larger viewports
       */}
-      <body className="relative min-h-screen overflow-x-hidden bg-gradient-to-b from-gray-50 to-white bg-fixed text-neutral-900 antialiased dark:from-neutral-950 dark:to-black dark:text-neutral-100">
+      <body className="relative min-h-screen overflow-x-hidden bg-[linear-gradient(176deg,#dbeafe_0%,#e6f0fe_24%,#eff6ff_50%,#f8fbff_100%)] bg-fixed text-neutral-900 antialiased dark:bg-[linear-gradient(176deg,#0a0f1f_0%,#080b16_45%,#05070f_100%)] dark:text-neutral-100">
         {/* Slow-drifting gradient blobs + subtle topographic texture
             wrap the whole app so motion (the brand) is felt before any
             content renders. Mounted once at the layout level, fixed
@@ -35,10 +36,15 @@ export default function RootLayout({
         <div className="pointer-events-none fixed inset-0 -z-10">
           <MotionBackground variant="ambient" contours />
         </div>
-        <TopNav />
-        <div className="mx-auto w-full max-w-6xl px-6 sm:px-8 lg:px-12">
-          {children}
-        </div>
+        <PersistenceBoundary>
+          <TopNav />
+          <div
+            id="app-content"
+            className="mx-auto w-full max-w-6xl px-0 sm:px-8 lg:px-12"
+          >
+            {children}
+          </div>
+        </PersistenceBoundary>
       </body>
     </html>
   );

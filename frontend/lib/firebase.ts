@@ -13,6 +13,7 @@ import {
   type User,
   type UserCredential,
 } from "firebase/auth";
+import { getFirestore, type Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -27,6 +28,7 @@ const firebaseConfig = {
 const app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 export const auth: Auth = getAuth(app);
+export const db: Firestore = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
 // --- Auth helpers -----------------------------------------------------------

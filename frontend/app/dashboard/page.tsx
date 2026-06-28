@@ -90,8 +90,13 @@ import {
 import type { Goal, RaceDistance, UserProfile } from "@/lib/types";
 import AnimatedNumber from "@/components/AnimatedNumber";
 import AIStatusBadge from "@/components/AIStatusBadge";
+import AthleticImage from "@/components/AthleticImage";
 import FloatingMetric from "@/components/FloatingMetric";
+import HighlightRail, {
+  type HighlightRailItem,
+} from "@/components/HighlightRail";
 import LiquidSurface from "@/components/LiquidSurface";
+import MetricArc from "@/components/MetricArc";
 import ProgressRing from "@/components/ProgressRing";
 import StrideWave from "@/components/StrideWave";
 import {
@@ -950,7 +955,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <PageContainer className="relative mx-auto w-full max-w-4xl px-4 py-8 sm:py-12">
+    <PageContainer className="relative mx-auto w-full max-w-6xl px-3 py-5 sm:px-4 sm:py-10">
       {/* Background motion (drifting gradient blobs + topographic texture) */}
       {/* is mounted globally in app/layout.tsx so every page shares the */}
       {/* same wash. Nothing to render here. */}
@@ -960,9 +965,8 @@ export default function DashboardPage() {
         initial="hidden"
         animate="show"
         variants={containerVariants}
-        className="space-y-8"
+        className="space-y-6 sm:space-y-8"
       >
-        {/* 1. Greeting + race countdown — warm, personalized opener. */}
         <motion.div variants={itemVariants}>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <Greeting profile={profile} goal={goal} />
@@ -970,18 +974,6 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
-        <motion.div variants={itemVariants}>
-          <DemoControls
-            notice={demoNotice}
-            onSeed={() => handleSeedDemoData("seed")}
-            onReset={() => handleSeedDemoData("reset")}
-            onClearLearning={handleClearDemoLearning}
-          />
-        </motion.div>
-
-        {/* 2. Banners — schedule notice / initial plan / pending suggestion. */}
-        {/* These mount-and-unmount based on transient state so they keep */}
-        {/* their own AnimatePresence rather than the container's stagger. */}
         <AnimatePresence initial={false}>
           {scheduleChecks.length > 0 && (
             <motion.div
@@ -1031,16 +1023,6 @@ export default function DashboardPage() {
           )}
         </AnimatePresence>
 
-        {/* 3. This week strip — context for "where am I in the week". */}
-        {savedPlan && savedPlan.weeks[0] && (
-          <motion.section variants={itemVariants}>
-            <ThisWeekStrip
-              week={savedPlan.weeks[0]}
-              planStart={savedPlan.planStart}
-            />
-          </motion.section>
-        )}
-
         {error && (
           <motion.div
             variants={itemVariants}
@@ -1062,7 +1044,6 @@ export default function DashboardPage() {
 
         {decision && !loading && (
           <>
-            {/* 4. Hero — today's recommendation, breakdown, confidence, CTA. */}
             <motion.div variants={itemVariants}>
               <HeroCard
                 decision={decision}
@@ -1161,9 +1142,6 @@ export default function DashboardPage() {
               />
             </motion.div>
 
-            {/* 4b. Post-workout check-in — appears once the runner has */}
-            {/*     marked the workout completed/skipped. Writes back into */}
-            {/*     the RecommendationEvent's actualWorkout field. */}
             <AnimatePresence initial={false}>
               {completionStatus !== "pending" && recommendationEvent && (
                 <motion.div
@@ -1205,7 +1183,13 @@ export default function DashboardPage() {
               )}
             </AnimatePresence>
 
-            {/* 5. Reasoning — short bullets explaining the choice. */}
+            <motion.section variants={itemVariants}>
+              <DashboardHighlightRail
+                decision={decision}
+                week={savedPlan?.weeks[0] ?? null}
+              />
+            </motion.section>
+
             <motion.section variants={itemVariants}>
               <ReasoningCard
                 decision={decision}
@@ -1217,7 +1201,15 @@ export default function DashboardPage() {
               />
             </motion.section>
 
-            {/* 6. Context row — supporting numbers (time, recovery). */}
+            {savedPlan && savedPlan.weeks[0] && (
+              <motion.section variants={itemVariants}>
+                <ThisWeekStrip
+                  week={savedPlan.weeks[0]}
+                  planStart={savedPlan.planStart}
+                />
+              </motion.section>
+            )}
+
             <motion.section variants={itemVariants}>
               <ContextRow
                 availableMinutes={decision.available_minutes}
@@ -1228,6 +1220,15 @@ export default function DashboardPage() {
             </motion.section>
           </>
         )}
+
+        <motion.div variants={itemVariants}>
+          <DemoControls
+            notice={demoNotice}
+            onSeed={() => handleSeedDemoData("seed")}
+            onReset={() => handleSeedDemoData("reset")}
+            onClearLearning={handleClearDemoLearning}
+          />
+        </motion.div>
       </motion.div>
 
       {/* Rejection-reason dialog. Mounted at the page root so the */}
@@ -1307,15 +1308,19 @@ function Greeting({
   const headline = firstName ? `${partOfDay}, ${firstName}.` : `${partOfDay}.`;
 
   return (
-    <header>
-      <p className="text-xs font-medium uppercase tracking-[0.32em] text-neutral-500 dark:text-neutral-400">
+    <header className="max-w-3xl">
+      <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-neutral-500 dark:text-neutral-400">
+        <span
+          aria-hidden="true"
+          className="inline-block h-1.5 w-1.5 rounded-full bg-gradient-to-br from-sky-400 to-blue-600"
+        />
         Kinetic · Today
       </p>
-      <h1 className="mt-3 text-balance text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl">
+      <h1 className="mt-2 text-balance text-[2rem] font-semibold leading-[1.03] text-neutral-950 sm:text-5xl lg:text-[3.65rem] dark:text-neutral-50">
         {headline}
       </h1>
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">
+        <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
           {todayLabel}
           {goal?.target_date ? (
             <>
@@ -1327,8 +1332,8 @@ function Greeting({
       </div>
       {/* Subtle stride waveform under the headline — visually anchors */}
       {/* the page in motion, fits the Kinetic brand. */}
-      <div className="mt-3 -ml-1" aria-hidden="true">
-        <StrideWave width={320} height={36} tone="blue" loop />
+      <div className="mt-2 -ml-1" aria-hidden="true">
+        <StrideWave width={280} height={30} tone="blue" loop />
       </div>
     </header>
   );
@@ -1444,6 +1449,66 @@ function DemoControls({
   );
 }
 
+function DashboardHighlightRail({
+  decision,
+  week,
+}: {
+  decision: DecisionOutput;
+  week: PlanWeek | null;
+}) {
+  const recoveryPct = Math.round(
+    Math.max(0, Math.min(1, decision.recovery_score)) * 100,
+  );
+  const items = useMemo<HighlightRailItem[]>(() => {
+    const weekItem: HighlightRailItem = week
+      ? {
+          label: "Week",
+          value: `${weekMileage(week)} mi`,
+          detail: `${week.workouts.length} run${
+            week.workouts.length === 1 ? "" : "s"
+          } · ${week.phase}`,
+          tone: "neutral",
+        }
+      : {
+          label: "Confidence",
+          value: `${Math.round(decision.confidence * 100)}%`,
+          detail: "Grounded to today's decision",
+          tone: "neutral",
+        };
+
+    return [
+      {
+        label: "Action",
+        value: formatActionLabel(decision.selected_action.name),
+        detail: actionMetricDetail(decision.selected_action.name),
+        tone: highlightToneForAction(decision.selected_action.name),
+      },
+      {
+        label: "Recovery",
+        value: `${recoveryPct}%`,
+        detail: formatStateLabel(decision.state),
+        tone: highlightToneForRecovery(decision.recovery_score),
+      },
+      {
+        label: "Window",
+        value: `${decision.available_minutes} min`,
+        detail: "Available today",
+        tone: highlightToneForAvailability(decision.available_minutes),
+      },
+      weekItem,
+    ];
+  }, [decision, recoveryPct, week]);
+
+  return (
+    <HighlightRail
+      eyebrow="Signal check"
+      title="What shaped today"
+      items={items}
+      className="pt-1"
+    />
+  );
+}
+
 // --- This week strip -------------------------------------------------------
 
 /**
@@ -1480,11 +1545,8 @@ function ThisWeekStrip({
 
   // Total mileage + run count summary — surfaces the volume at a glance.
   const totalMiles = useMemo(
-    () =>
-      Math.round(
-        week.workouts.reduce((sum, w) => sum + (w.distance ?? 0), 0) * 10
-      ) / 10,
-    [week.workouts]
+    () => weekMileage(week),
+    [week]
   );
 
   return (
@@ -1613,6 +1675,39 @@ function workoutDotClass(type: WorkoutType): string {
   }
 }
 
+function weekMileage(week: PlanWeek): number {
+  return (
+    Math.round(
+      week.workouts.reduce((sum, workout) => sum + (workout.distance ?? 0), 0) *
+        10,
+    ) / 10
+  );
+}
+
+function highlightToneForAction(
+  action: string,
+): NonNullable<HighlightRailItem["tone"]> {
+  if (action === "proceed") return "emerald";
+  if (action === "modify" || action === "rest") return "amber";
+  return "blue";
+}
+
+function highlightToneForRecovery(
+  score: number,
+): NonNullable<HighlightRailItem["tone"]> {
+  if (score >= 0.75) return "emerald";
+  if (score >= 0.5) return "amber";
+  return "amber";
+}
+
+function highlightToneForAvailability(
+  minutes: number,
+): NonNullable<HighlightRailItem["tone"]> {
+  if (minutes >= 75) return "emerald";
+  if (minutes >= 35) return "blue";
+  return "amber";
+}
+
 
 // --- Cards ------------------------------------------------------------------
 
@@ -1621,8 +1716,8 @@ function workoutDotClass(type: WorkoutType): string {
  * supporting metrics (distance · duration · note), the structured workout
  * breakdown, a confidence callout, and the primary Accept CTA.
  *
- * Visual: GlassCard surface with a subtle blue-50 → transparent gradient
- * to set it apart from the secondary cards below.
+ * Visual: photo-backed LiquidSurface stage with the recommendation and
+ * deterministic metrics sharing one primary product moment.
  */
 function HeroCard({
   decision,
@@ -1675,6 +1770,11 @@ function HeroCard({
   const availabilityTone = availabilityToneForMinutes(decision.available_minutes);
   const actionTone = actionMetricTone(decision.selected_action.name);
   const actionLabel = formatActionLabel(decision.selected_action.name);
+  const stageTitle =
+    todays?.type === "rest" || decision.selected_action.name === "rest"
+      ? "Recovery is training."
+      : "Today’s work, staged.";
+  const stageSubtitle = `${actionLabel} call · ${decision.available_minutes} min window`;
 
   // The engine surfaces three top-level actions: "proceed" (run the plan
   // as-is), "modify" (change intensity/duration), and "rest". Only the
@@ -1684,14 +1784,54 @@ function HeroCard({
   const needsAdjustment = decision.selected_action.name !== "proceed";
 
   return (
-    <LiquidSurface className="p-6 sm:p-8 lg:p-10">
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.12fr)_minmax(18rem,0.82fr)] lg:items-start">
+    <LiquidSurface className="rounded-[1.5rem] p-2 sm:rounded-[2.5rem] sm:p-4 lg:p-5">
+      <div className="grid gap-5 lg:grid-cols-[minmax(16rem,0.82fr)_minmax(0,1.18fr)] lg:items-stretch">
+        <AthleticImage
+          src="/images/athletic/track-lanes.jpg"
+          alt="Runner on blue track lanes at dawn"
+          eyebrow="Training stage"
+          title={stageTitle}
+          subtitle={stageSubtitle}
+          className="h-[15rem] sm:h-[22rem] lg:h-full lg:min-h-[34rem]"
+          rounded="rounded-[1.15rem] sm:rounded-[2rem]"
+          focus="center"
+          priority
+        >
+          <div className="mt-4 grid max-w-sm grid-cols-2 gap-2">
+            <div className="rounded-2xl border border-white/15 bg-white/15 p-3 text-white shadow-[0_18px_38px_-28px_rgb(2_6_23/0.8)] backdrop-blur-md">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/65">
+                Ready
+              </p>
+              <p className="mt-1 text-2xl font-semibold leading-none tabular-nums">
+                {recoveryPct}%
+              </p>
+            </div>
+            <div className="rounded-2xl border border-white/15 bg-white/15 p-3 text-white shadow-[0_18px_38px_-28px_rgb(2_6_23/0.8)] backdrop-blur-md">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/65">
+                Window
+              </p>
+              <p className="mt-1 text-2xl font-semibold leading-none tabular-nums">
+                {decision.available_minutes}
+                <span className="ml-1 text-xs font-medium uppercase tracking-[0.14em] text-white/65">
+                  min
+                </span>
+              </p>
+            </div>
+          </div>
+        </AthleticImage>
+
+        <div className="flex min-w-0 flex-col justify-between px-1 py-2 sm:p-4 lg:p-5">
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(16rem,0.72fr)] xl:items-start">
         {/* Left: workout */}
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium uppercase tracking-[0.24em] text-neutral-500 dark:text-neutral-400">
+          <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-neutral-500 dark:text-neutral-400">
+            <span
+              aria-hidden="true"
+              className="inline-block h-1.5 w-1.5 rounded-full bg-gradient-to-br from-sky-400 to-blue-600"
+            />
             Today&apos;s recommendation
           </p>
-          <h2 className="mt-3 text-balance text-4xl font-semibold capitalize leading-[1.1] tracking-tight text-neutral-900 sm:text-[2.75rem] dark:text-neutral-50">
+          <h2 className="mt-3 text-balance text-[2rem] font-semibold capitalize leading-[1.03] text-neutral-950 sm:text-5xl dark:text-neutral-50">
             {headline}
           </h2>
           {todays && todays.type !== "rest" ? (
@@ -1719,41 +1859,39 @@ function HeroCard({
           )}
         </div>
 
-        {/* Right: stage metrics */}
-        <div className="rounded-[1.75rem] border border-white/55 bg-white/48 p-4 shadow-[inset_0_1px_0_rgb(255_255_255/0.65),0_18px_40px_-30px_rgb(15_23_42/0.65)] backdrop-blur-md dark:border-white/10 dark:bg-neutral-950/34">
-          <div className="flex items-center gap-4">
-            <ProgressRing
+        {/* Right: stage metrics — readiness gauge + floating capsules. */}
+        <div className="rounded-[1.75rem] border border-white/65 bg-white/58 p-4 shadow-[inset_0_1px_0_rgb(255_255_255/0.7),0_24px_50px_-30px_rgb(30_58_138/0.5)] backdrop-blur-md dark:border-white/10 dark:bg-neutral-950/34 sm:p-5">
+          {/* Readiness gauge — the centrepiece "speedometer" arc. */}
+          <div className="flex flex-col items-center">
+            <MetricArc
               value={decision.recovery_score}
-              size={116}
-              stroke={9}
+              size={208}
+              stroke={15}
               tone={recoveryTone}
-              className="shrink-0"
             >
-              <div className="text-center leading-none">
-                <AnimatedNumber
-                  value={recoveryPct}
-                  suffix="%"
-                  className="text-xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
-                />
-                <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500 dark:text-neutral-400">
-                  Ready
-                </p>
-              </div>
-            </ProgressRing>
-            <div className="min-w-0">
-              <p className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-500 dark:text-neutral-400">
+              <AnimatedNumber
+                value={recoveryPct}
+                suffix="%"
+                className="text-[2.45rem] font-semibold leading-none text-neutral-900 dark:text-neutral-50"
+              />
+              <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-neutral-500 dark:text-neutral-400">
+                Ready
+              </p>
+            </MetricArc>
+            <div className="mt-2 text-center">
+              <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-neutral-500 dark:text-neutral-400">
                 Training state
               </p>
-              <p className="mt-2 text-lg font-semibold leading-tight text-neutral-950 dark:text-neutral-50">
+              <p className="mt-1 text-lg font-semibold leading-tight text-neutral-950 dark:text-neutral-50">
                 {formatStateLabel(decision.state)}
               </p>
-              <p className="mt-1 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+              <p className="mx-auto mt-1 max-w-[17rem] text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
                 {decision.key_factors[0] ?? "Deterministic engine result"}
               </p>
             </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="mt-5 grid grid-cols-2 gap-3">
             <FloatingMetric
               label="Window"
               value={<AnimatedNumber value={decision.available_minutes} />}
@@ -1783,7 +1921,7 @@ function HeroCard({
       {/* Primary CTA — two-step flow:
           1. Choose which workout the runner is doing (accept adjustment / keep original).
           2. After choosing, confirm whether they completed or skipped it. */}
-      <div className="mt-10 flex flex-col-reverse items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-6 flex flex-col-reverse items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
         <AnimatePresence mode="wait" initial={false}>
           {responseStatus === "pending" && needsAdjustment ? (
             <motion.div
@@ -1937,6 +2075,8 @@ function HeroCard({
           )}
         </AnimatePresence>
       </div>
+        </div>
+      </div>
     </LiquidSurface>
   );
 }
@@ -2007,10 +2147,10 @@ function formatStateLabel(state: string): string {
 
 function WorkoutBreakdown({ segments }: { segments: WorkoutSegment[] }) {
   return (
-    <div className="mt-8 overflow-hidden rounded-2xl border border-black/5 bg-white/40 backdrop-blur dark:border-white/10 dark:bg-neutral-950/30">
-      <table className="w-full text-left text-sm">
+    <div className="mt-6 overflow-x-auto rounded-2xl border border-black/5 bg-white/45 backdrop-blur dark:border-white/10 dark:bg-neutral-950/30">
+      <table className="w-full min-w-[34rem] text-left text-sm">
         <thead>
-          <tr className="bg-white/60 text-xs uppercase tracking-[0.18em] text-neutral-500 dark:bg-neutral-900/40 dark:text-neutral-400">
+          <tr className="bg-white/60 text-[11px] uppercase tracking-[0.18em] text-neutral-500 dark:bg-neutral-900/40 dark:text-neutral-400">
             <th className="px-4 py-3 font-medium">Segment</th>
             <th className="px-4 py-3 font-medium tabular-nums">Distance</th>
             <th className="px-4 py-3 font-medium tabular-nums">Pace</th>
@@ -2624,9 +2764,7 @@ function ConfidenceBadge({
           <span className="text-[10px] font-medium uppercase tracking-[0.22em] text-neutral-500 dark:text-neutral-400">
             Confidence
           </span>
-          <span
-            className={`text-sm font-semibold tracking-tight ${meta.labelText}`}
-          >
+          <span className={`text-sm font-semibold ${meta.labelText}`}>
             {meta.label}
           </span>
         </div>
@@ -2790,7 +2928,7 @@ function ReasoningCard({
       <p className="text-xs font-medium uppercase tracking-[0.24em] text-neutral-500 dark:text-neutral-400">
         Reasoning {aiReasoning ? "· bounded AI" : reasoningLoading ? "· loading AI" : "· deterministic"}
       </p>
-      <h3 className="mt-2 text-xl font-semibold tracking-tight">
+      <h3 className="mt-2 text-xl font-semibold">
         Why this recommendation
       </h3>
       <p className="mt-3 max-w-2xl text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
@@ -3071,7 +3209,7 @@ function ReasoningFactorCard({ factor }: { factor: ReasoningFactor }) {
             aria-hidden="true"
             className={`h-1.5 w-1.5 rounded-full ${toneClasses.dot}`}
           />
-          <p className="text-sm font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+          <p className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
             {factor.title}
           </p>
         </div>
@@ -3242,7 +3380,7 @@ function ContextRow({
                 <AnimatedNumber
                   value={Math.round(recoveryScore * 100)}
                   duration={1.1}
-                  className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-50"
+                  className="text-2xl font-semibold text-neutral-900 dark:text-neutral-50"
                 />
               </ProgressRing>
               <div className="min-w-0 flex-1">
@@ -3280,7 +3418,7 @@ function ContextRow({
               <ProgressRing value={0} size={84} stroke={7} tone="blue">
                 <span
                   aria-hidden="true"
-                  className="text-2xl font-semibold tracking-tight text-neutral-300 dark:text-neutral-600"
+                  className="text-2xl font-semibold text-neutral-300 dark:text-neutral-600"
                 >
                   —
                 </span>
@@ -3674,7 +3812,7 @@ function PlanAdjustmentCard({
           <p className={`text-xs uppercase tracking-[0.24em] ${tokens.warning.text}`}>
             Calendar-aware suggestion
           </p>
-          <h2 className="mt-2 text-xl font-semibold tracking-tight">
+          <h2 className="mt-2 text-xl font-semibold">
             {headline}
           </h2>
           <p className="mt-1 text-xs text-neutral-500">

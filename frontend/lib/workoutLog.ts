@@ -17,7 +17,9 @@ import type { Goal } from "./types";
 
 // --- Storage primitives -----------------------------------------------------
 
-const LOG_STORAGE_KEY = "kinetic_workout_log";
+import { mirrorLocalStorageKey } from "./persistence/mirror";
+
+export const LOG_STORAGE_KEY = "kinetic_workout_log";
 
 export type WorkoutLogStatus = "completed" | "skipped";
 
@@ -91,6 +93,7 @@ export function logWorkout(
     next.push(entry);
     const log: WorkoutLog = { goalSig, entries: next };
     window.localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(log));
+    mirrorLocalStorageKey(LOG_STORAGE_KEY);
   } catch {
     // ignore quota / private-mode errors
   }
@@ -101,6 +104,7 @@ export function clearWorkoutLog(): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.removeItem(LOG_STORAGE_KEY);
+    mirrorLocalStorageKey(LOG_STORAGE_KEY);
   } catch {
     // ignore
   }

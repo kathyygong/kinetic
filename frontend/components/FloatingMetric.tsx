@@ -47,9 +47,9 @@ export default function FloatingMetric({
 
   return (
     <motion.div
-      whileHover={reduceMotion ? undefined : { y: -2 }}
+      whileHover={reduceMotion ? undefined : { y: -3 }}
       transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-      className={`min-h-[5.75rem] rounded-2xl border px-4 py-3 shadow-[0_12px_26px_-22px_rgb(15_23_42/0.55)] backdrop-blur-md ${TONE_CLASS[tone]} ${className}`}
+      className={`min-h-[5.75rem] rounded-[1.4rem] border px-4 py-3 shadow-[0_18px_38px_-24px_rgb(30_58_138/0.42)] backdrop-blur-md ${TONE_CLASS[tone]} ${className}`}
     >
       <p className="truncate text-[10px] font-semibold uppercase tracking-[0.2em] opacity-60">
         {label}

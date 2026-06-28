@@ -10,6 +10,7 @@
 import type { DayLabel } from "./planAdjuster";
 import type { PlanWeek } from "./planGenerator";
 import type { Goal, UserProfile } from "./types";
+import { mirrorLocalStorageKey } from "./persistence/mirror";
 
 export const GOAL_STORAGE_KEY = "kinetic_goal";
 export const PLAN_STORAGE_KEY = "kinetic_plan";
@@ -27,6 +28,7 @@ export function saveGoal(goal: Goal): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(GOAL_STORAGE_KEY, JSON.stringify(goal));
+    mirrorLocalStorageKey(GOAL_STORAGE_KEY);
   } catch {
     // Storage might be unavailable (private mode, quota). Ignore.
   }
@@ -124,6 +126,7 @@ export function savePlan(plan: SavedPlan): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(plan));
+    mirrorLocalStorageKey(PLAN_STORAGE_KEY);
   } catch {
     // ignore
   }
@@ -146,6 +149,7 @@ export function clearSavedPlan(): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.removeItem(PLAN_STORAGE_KEY);
+    mirrorLocalStorageKey(PLAN_STORAGE_KEY);
   } catch {
     // ignore
   }

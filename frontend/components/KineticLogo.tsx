@@ -1,5 +1,7 @@
 "use client";
 
+import { useId } from "react";
+
 type KineticLogoProps = {
   /** Pixel size of the square logo mark. Defaults to 28. */
   size?: number;
@@ -30,6 +32,8 @@ export default function KineticLogo({
   size = 28,
   className = "",
 }: KineticLogoProps) {
+  const gradientId = `kinetic-mark-${useId().replace(/:/g, "")}`;
+
   return (
     <span
       aria-hidden="true"
@@ -49,7 +53,7 @@ export default function KineticLogo({
               indigo midnight into a near-black slate. Restrained
               enough to read as a single solid colour at favicon
               sizes, deep enough to feel premium at hero sizes. */}
-          <linearGradient id="kinetic-mark" x1="0" y1="0" x2="32" y2="32">
+          <linearGradient id={gradientId} x1="0" y1="0" x2="32" y2="32">
             <stop offset="0%" stopColor="#1e3a8a" />
             <stop offset="100%" stopColor="#0f172a" />
           </linearGradient>
@@ -58,7 +62,14 @@ export default function KineticLogo({
         {/* Rounded-square container — rx=7.5 / 32 ≈ 23%, the modern
             "soft squircle" rounding used by most polished product
             marks. */}
-        <rect x="0" y="0" width="32" height="32" rx="7.5" fill="url(#kinetic-mark)" />
+        <rect
+          x="0"
+          y="0"
+          width="32"
+          height="32"
+          rx="7.5"
+          fill={`url(#${gradientId})`}
+        />
 
         {/*
           Typographic K — drawn as filled paths so the letterform has

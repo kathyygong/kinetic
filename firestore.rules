@@ -1,0 +1,32 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isKineticDomain(domain) {
+      return domain in [
+        'profile',
+        'goal',
+        'plan',
+        'readiness',
+        'workouts',
+        'recommendations',
+        'preferences',
+        'dismissed_preferences',
+        'today',
+        'schedule',
+        'calendar_sync',
+        'calendar_failure'
+      ];
+    }
+
+    match /users/{userId}/kinetic/{domain} {
+      allow read, write: if request.auth != null
+                         && request.auth.uid == userId
+                         && isKineticDomain(domain);
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
