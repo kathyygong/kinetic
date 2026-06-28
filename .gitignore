@@ -20,3 +20,4 @@ Thumbs.db
 # Local runtime logs
 backend/.uvicorn.*.log
 firebase-debug.log
+firestore-debug.log

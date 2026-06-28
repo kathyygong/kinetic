@@ -302,7 +302,7 @@ Move from local-only state toward beta-ready authenticated persistence while tre
 
 ### Status - Updated 2026-06-27
 
-Implemented as domain slices; emulator execution remains a beta gate.
+Implemented as domain slices; the Firestore security gate passes.
 
 - Added the generic `StorageRepository<T>` contract with synchronous local reads/writes, asynchronous remote mirroring, Firebase hydration, idempotent migration markers, and deletion tombstones.
 - Added Firebase-backed repositories for profile/goal, plan/readiness/workout log, recommendation history/preferences, today completion, and calendar-freshness metadata.
@@ -310,12 +310,11 @@ Implemented as domain slices; emulator execution remains a beta gate.
 - Remote records live under `users/{uid}/kinetic/{domain}`. The local cache records its authenticated owner and is cleared before a different UID hydrates, preventing cross-user migration.
 - Added `firestore.rules` with authenticated owner-only access and default denial, plus `firebase.json`.
 - Added persistence smoke coverage for migration, authenticated cache-owner switching, UID isolation, remote hydration, offline behavior, and deletion tombstones.
-- Added a Firestore emulator test for owner access, cross-user denial, guest denial, and unknown-domain denial. The test is checked in as `npm run test:firestore-rules`. An ephemeral Firebase CLI was downloaded successfully on 2026-06-27, but the emulator could not start because Java is not installed on this machine (`spawn java ENOENT`).
+- Added a Firestore emulator test for owner access, cross-user denial, guest denial, and unknown-domain denial. After installing Microsoft OpenJDK 21, the full Auth + Firestore emulator suite passed on 2026-06-27.
 - Added a Profile data-control action that clears local training state and the signed-in Firebase mirror. Existing demo reset, learning reset, and integration disconnect controls remain available.
 
-Beta-ready gate still open:
+Remaining beta-ready gate:
 
-- Install a supported Java runtime, then run `npx firebase-tools emulators:exec --project kinetic-rules-test --only auth,firestore "npm --prefix frontend run test:firestore-rules"` and capture a passing result.
 - Complete an authenticated two-session browser test against a configured Firebase project or emulator.
 
 ## Phase 4: AI Expansion
@@ -658,5 +657,5 @@ Completed.
 - `npm audit` still reports dependency vulnerabilities from the frontend dependency tree; these have not been triaged yet.
 - Local Ollama can be slow; every user-facing AI path must remain async or fallback-safe.
 - Natural-language intake and training summaries remain intentionally behind the current authenticated persistence/QA gate.
-- Firebase persistence is not beta-ready until the checked-in emulator test passes and authenticated cross-session/deletion behavior is verified live.
+- Firestore isolation rules pass in the emulator; authenticated cross-session hydration/deletion behavior still needs live browser verification before persistence is called beta-ready.
 - `.edge-qa*` profiles and temporary screenshots remain intentionally untracked and must not be included in product commits.
