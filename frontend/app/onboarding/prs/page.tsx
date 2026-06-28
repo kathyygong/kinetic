@@ -260,7 +260,7 @@ export default function OnboardingPRsPage() {
           <div className="mt-10 flex flex-col-reverse items-center justify-end gap-3 sm:flex-row">
             <Link
               href="/onboarding/goal"
-              className={`text-sm text-neutral-500 underline-offset-4 hover:text-neutral-800 hover:underline dark:text-neutral-400 dark:hover:text-neutral-200 ${tokens.motion}`}
+              className={`inline-flex min-h-11 min-w-11 items-center justify-center text-sm text-neutral-500 underline-offset-4 hover:text-neutral-800 hover:underline dark:text-neutral-400 dark:hover:text-neutral-200 ${tokens.motion}`}
             >
               Back
             </Link>

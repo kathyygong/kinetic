@@ -17,7 +17,12 @@ export function prepareLocalCacheForUser(
   userId: string,
   clearLocalCaches: () => void,
 ): "unowned" | "same-user" | "switched-user" {
-  const previousOwner = storage.getItem(LOCAL_OWNER_KEY);
+  let previousOwner: string | null;
+  try {
+    previousOwner = storage.getItem(LOCAL_OWNER_KEY);
+  } catch {
+    return "unowned";
+  }
   if (!previousOwner) return "unowned";
   if (previousOwner === userId) return "same-user";
 
@@ -29,5 +34,10 @@ export function claimLocalCacheForUser(
   storage: LocalCacheStorage,
   userId: string,
 ): void {
-  storage.setItem(LOCAL_OWNER_KEY, userId);
+  try {
+    storage.setItem(LOCAL_OWNER_KEY, userId);
+  } catch {
+    // Cache ownership is a privacy guard, but unavailable localStorage must
+    // not break the deterministic training flow.
+  }
 }

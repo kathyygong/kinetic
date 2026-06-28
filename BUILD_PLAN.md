@@ -490,9 +490,19 @@ Completed: responsive visual QA and scoped usability follow-up (2026-06-27).
 - The isolated QA browser intentionally did not import an authenticated Firebase profile. The live rail check therefore exercised the bottom **Sign in** fallback; the authenticated avatar uses the same anchored container and was verified structurally in `top-nav.tsx`, but an end-to-end signed-in avatar session remains part of the broader strict-auth browser check.
 - Post-fix validation is green: `npm run lint`, `npm run build` (16 static pages), and `npm run smoke` (9 suites).
 
-Remaining for Phase 5:
+Phase 5 closeout:
 
-- Authenticated Dashboard/avatar browser QA and a live dark-mode pass remain open because the in-app browser has not exposed a reusable signed-in session.
+- Completed authenticated in-app browser QA on 2026-06-27 at desktop (1440x900), tablet (1024x768), 375x812, and 320x568 across Dashboard, Plan, Recovery, Profile, Settings, Login, and Onboarding.
+- Verified the real signed-in avatar at the bottom of the mobile rail, desktop avatar treatment, route active states, 64px rail, symmetric 16px content gutters, mobile 44px targets, and zero document-level horizontal overflow.
+- Verified live dark-mode legibility for authenticated Profile photography/surfaces and the Login split hero.
+- After the local-first boundary fix, the signed-in 320px Dashboard reached its meaningful heading in 1.57 seconds during the final production-bundle browser check, inside the demo's three-second target even while remote persistence was unavailable.
+- Fixed five issues found only in the authenticated pass:
+  - Remote persistence hydration could hold the entire app on a loading screen when Firestore was unreachable. The boundary now waits only for Firebase identity, renders the protected local cache immediately, hydrates remotely in the background with a two-second deadline, and prevents late results from overwriting newer local actions.
+  - The Dashboard photo headline was pushed above its overflow-hidden frame at 320px; the narrow stage now has enough height for the full title and metrics.
+  - The Profile memory header and connected-service controls squeezed outside their cards at 320px; both stack below the 360px breakpoint.
+  - Desktop Profile styling indicated the active route visually but omitted `aria-current="page"`.
+  - Onboarding Back links were only 29px wide; every step now provides a 44x44px target.
+- The signed-in account had not completed its race goal, so Plan's authenticated empty state was covered in this pass; the populated Plan/What-if surface remains covered by the earlier seeded visual and smoke passes.
 - `AthleticImage` now supports a configurable `h1`/`h2`; page banners use `h1`.
 - Image priority was audited: visible page heroes remain priority while the below-fold onboarding preview no longer preloads.
 - Plan now includes the What-if panel.
@@ -651,7 +661,7 @@ Completed.
 
 ## Current Known Risks
 
-- Strict Firebase auth has been verified only at Admin SDK initialization level; end-to-end signed-in frontend token verification still needs a browser/auth check. Local demo mode can keep `KINETIC_AUTH_REQUIRED=false`.
+- Signed-in frontend routing, persistence fallback, and authenticated shell rendering now pass live browser QA. Strict backend token enforcement still needs a run with `KINETIC_AUTH_REQUIRED=true`; local demo mode can keep it `false`.
 - Dashboard browser visual QA was completed (2026-06-25) at desktop (1440x900) and mobile (375x812); three scoped issues (Action-metric truncation, missing reduced-motion handling, first-viewport density) were fixed and verified live. The recommendation-first reorder has since addressed the old desktop CTA hierarchy concern. The newer photo-backed shell and mobile left rail received responsive QA on 2026-06-27; the isolated browser could not complete an authenticated Dashboard/avatar walkthrough, so that remains coupled to the strict Firebase auth browser check. `ThisWeekStrip` chips remain a watch item at narrow widths with long workout labels.
 - Local Ollama mode is wired but not performance-tested on this machine; every user-facing path must remain fallback-safe.
 - `npm audit` still reports dependency vulnerabilities from the frontend dependency tree; these have not been triaged yet.

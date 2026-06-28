@@ -307,7 +307,7 @@ export default function OnboardingPreviewPage() {
         >
           <Link
             href="/onboarding/integrations"
-            className={`text-sm text-neutral-500 underline-offset-4 hover:text-neutral-800 hover:underline dark:text-neutral-400 dark:hover:text-neutral-200 ${tokens.motion}`}
+            className={`inline-flex min-h-11 min-w-11 items-center justify-center text-sm text-neutral-500 underline-offset-4 hover:text-neutral-800 hover:underline dark:text-neutral-400 dark:hover:text-neutral-200 ${tokens.motion}`}
           >
             Back
           </Link>

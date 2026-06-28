@@ -21,6 +21,7 @@ import {
 } from "@/lib/persistence/localCacheOwnership";
 
 type JsonValue = unknown;
+const HYDRATION_TIMEOUT_MS = 2_000;
 
 const DOMAIN_KEYS: Array<{
   domain: PersistenceDomain;
@@ -99,22 +100,43 @@ const byStorageKey = new Map<string, StorageRepository<JsonValue>>(
   repositories.map((repository) => [repository.storageKey, repository]),
 );
 
-export async function hydrateUserStorage(userId: string): Promise<void> {
+export async function hydrateUserStorage(
+  userId: string,
+  isSessionCurrent: () => boolean = () => true,
+): Promise<"complete" | "timeout"> {
   prepareLocalCacheForUser(window.localStorage, userId, () => {
     repositories.forEach((repository) => repository.clearLocal());
   });
 
-  await Promise.all(
+  let hydrationActive = true;
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const hydration = Promise.all(
     repositories.map(async (repository) => {
       try {
-        await repository.hydrate(userId);
+        await repository.hydrate(
+          userId,
+          () => hydrationActive && isSessionCurrent(),
+        );
       } catch {
         // Remote persistence is an enhancement. Local demo state remains valid.
       }
     }),
   );
+  const deadline = new Promise<"timeout">((resolve) => {
+    timeoutId = setTimeout(() => resolve("timeout"), HYDRATION_TIMEOUT_MS);
+  });
 
-  claimLocalCacheForUser(window.localStorage, userId);
+  const outcome = await Promise.race([
+    hydration.then(() => "complete" as const),
+    deadline,
+  ]);
+  hydrationActive = false;
+  if (timeoutId) clearTimeout(timeoutId);
+
+  if (isSessionCurrent()) {
+    claimLocalCacheForUser(window.localStorage, userId);
+  }
+  return outcome;
 }
 
 export function mirrorPersistedStorageKey(storageKey: string): void {

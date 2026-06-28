@@ -1792,7 +1792,7 @@ function HeroCard({
           eyebrow="Training stage"
           title={stageTitle}
           subtitle={stageSubtitle}
-          className="h-[15rem] sm:h-[22rem] lg:h-full lg:min-h-[34rem]"
+          className="h-[20rem] min-[360px]:h-[17rem] sm:h-[22rem] lg:h-full lg:min-h-[34rem]"
           rounded="rounded-[1.15rem] sm:rounded-[2rem]"
           focus="center"
           priority

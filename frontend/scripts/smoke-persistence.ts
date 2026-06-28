@@ -130,6 +130,19 @@ async function main() {
     "switching UIDs must clear the previous user's training cache",
   );
 
+  repository.writeLocal({ name: "New local action" });
+  remote.set("runner-a:profile", {
+    schemaVersion: 1,
+    payload: { name: "Late remote result" },
+    deleted: false,
+    clientUpdatedAt: new Date().toISOString(),
+  });
+  await repository.hydrate("runner-a", () => false);
+  expect(
+    repository.readLocal()?.name === "New local action",
+    "a hydration result arriving after the startup deadline must not overwrite newer local state",
+  );
+
   console.log("OK - local-first persistence is isolated and idempotent");
 }
 

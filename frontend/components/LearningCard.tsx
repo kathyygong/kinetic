@@ -297,7 +297,7 @@ export default function MemoryCenter({
       />
 
       <header className="mb-5">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col items-stretch gap-3 min-[360px]:flex-row min-[360px]:items-start min-[360px]:justify-between">
           <div className="min-w-0">
             <h2 className="text-base font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
               Training memory
@@ -306,7 +306,7 @@ export default function MemoryCenter({
               Review what Kinetic has noticed and what it may use.
             </p>
           </div>
-          <div className="flex shrink-0 flex-col items-end gap-2">
+          <div className="flex shrink-0 flex-col items-start gap-2 min-[360px]:items-end">
             <span className="rounded-full border border-black/5 bg-white/60 px-2.5 py-1 text-[11px] font-medium text-neutral-500 dark:border-white/10 dark:bg-white/5 dark:text-neutral-400">
               {historyCount} history {historyCount === 1 ? "record" : "records"}
             </span>

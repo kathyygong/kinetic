@@ -47,7 +47,10 @@ export interface StorageRepository<T> {
   writeLocal(value: T): void;
   clearLocal(): void;
   mirror(userId: string): Promise<void>;
-  hydrate(userId: string): Promise<HydrationResult>;
+  hydrate(
+    userId: string,
+    shouldApply?: () => boolean,
+  ): Promise<HydrationResult>;
   clear(userId?: string): Promise<void>;
 }
 
@@ -144,8 +147,11 @@ export function createStorageRepository<T>({
       markMigrated(userId);
     },
 
-    async hydrate(userId) {
+    async hydrate(userId, shouldApply = () => true) {
       const stored = await remote.read<T>(userId, domain);
+      if (!shouldApply()) {
+        return readLocal() === null ? "empty" : "local";
+      }
       if (stored) {
         if (stored.deleted || stored.payload === null) clearLocal();
         else writeLocal(stored.payload);
@@ -156,6 +162,7 @@ export function createStorageRepository<T>({
       const local = readLocal();
       if (local !== null && !wasMigrated(userId)) {
         await remote.write(userId, domain, envelope(local, false));
+        if (!shouldApply()) return "local";
         markMigrated(userId);
         return "migrated";
       }

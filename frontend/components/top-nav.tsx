@@ -119,6 +119,7 @@ export default function TopNav() {
               <Link
                 href="/profile"
                 aria-label="Profile"
+                aria-current={profileActive ? "page" : undefined}
                 title={displayName}
                 className={`flex items-center justify-center rounded-full ${tokens.motion} ${
                   profileActive

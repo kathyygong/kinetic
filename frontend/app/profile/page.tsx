@@ -743,7 +743,7 @@ export default function ProfilePage() {
                 return (
                   <li
                     key={key}
-                    className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0"
+                    className="flex flex-col items-stretch gap-3 py-4 first:pt-0 last:pb-0 min-[360px]:flex-row min-[360px]:items-center min-[360px]:justify-between min-[360px]:gap-4"
                   >
                     <div className="flex items-center gap-3">
                       <ServiceIcon service={key} />
@@ -769,23 +769,25 @@ export default function ProfilePage() {
                         )}
                       </div>
                     </div>
-                    <ConnectControl
-                      status={status}
-                      connected={connected}
-                      flow={flow}
-                      needsReconnect={needsReconnect}
-                      needsAttentionInfo={needsAttentionInfo}
-                      retrying={
-                        key === "google_calendar" && gcalHealthChecking
-                      }
-                      onConnect={() => handleConnect(key, flow)}
-                      onDisconnect={() => handleDisconnect(key)}
-                      onRetry={
-                        key === "google_calendar"
-                          ? handleRetryGcalHealth
-                          : undefined
-                      }
-                    />
+                    <div className="self-start min-[360px]:self-auto">
+                      <ConnectControl
+                        status={status}
+                        connected={connected}
+                        flow={flow}
+                        needsReconnect={needsReconnect}
+                        needsAttentionInfo={needsAttentionInfo}
+                        retrying={
+                          key === "google_calendar" && gcalHealthChecking
+                        }
+                        onConnect={() => handleConnect(key, flow)}
+                        onDisconnect={() => handleDisconnect(key)}
+                        onRetry={
+                          key === "google_calendar"
+                            ? handleRetryGcalHealth
+                            : undefined
+                        }
+                      />
+                    </div>
                   </li>
                 );
               })}
