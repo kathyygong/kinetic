@@ -300,9 +300,10 @@ Move from local-only state toward beta-ready authenticated persistence while tre
 - No training recommendation depends on unavailable remote persistence.
 - Sensitive/raw health-adjacent data is not written into analytics events.
 
-### Status - Updated 2026-06-27
+### Status - Updated 2026-06-29
 
-Implemented as domain slices; the Firestore security gate passes.
+Implemented as domain slices; the Firestore security gate and strict backend
+authentication gate pass.
 
 - Added the generic `StorageRepository<T>` contract with synchronous local reads/writes, asynchronous remote mirroring, Firebase hydration, idempotent migration markers, and deletion tombstones.
 - Added Firebase-backed repositories for profile/goal, plan/readiness/workout log, recommendation history/preferences, today completion, and calendar-freshness metadata.
@@ -316,6 +317,7 @@ Implemented as domain slices; the Firestore security gate passes.
 Remaining beta-ready gate:
 
 - Complete an authenticated two-session browser test against a configured Firebase project or emulator.
+- Add privacy-conscious product instrumentation without sending raw health-adjacent data.
 
 ## Phase 4: AI Expansion
 
@@ -364,14 +366,15 @@ Preserve the first wedge from Phase 2: daily reasoning, weekly recalibration, an
 - AI output cannot directly mutate a plan.
 - AI can be demonstrated live at no cost with local Ollama.
 
-### Status - Updated 2026-06-27
+### Status - Updated 2026-06-29
 
 What-if vertical slice completed; later workflows remain intentionally sequenced.
 
 - Added deterministic, pure What-if simulation on Plan. It previews day, duration, and easy-only changes without mutating the saved plan.
 - Added `POST /ai/what-if` with a typed `what-if.v1` envelope, explicit deterministic grounding, timeout protection, and the existing bounded weekly reasoning fallback.
 - Added malformed-output and timeout eval cases and frontend no-mutation smoke coverage.
-- Natural-language intake and weekly/monthly training summaries remain the next AI workflows. They will not begin until the persistence/memory and authenticated QA gates are closed.
+- Persistence/memory, signed-in responsive QA, strict backend auth, and the deterministic demo gates are now complete.
+- Natural-language intake is the next AI vertical slice; weekly/monthly training summaries remain sequenced after it.
 
 ## Phase 5: Full UI/UX Refresh
 
@@ -631,7 +634,7 @@ Demo packaging is complete.
 5. Expand AI one read-only workflow at a time: deterministic What-if plus explanation first, natural-language intake second, and training summaries last.
 6. Do not begin hosted AI, wearable ingestion, native mobile, or autonomous plan mutation.
 
-## Worktree Checkpoint - Updated 2026-06-27
+## Worktree Checkpoint - Updated 2026-06-29
 
 Reviewed and checkpointed.
 
@@ -639,6 +642,8 @@ Reviewed and checkpointed.
 - `.edge-qa*` profiles and temporary screenshots were left untouched and must remain excluded from any product commit.
 - Product changes were reviewed as UI, persistence/memory, What-if/evals, and documentation slices.
 - The reviewed UI, persistence/memory, What-if/eval, and documentation slices were selectively committed as `5d13c38`.
+- Authenticated cache isolation, Firestore emulator coverage, signed-in release QA fixes, and the strict-auth release gate were checkpointed in the follow-up commits through `b2f6d59`.
+- PRD, architecture, demo, README, and phase-status language were synchronized on 2026-06-29 to separate implemented demo capabilities from the remaining beta and AI work.
 - No user artifact was deleted.
 
 ## Backend Local Start Checkpoint - Updated 2026-06-25
@@ -668,6 +673,6 @@ Completed.
 - Local Ollama mode is wired but not performance-tested on this machine; every user-facing path must remain fallback-safe.
 - `npm audit` still reports dependency vulnerabilities from the frontend dependency tree; these have not been triaged yet.
 - Local Ollama can be slow; every user-facing AI path must remain async or fallback-safe.
-- Natural-language intake and training summaries remain intentionally behind the current authenticated persistence/QA gate.
+- Natural-language intake is the next unimplemented AI workflow; training summaries remain intentionally sequenced after it.
 - Firestore isolation rules pass in the emulator; authenticated cross-session hydration/deletion behavior still needs live browser verification before persistence is called beta-ready.
 - `.edge-qa*` profiles and temporary screenshots remain intentionally untracked and must not be included in product commits.

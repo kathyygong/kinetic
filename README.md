@@ -20,7 +20,10 @@ Most running apps provide static plans that exist in a vacuum. When life happens
 * **Calendar-Aware Adjustment:** Uses schedule constraints to adapt the upcoming week while keeping the plan explainable and user-controlled.
 * **Manual Readiness Input:** Lets runners log sleep, soreness, stress, and recovery signals without requiring wearable integrations for the demo.
 * **Grounded AI Reasoning:** Uses bounded reasoning for decision explanations, recalibration summaries, behavior patterns, and evals. Deterministic validation remains the authority for plan changes.
-* **Offline-Friendly Demo:** Supports deterministic fallback behavior so the demo does not require paid hosted AI.
+* **Training Memory:** Shows tentative patterns and confirmed preferences with confidence, supporting-history context, and explicit confirm/dismiss/remove controls. Only confirmed preferences can become bounded scoring nudges.
+* **Read-Only What-if Planning:** Previews day, duration, and easy-only plan variants without mutating the saved plan.
+* **Local-First Persistence:** Keeps the demo responsive through localStorage while authenticated Firebase repositories mirror user-scoped training domains in the background.
+* **Offline-Friendly Demo:** Supports deterministic fallback behavior so the demo does not require paid hosted AI or available remote persistence.
 
 ## 🛠 The AI Stack & Strategy
 Kinetic is designed as a hybrid deterministic + AI product.
@@ -32,9 +35,10 @@ Kinetic is designed as a hybrid deterministic + AI product.
 
 ## 📈 Roadmap & Product Evolution
 - [X] **Foundation:** Deterministic planning, calendar-aware adjustment, manual readiness flows, and core API/frontend surfaces.
-- [X] **Demo Vertical Slice:** AI status visibility, hardened explanation/fallback flows, behavior learning, seed/reset controls, and the full responsive UI system.
+- [X] **Demo Vertical Slice:** AI status visibility, hardened explanation/fallback flows, training memory, read-only What-if planning, seed/reset controls, and the full responsive UI system.
 - [X] **Demo Release Gate:** Signed-in responsive QA, strict backend token enforcement, Firestore rules, and deterministic evals pass.
-- [ ] **Beta-Ready Foundation:** Firebase persistence, security rules, privacy-conscious instrumentation, and broader UI polish.
+- [ ] **Beta-Ready Foundation:** Repository-backed Firebase persistence and security rules are implemented; live two-session persistence verification, privacy-conscious instrumentation, and broader beta hardening remain.
+- [ ] **Next AI Workflow:** Bounded natural-language intake that produces a validated, reviewable draft and never mutates training state directly.
 - [ ] **Later Integrations:** Native mobile app, Apple Health/Garmin/Oura ingestion, hosted AI provider option, coach sharing, and push notifications.
 ---
 

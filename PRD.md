@@ -7,7 +7,10 @@ Kinetic is an adaptive running training system for athletes whose training plans
 The product is intentionally hybrid:
 
 - A deterministic training engine owns safety-critical decisions such as workout selection, mileage progression, calendar conflict handling, recovery thresholds, and plan mutations.
-- A grounded AI layer explains decisions, summarizes recalibrations, and detects behavior patterns for the demo ship. Later AI capabilities may parse messy user input, support what-if exploration, summarize training history, and evaluate output quality.
+- A grounded AI layer explains decisions, summarizes recalibrations, detects
+  behavior patterns, and explains read-only What-if previews. The next AI
+  capability will parse messy user input into a reviewable draft; later work
+  may summarize broader training history and evaluate output quality.
 
 The target for the current build is a resume-grade, shippable demo with a beta-ready foundation. The demo should feel polished and credible, run without paid AI dependencies, and clearly distinguish implemented capabilities from planned future integrations.
 
@@ -41,6 +44,20 @@ The shippable demo will not include:
 - Coach/team sharing.
 - Push notifications.
 - Autonomous AI plan mutation without deterministic validation.
+
+### Implementation Status — 2026-06-29
+
+- The demo release gate is complete: signed-in responsive QA, strict Firebase
+  token enforcement, deterministic evals, and Firestore isolation rules pass.
+- The UI refresh is complete across Dashboard, Plan, Recovery, Profile,
+  Settings, Login, and Onboarding.
+- Local-first, user-scoped Firebase repositories and the training-memory center
+  are implemented. Live signed-in two-session hydration/deletion verification
+  remains before persistence is called beta-ready.
+- Deterministic What-if planning and its bounded explanation contract are
+  implemented as a read-only preview.
+- Bounded natural-language intake is the next AI vertical slice. Weekly/monthly
+  training summaries remain sequenced after intake.
 
 ## 2. Problem Statement
 
@@ -251,7 +268,9 @@ Requirements:
 #### Expanded AI Workflows
 
 - Natural-language intake for messy schedule/recovery notes.
-- What-if planning for uncommitted scenario exploration.
+- What-if planning for uncommitted scenario exploration. Implemented for day,
+  duration, and easy-only previews; applying a preview remains an explicit,
+  deterministically validated user action.
 - Weekly and monthly training diary summaries.
 - AI-assisted eval/judge reports for explanation quality.
 
@@ -333,15 +352,17 @@ Any AI-generated suggestion that could affect training must pass deterministic v
 
 ### Phase 3: Persistence, Security, And Observability
 
-- Add Firebase-backed persistence for authenticated users.
-- Define local cache behavior and migration from localStorage.
-- Add Firestore rules, reset/delete controls, and privacy-conscious instrumentation.
+- Firebase-backed persistence, local cache ownership/migration, Firestore rules,
+  and reset/delete controls are implemented.
+- Complete live signed-in two-session hydration/deletion verification.
+- Add privacy-conscious instrumentation.
 - Keep demo/offline mode usable.
 
 ### Phase 4: AI Expansion
 
 - Expand beyond the first AI wedge only after demo eval gates are stable.
-- Add natural-language intake, what-if planning, and training summary contracts.
+- What-if planning is implemented; add natural-language intake next and
+  training summary contracts afterward.
 - Normalize AI response envelopes across all AI features.
 - Add schema validation, caching, timeouts, and deterministic fallback paths for expanded AI features.
 

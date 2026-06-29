@@ -19,11 +19,12 @@ for recovery, calendar load, and training progression. Emphasize that malformed
 or unavailable AI falls back to deterministic prose and cannot change the
 workout.
 
-## 2:30–3:20 — Show weekly adaptation
+## 2:30–3:20 — Show weekly adaptation and What-if
 
 Open **Plan** and review the weekly recalibration: what was preserved, modified,
-or dropped around schedule/travel constraints. The trace is read-only until the
-runner explicitly accepts a deterministically validated change.
+or dropped around schedule/travel constraints. Use the What-if panel to preview
+a day, duration, or easy-only change. The preview is read-only and cannot mutate
+the saved plan.
 
 ## 3:20–4:10 — Show recovery and learning
 
@@ -36,4 +37,5 @@ confirmed preferences become bounded scoring nudges.
 Open [EVAL_REPORT.md](./EVAL_REPORT.md). Highlight no recommendation drift, no
 medical claims, sparse-history warnings, schema validity, and no AI mutation.
 Close with the architecture: deterministic safety core, optional bounded AI,
-local fallback by default, and Firebase persistence as the next beta layer.
+local fallback by default, and an authenticated Firebase mirror that remains
+non-blocking when remote persistence is unavailable.

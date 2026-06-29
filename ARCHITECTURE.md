@@ -35,14 +35,22 @@ affect decisions, and no preference can override a safety constraint.
 
 ## Storage direction
 
-The current demo remains local-first. The beta foundation adds user-scoped
-Firebase repositories with idempotent migration and localStorage fallback.
-Remote persistence must have Firestore rules and cross-user isolation tests
-before it is described as beta-ready.
+The current implementation is local-first: synchronous localStorage reads keep
+the training flow available, while authenticated Firebase repositories mirror
+profile/goal, plan/readiness/workout history, recommendation history,
+preferences, completion, and calendar-freshness domains in the background.
+Migration is idempotent, deletion uses tombstones, and the cache records its
+owning Firebase UID so one account cannot hydrate another account's data.
+
+Firestore owner-only rules and Auth + Firestore emulator isolation tests pass.
+Live signed-in two-session hydration/deletion verification remains the final
+remote-persistence gate before this layer is described as beta-ready.
 
 ## Verification
 
 - Frontend lint, production build, and deterministic smoke suites.
 - Backend deterministic AI safety gates and generated
   [eval report](./EVAL_REPORT.md).
+- Signed-in responsive browser QA and strict Firebase token enforcement.
+- Firestore owner, cross-user, guest, and unknown-domain emulator checks.
 - Optional local-model benchmarks that cannot block the fallback-safe demo.
