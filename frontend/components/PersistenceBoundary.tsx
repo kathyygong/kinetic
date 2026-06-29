@@ -43,7 +43,7 @@ export default function PersistenceBoundary({
       setAuthSession(user.uid);
       setAuthReady(true);
       void hydration.then((outcome) => {
-        if (isSessionCurrent() && outcome === "complete") {
+        if (isSessionCurrent() && outcome === "updated") {
           setHydrationVersion((version) => version + 1);
         }
       });

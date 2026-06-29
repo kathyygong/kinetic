@@ -51,7 +51,9 @@ async function main() {
     "../lib/persistence/storageRepository"
   );
   const {
+    captureLocalCacheSnapshot,
     claimLocalCacheForUser,
+    localCacheChanged,
     prepareLocalCacheForUser,
   } = await import("../lib/persistence/localCacheOwnership");
   const repository = createStorageRepository<{ name: string }>({
@@ -128,6 +130,19 @@ async function main() {
   expect(
     cacheClears === 1,
     "switching UIDs must clear the previous user's training cache",
+  );
+
+  const unchangedSnapshot = captureLocalCacheSnapshot(localStorage, [
+    "kinetic_profile",
+  ]);
+  expect(
+    !localCacheChanged(localStorage, unchangedSnapshot),
+    "an identical hydrated cache should not remount the application",
+  );
+  repository.writeLocal({ name: "Changed cache" });
+  expect(
+    localCacheChanged(localStorage, unchangedSnapshot),
+    "a changed remote cache should request one application remount",
   );
 
   repository.writeLocal({ name: "New local action" });

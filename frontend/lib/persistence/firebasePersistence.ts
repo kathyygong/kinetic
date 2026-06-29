@@ -16,7 +16,9 @@ import {
   type StorageRepository,
 } from "@/lib/persistence/storageRepository";
 import {
+  captureLocalCacheSnapshot,
   claimLocalCacheForUser,
+  localCacheChanged,
   prepareLocalCacheForUser,
 } from "@/lib/persistence/localCacheOwnership";
 
@@ -103,10 +105,14 @@ const byStorageKey = new Map<string, StorageRepository<JsonValue>>(
 export async function hydrateUserStorage(
   userId: string,
   isSessionCurrent: () => boolean = () => true,
-): Promise<"complete" | "timeout"> {
+): Promise<"updated" | "unchanged" | "timeout"> {
   prepareLocalCacheForUser(window.localStorage, userId, () => {
     repositories.forEach((repository) => repository.clearLocal());
   });
+  const initialCache = captureLocalCacheSnapshot(
+    window.localStorage,
+    repositories.map((repository) => repository.storageKey),
+  );
 
   let hydrationActive = true;
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
@@ -127,7 +133,11 @@ export async function hydrateUserStorage(
   });
 
   const outcome = await Promise.race([
-    hydration.then(() => "complete" as const),
+    hydration.then(() =>
+      localCacheChanged(window.localStorage, initialCache)
+        ? ("updated" as const)
+        : ("unchanged" as const),
+    ),
     deadline,
   ]);
   hydrationActive = false;

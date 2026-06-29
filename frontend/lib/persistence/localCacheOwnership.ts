@@ -5,6 +5,36 @@ export interface LocalCacheStorage {
   setItem(key: string, value: string): void;
 }
 
+export type LocalCacheSnapshot = Record<string, string | null>;
+
+export function captureLocalCacheSnapshot(
+  storage: LocalCacheStorage,
+  keys: string[],
+): LocalCacheSnapshot {
+  return Object.fromEntries(
+    keys.map((key) => {
+      try {
+        return [key, storage.getItem(key)];
+      } catch {
+        return [key, null];
+      }
+    }),
+  );
+}
+
+export function localCacheChanged(
+  storage: LocalCacheStorage,
+  snapshot: LocalCacheSnapshot,
+): boolean {
+  return Object.entries(snapshot).some(([key, previous]) => {
+    try {
+      return storage.getItem(key) !== previous;
+    } catch {
+      return false;
+    }
+  });
+}
+
 /**
  * Clear cached training domains before a different authenticated user hydrates.
  *

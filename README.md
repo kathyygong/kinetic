@@ -33,7 +33,7 @@ Kinetic is designed as a hybrid deterministic + AI product.
 ## 📈 Roadmap & Product Evolution
 - [X] **Foundation:** Deterministic planning, calendar-aware adjustment, manual readiness flows, and core API/frontend surfaces.
 - [X] **Demo Vertical Slice:** AI status visibility, hardened explanation/fallback flows, behavior learning, seed/reset controls, and the full responsive UI system.
-- [ ] **Demo Release Gate:** Signed-in visual QA and deterministic evals pass; strict backend token enforcement remains to verify.
+- [X] **Demo Release Gate:** Signed-in responsive QA, strict backend token enforcement, Firestore rules, and deterministic evals pass.
 - [ ] **Beta-Ready Foundation:** Firebase persistence, security rules, privacy-conscious instrumentation, and broader UI polish.
 - [ ] **Later Integrations:** Native mobile app, Apple Health/Garmin/Oura ingestion, hosted AI provider option, coach sharing, and push notifications.
 ---

@@ -496,6 +496,8 @@ Phase 5 closeout:
 - Verified the real signed-in avatar at the bottom of the mobile rail, desktop avatar treatment, route active states, 64px rail, symmetric 16px content gutters, mobile 44px targets, and zero document-level horizontal overflow.
 - Verified live dark-mode legibility for authenticated Profile photography/surfaces and the Login split hero.
 - After the local-first boundary fix, the signed-in 320px Dashboard reached its meaningful heading in 1.57 seconds during the final production-bundle browser check, inside the demo's three-second target even while remote persistence was unavailable.
+- Completed strict backend token verification on 2026-06-29 without changing the saved `.env`: anonymous protected requests returned `401`, while the real signed-in browser received `200` from `/decision`, `/decision/reasoning`, `/behavior-insights`, and `/integrations/calendar/health`.
+- Network tracing also found that unchanged remote hydration remounted Profile and duplicated its protected requests. Hydration now remounts only when the local cache actually changes.
 - Fixed five issues found only in the authenticated pass:
   - Remote persistence hydration could hold the entire app on a loading screen when Firestore was unreachable. The boundary now waits only for Firebase identity, renders the protected local cache immediately, hydrates remotely in the background with a two-second deadline, and prevents late results from overwriting newer local actions.
   - The Dashboard photo headline was pushed above its overflow-hidden frame at 320px; the narrow stage now has enough height for the full title and metrics.
@@ -661,8 +663,8 @@ Completed.
 
 ## Current Known Risks
 
-- Signed-in frontend routing, persistence fallback, and authenticated shell rendering now pass live browser QA. Strict backend token enforcement still needs a run with `KINETIC_AUTH_REQUIRED=true`; local demo mode can keep it `false`.
-- Dashboard browser visual QA was completed (2026-06-25) at desktop (1440x900) and mobile (375x812); three scoped issues (Action-metric truncation, missing reduced-motion handling, first-viewport density) were fixed and verified live. The recommendation-first reorder has since addressed the old desktop CTA hierarchy concern. The newer photo-backed shell and mobile left rail received responsive QA on 2026-06-27; the isolated browser could not complete an authenticated Dashboard/avatar walkthrough, so that remains coupled to the strict Firebase auth browser check. `ThisWeekStrip` chips remain a watch item at narrow widths with long workout labels.
+- Signed-in frontend routing, persistence fallback, authenticated shell rendering, and strict backend token enforcement now pass live browser QA. Local demo mode can continue using permissive auth.
+- Dashboard visual QA is complete across desktop, tablet, 375px, and 320px, including the authenticated mobile rail/avatar. `ThisWeekStrip` chips remain a watch item at narrow widths with unusually long workout labels.
 - Local Ollama mode is wired but not performance-tested on this machine; every user-facing path must remain fallback-safe.
 - `npm audit` still reports dependency vulnerabilities from the frontend dependency tree; these have not been triaged yet.
 - Local Ollama can be slow; every user-facing AI path must remain async or fallback-safe.
