@@ -19,23 +19,26 @@ for recovery, calendar load, and training progression. Emphasize that malformed
 or unavailable AI falls back to deterministic prose and cannot change the
 workout.
 
-## 2:30–3:20 — Show weekly adaptation and What-if
+## 2:30–3:35 — Show intake, weekly adaptation, and What-if
 
 Open **Plan** and review the weekly recalibration: what was preserved, modified,
-or dropped around schedule/travel constraints. Use the What-if panel to preview
-a day, duration, or easy-only change. The preview is read-only and cannot mutate
-the saved plan.
+or dropped around schedule/travel constraints. In **Tell Kinetic what changed**,
+enter an explicit schedule note and show the source-grounded draft. Point out
+that the saved plan is unchanged until **Confirm changes**, which routes the
+draft through deterministic validation. Use the What-if panel to preview a day,
+duration, or easy-only change without mutating the saved plan.
 
-## 3:20–4:10 — Show recovery and learning
+## 3:35–4:15 — Show recovery and learning
 
 Open **Recovery** and enter a manual readiness signal. Then open **Profile** and
 show a tentative behavior pattern. Confirm or dismiss it, noting that only
 confirmed preferences become bounded scoring nudges.
 
-## 4:10–5:00 — Prove the boundaries
+## 4:15–5:00 — Prove the boundaries
 
 Open [EVAL_REPORT.md](./EVAL_REPORT.md). Highlight no recommendation drift, no
-medical claims, sparse-history warnings, schema validity, and no AI mutation.
-Close with the architecture: deterministic safety core, optional bounded AI,
-local fallback by default, and an authenticated Firebase mirror that remains
-non-blocking when remote persistence is unavailable.
+medical claims, sparse-history warnings, schema validity, intake grounding,
+malformed/timeout fallback, and no AI mutation. Close with the architecture:
+deterministic safety core, optional bounded AI, local fallback by default, and
+an authenticated Firebase mirror that remains non-blocking when remote
+persistence is unavailable.

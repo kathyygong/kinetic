@@ -48,6 +48,7 @@ import {
 } from "@/lib/api";
 import { trackProductEvent } from "@/lib/instrumentation";
 import WhatIfPanel from "@/components/WhatIfPanel";
+import IntakePanel from "@/components/IntakePanel";
 
 // Until we track a real plan start date, week 1 is "this week".
 const CURRENT_WEEK = 1;
@@ -167,6 +168,19 @@ export default function PlanPage() {
           />
         </RevealSection>
       ) : null}
+
+      <RevealSection delay={0.03}>
+        <IntakePanel
+          goal={goal}
+          profile={profile}
+          savedPlan={savedPlan}
+          onApplied={(state) => {
+            setGoal(state.goal);
+            setProfile(state.profile);
+            setSavedPlan(state.savedPlan);
+          }}
+        />
+      </RevealSection>
 
       {plan[0] ? (
         <RevealSection delay={0.03}>

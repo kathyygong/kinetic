@@ -24,6 +24,7 @@ from .behavior_insights import (
     deterministic_behavior_insights,
     generate_behavior_insights,
 )
+from .intake_parser import IntakeParseEnvelope, IntakeParseRequest, parse_intake
 from .types import Biometrics, TrainingContext, Constraints, DataFreshness
 
 _log = logging.getLogger(__name__)
@@ -331,6 +332,19 @@ def explain_what_if(payload: WhatIfRequest):
         "simulation": simulation,
         "explanation": explanation,
     }
+
+
+@app.post(
+    "/ai/parse-intake",
+    response_model=IntakeParseEnvelope,
+    dependencies=[RequireAuth],
+)
+def parse_natural_language_intake(
+    payload: IntakeParseRequest,
+) -> IntakeParseEnvelope:
+    """Parse a note into a grounded draft without mutating training state."""
+
+    return parse_intake(payload)
 
 
 # The endpoint short-circuits to the deterministic fallback when the

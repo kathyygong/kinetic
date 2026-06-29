@@ -14,6 +14,8 @@ from evals._gates import (
     check_ai_status,
     check_behavior_insights,
     check_daily_reasoning,
+    check_intake_failure_fallbacks,
+    check_intake_parsing,
     check_what_if,
     check_what_if_failure_fallbacks,
     check_weekly_reasoning,
@@ -32,6 +34,12 @@ def main() -> None:
         ("Weekly reasoning safety", check_weekly_reasoning, 1),
         ("What-if read-only safety", check_what_if, 1),
         ("What-if malformed/timeout fallback", check_what_if_failure_fallbacks, 2),
+        ("Intake grounding and no-mutation safety", check_intake_parsing, 2),
+        (
+            "Intake malformed/timeout/ungrounded fallback",
+            check_intake_failure_fallbacks,
+            3,
+        ),
         (
             "Behavior-learning safety",
             check_behavior_insights,
@@ -62,9 +70,13 @@ Generated: {date.today().isoformat()}
 
 - AI explanations cannot change the deterministic selected workout.
 - Daily explanations cannot contradict the selected action.
-- Daily, weekly, and behavior outputs match their required schemas.
+- Daily, weekly, behavior, What-if, and intake outputs match their schemas.
 - Fallback output contains no medical claims.
 - Weekly reasoning cannot mutate the recalibration trace.
+- Intake changes require exact source grounding, remain drafts until explicit
+  confirmation, and cannot mutate request or persisted state while parsing.
+- Sparse, malformed, timed-out, unavailable, and ungrounded intake output
+  cannot invent or apply a change.
 - Sparse behavior history emits a limited-history warning and cannot claim
   moderate or high confidence.
 - The baseline suite runs with `KINETIC_AI_MODE=fallback`; live AI is never

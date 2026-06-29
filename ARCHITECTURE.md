@@ -17,11 +17,24 @@ summarizes those decisions.
 6. The user accepts, rejects, completes, or skips the recommendation; that
    response becomes advisory history for future preference detection.
 
+Natural-language intake follows a separate review boundary:
+
+1. `POST /ai/parse-intake` receives the note plus current goal/profile context.
+2. Local AI, when enabled, may propose only whitelisted `intake.v1` fields.
+3. The backend schema-validates every value and requires exact source-text
+   evidence; malformed, slow, unavailable, or ungrounded output falls back to
+   conservative deterministic parsing.
+4. The frontend treats the response as untrusted and validates the complete
+   draft again. Parsing cannot write storage.
+5. Only **Confirm changes** reaches the existing deterministic plan generator
+   and availability adjuster; sparse or ambiguous drafts cannot be confirmed.
+
 ## Trust boundary
 
 AI may explain decisions, summarize recalibrations, detect tentative behavior
-patterns, and evaluate output quality. It cannot mutate a workout, plan,
-mileage cap, recovery threshold, or persisted training state.
+patterns, parse supported notes into reviewable drafts, and evaluate output
+quality. It cannot mutate a workout, plan, mileage cap, recovery threshold, or
+persisted training state.
 
 Confirmed preferences are bounded scoring inputs. Tentative patterns never
 affect decisions, and no preference can override a safety constraint.
@@ -51,6 +64,7 @@ remote-persistence gate before this layer is described as beta-ready.
 - Frontend lint, production build, and deterministic smoke suites.
 - Backend deterministic AI safety gates and generated
   [eval report](./EVAL_REPORT.md).
-- Signed-in responsive browser QA and strict Firebase token enforcement.
+- Signed-in responsive browser QA and strict Firebase token enforcement,
+  including authenticated intake review/confirmation and anonymous rejection.
 - Firestore owner, cross-user, guest, and unknown-domain emulator checks.
 - Optional local-model benchmarks that cannot block the fallback-safe demo.

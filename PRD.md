@@ -8,9 +8,9 @@ The product is intentionally hybrid:
 
 - A deterministic training engine owns safety-critical decisions such as workout selection, mileage progression, calendar conflict handling, recovery thresholds, and plan mutations.
 - A grounded AI layer explains decisions, summarizes recalibrations, detects
-  behavior patterns, and explains read-only What-if previews. The next AI
-  capability will parse messy user input into a reviewable draft; later work
-  may summarize broader training history and evaluate output quality.
+  behavior patterns, explains read-only What-if previews, and parses supported
+  natural-language changes into reviewable drafts. Later work may summarize
+  broader training history and evaluate output quality.
 
 The target for the current build is a resume-grade, shippable demo with a beta-ready foundation. The demo should feel polished and credible, run without paid AI dependencies, and clearly distinguish implemented capabilities from planned future integrations.
 
@@ -56,8 +56,9 @@ The shippable demo will not include:
   remains before persistence is called beta-ready.
 - Deterministic What-if planning and its bounded explanation contract are
   implemented as a read-only preview.
-- Bounded natural-language intake is the next AI vertical slice. Weekly/monthly
-  training summaries remain sequenced after intake.
+- Bounded natural-language intake is implemented for explicit goal, schedule,
+  availability, and experience changes. Weekly/monthly training summaries
+  remain sequenced after intake.
 
 ## 2. Problem Statement
 
@@ -267,7 +268,9 @@ Requirements:
 
 #### Expanded AI Workflows
 
-- Natural-language intake for messy schedule/recovery notes.
+- Natural-language intake is implemented for supported goal, schedule,
+  availability, and preference changes. Recovery/medical notes remain
+  explicitly routed to the Recovery flow rather than inferred or applied.
 - What-if planning for uncommitted scenario exploration. Implemented for day,
   duration, and easy-only previews; applying a preview remains an explicit,
   deterministically validated user action.
@@ -361,7 +364,7 @@ Any AI-generated suggestion that could affect training must pass deterministic v
 ### Phase 4: AI Expansion
 
 - Expand beyond the first AI wedge only after demo eval gates are stable.
-- What-if planning is implemented; add natural-language intake next and
+- What-if planning and bounded natural-language intake are implemented; add
   training summary contracts afterward.
 - Normalize AI response envelopes across all AI features.
 - Add schema validation, caching, timeouts, and deterministic fallback paths for expanded AI features.

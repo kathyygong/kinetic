@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import json
 import os
 from typing import Any
 
@@ -15,6 +16,7 @@ from fastapi.testclient import TestClient
 from app.ai_safety import contains_medical_claim, contradicts_selected_action
 from app.api import app
 from app.llm_client import LLMUnavailable
+from app import intake_parser as intake_parser_module
 from app import weekly_reasoning as weekly_reasoning_module
 from evals.eval_cases import BEHAVIOR_INSIGHT_CASES, DAILY_REASONING_CASES
 
@@ -249,6 +251,150 @@ def check_what_if_failure_fallbacks() -> None:
         weekly_reasoning_module.call_llm = original_call
 
 
+def check_intake_parsing() -> None:
+    note = (
+        "I'm training for a half marathon on 2026-10-18 at 32 miles per week. "
+        "I prefer to run Monday, Wednesday, and Saturday. "
+        "Wednesday I only have 30 minutes, and I'm traveling Thursday-Friday."
+    )
+    payload = {
+        "text": note,
+        "context": {
+            "today": "2026-06-29",
+            "current_goal": {"race_distance": "10k"},
+            "current_profile": {"preferred_training_days": ["tue", "thu"]},
+        },
+    }
+    before = copy.deepcopy(payload)
+    res = client.post("/ai/parse-intake", json=payload)
+    _assert(res.status_code == 200, f"/ai/parse-intake HTTP {res.status_code}")
+    body = res.json()
+    _assert(body["schema_version"] == "intake.v1", "bad intake schema")
+    _assert(body["fallback_used"] is True, "fallback mode must be explicit")
+    _assert(
+        body["grounding"]["deterministic_authority"] is True,
+        "intake deterministic authority missing",
+    )
+    _assert(
+        body["grounding"]["apply_requires_confirmation"] is True,
+        "intake confirmation boundary missing",
+    )
+    draft = body["draft"]
+    _assert(draft["status"] == "ready", "explicit intake should be reviewable")
+    _assert(
+        any(c["field"] == "race_distance" and c["value"] == "half"
+            for c in draft["goal_changes"]),
+        "race goal not parsed",
+    )
+    _assert(
+        any(c["field"] == "weekly_mileage" and c["value"] == 32
+            for c in draft["goal_changes"]),
+        "weekly mileage not parsed",
+    )
+    _assert(
+        any(c["day"] == "wed" and c["available_minutes"] == 30
+            for c in draft["availability_changes"]),
+        "availability not parsed",
+    )
+    _assert(
+        all(
+            item["evidence"].lower() in note.lower()
+            for item in draft["grounding"]
+        ),
+        "intake change lacks source grounding",
+    )
+    _assert(payload == before, "intake request mutated")
+
+    sparse = client.post(
+        "/ai/parse-intake",
+        json={
+            "text": "Things are weird next month.",
+            "context": {"today": "2026-06-29"},
+        },
+    )
+    _assert(sparse.status_code == 200, "sparse intake must degrade safely")
+    sparse_draft = sparse.json()["draft"]
+    _assert(
+        sparse_draft["status"] in {"needs_clarification", "unsupported"},
+        "sparse intake guessed a change",
+    )
+    _assert(
+        not any(
+            sparse_draft[key]
+            for key in (
+                "goal_changes",
+                "schedule_changes",
+                "availability_changes",
+                "preference_changes",
+            )
+        ),
+        "sparse intake invented a change",
+    )
+
+
+def check_intake_failure_fallbacks() -> None:
+    original_mode = os.environ.get("KINETIC_AI_MODE")
+    original_provider = os.environ.get("LLM_PROVIDER")
+    original_model = os.environ.get("OLLAMA_MODEL")
+    original_call = intake_parser_module.call_llm
+    os.environ["KINETIC_AI_MODE"] = "local_ollama"
+    os.environ["LLM_PROVIDER"] = "ollama"
+    os.environ["OLLAMA_MODEL"] = "test-model"
+    payload = intake_parser_module.IntakeParseRequest.model_validate(
+        {
+            "text": "I have 25 minutes on Tuesday.",
+            "context": {"today": "2026-06-29"},
+        }
+    )
+    try:
+        intake_parser_module.call_llm = lambda *args, **kwargs: "not json"
+        malformed = intake_parser_module.parse_intake(payload)
+        _assert(malformed.fallback_used, "malformed AI output did not fall back")
+        _assert(
+            malformed.draft.availability_changes[0].available_minutes == 25,
+            "malformed fallback lost deterministic parse",
+        )
+
+        def _timeout(*args, **kwargs):
+            raise LLMUnavailable("simulated timeout")
+
+        intake_parser_module.call_llm = _timeout
+        timed_out = intake_parser_module.parse_intake(payload)
+        _assert(timed_out.fallback_used, "timeout did not fall back")
+        _assert(
+            any("timed out" in warning.lower() or "unavailable" in warning.lower()
+                for warning in timed_out.warnings),
+            "timeout fallback was not surfaced",
+        )
+
+        intake_parser_module.call_llm = lambda *args, **kwargs: json.dumps(
+            {
+                "status": "ready",
+                "summary": "Invented",
+                "goal_changes": [
+                    {"id": "g1", "field": "weekly_mileage", "value": 100}
+                ],
+                "grounding": [{"change_id": "g1", "evidence": "not in note"}],
+            }
+        )
+        ungrounded = intake_parser_module.parse_intake(payload)
+        _assert(ungrounded.fallback_used, "ungrounded AI output was accepted")
+    finally:
+        intake_parser_module.call_llm = original_call
+        if original_mode is None:
+            os.environ.pop("KINETIC_AI_MODE", None)
+        else:
+            os.environ["KINETIC_AI_MODE"] = original_mode
+        if original_provider is None:
+            os.environ.pop("LLM_PROVIDER", None)
+        else:
+            os.environ["LLM_PROVIDER"] = original_provider
+        if original_model is None:
+            os.environ.pop("OLLAMA_MODEL", None)
+        else:
+            os.environ["OLLAMA_MODEL"] = original_model
+
+
 def main() -> None:
     checks = [
         ("ai status", check_ai_status),
@@ -256,6 +402,8 @@ def main() -> None:
         ("weekly reasoning", check_weekly_reasoning),
         ("what-if reasoning", check_what_if),
         ("what-if failure fallbacks", check_what_if_failure_fallbacks),
+        ("intake parsing", check_intake_parsing),
+        ("intake failure fallbacks", check_intake_failure_fallbacks),
         ("behavior insights", check_behavior_insights),
     ]
     for label, fn in checks:

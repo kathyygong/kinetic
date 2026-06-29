@@ -1,10 +1,10 @@
 # Kinetic Deterministic AI Eval Report
 
-Generated: 2026-06-27
+Generated: 2026-06-29
 
 ## Result
 
-**PASS — all 13 deterministic fallback cases satisfied the demo safety gates.**
+**PASS — all 18 deterministic fallback cases satisfied the demo safety gates.**
 
 | Gate group | Cases | Result |
 | --- | ---: | --- |
@@ -13,15 +13,21 @@ Generated: 2026-06-27
 | Weekly reasoning safety | 1 | PASS |
 | What-if read-only safety | 1 | PASS |
 | What-if malformed/timeout fallback | 2 | PASS |
+| Intake grounding and no-mutation safety | 2 | PASS |
+| Intake malformed/timeout/ungrounded fallback | 3 | PASS |
 | Behavior-learning safety | 4 | PASS |
 
 ## Enforced guarantees
 
 - AI explanations cannot change the deterministic selected workout.
 - Daily explanations cannot contradict the selected action.
-- Daily, weekly, and behavior outputs match their required schemas.
+- Daily, weekly, behavior, What-if, and intake outputs match their schemas.
 - Fallback output contains no medical claims.
 - Weekly reasoning cannot mutate the recalibration trace.
+- Intake changes require exact source grounding, remain drafts until explicit
+  confirmation, and cannot mutate request or persisted state while parsing.
+- Sparse, malformed, timed-out, unavailable, and ungrounded intake output
+  cannot invent or apply a change.
 - Sparse behavior history emits a limited-history warning and cannot claim
   moderate or high confidence.
 - The baseline suite runs with `KINETIC_AI_MODE=fallback`; live AI is never

@@ -228,6 +228,126 @@ export async function fetchWhatIfExplanation(
   return (await response.json()) as WhatIfResponse;
 }
 
+// --- Bounded natural-language intake ---------------------------------------
+
+export type IntakeDay =
+  | "mon"
+  | "tue"
+  | "wed"
+  | "thu"
+  | "fri"
+  | "sat"
+  | "sun";
+
+export type IntakeDraft = {
+  status: "ready" | "needs_clarification" | "unsupported";
+  summary: string;
+  goal_changes: {
+    id: string;
+    field: "race_distance" | "target_date" | "weekly_mileage";
+    value: string | number;
+  }[];
+  schedule_changes: {
+    id: string;
+    field: "preferred_training_days";
+    value: IntakeDay[];
+  }[];
+  availability_changes: {
+    id: string;
+    day: IntakeDay;
+    available_minutes: number | null;
+    easy_only: boolean;
+  }[];
+  preference_changes: {
+    id: string;
+    field: "experience_level";
+    value: "beginner" | "intermediate" | "advanced";
+  }[];
+  grounding: { change_id: string; evidence: string }[];
+  warnings: string[];
+};
+
+export type IntakeParseResponse = {
+  mode: AIRuntimeMode;
+  source: string;
+  schema_version: "intake.v1";
+  fallback_used: boolean;
+  warnings: string[];
+  grounding: {
+    deterministic_authority: true;
+    source_text_required: true;
+    apply_requires_confirmation: true;
+    allowed_fields: string[];
+  };
+  draft: IntakeDraft;
+};
+
+export async function fetchIntakeDraft(
+  text: string,
+  context: {
+    today: string;
+    current_goal: unknown;
+    current_profile: unknown;
+  },
+  timeoutMs = 25_000,
+): Promise<IntakeParseResponse> {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await apiFetch("/ai/parse-intake", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, context }),
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      throw new Error(`parse-intake failed: HTTP ${response.status}`);
+    }
+    const body: unknown = await response.json();
+    if (!isIntakeParseResponse(body)) {
+      throw new Error("parse-intake returned an invalid response envelope");
+    }
+    return body;
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
+
+function isIntakeParseResponse(value: unknown): value is IntakeParseResponse {
+  if (typeof value !== "object" || value === null) return false;
+  const envelope = value as Record<string, unknown>;
+  if (
+    envelope.schema_version !== "intake.v1" ||
+    !["fallback", "local_ollama", "disabled"].includes(String(envelope.mode)) ||
+    typeof envelope.source !== "string" ||
+    typeof envelope.fallback_used !== "boolean" ||
+    !Array.isArray(envelope.warnings) ||
+    typeof envelope.grounding !== "object" ||
+    envelope.grounding === null ||
+    typeof envelope.draft !== "object" ||
+    envelope.draft === null
+  ) {
+    return false;
+  }
+  const grounding = envelope.grounding as Record<string, unknown>;
+  const draft = envelope.draft as Record<string, unknown>;
+  return (
+    grounding.deterministic_authority === true &&
+    grounding.source_text_required === true &&
+    grounding.apply_requires_confirmation === true &&
+    ["ready", "needs_clarification", "unsupported"].includes(
+      String(draft.status),
+    ) &&
+    typeof draft.summary === "string" &&
+    Array.isArray(draft.goal_changes) &&
+    Array.isArray(draft.schedule_changes) &&
+    Array.isArray(draft.availability_changes) &&
+    Array.isArray(draft.preference_changes) &&
+    Array.isArray(draft.grounding) &&
+    Array.isArray(draft.warnings)
+  );
+}
+
 // --- AI runtime ------------------------------------------------------------
 
 export type AIRuntimeMode = "fallback" | "local_ollama" | "disabled";
