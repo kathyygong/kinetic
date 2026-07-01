@@ -429,6 +429,14 @@ vertical slices are complete.
 - Added deterministic backend cases for weekly/monthly windows, sparse
   history, immutability, privacy grounding, invented facts, and timeout
   fallback, plus frontend request-privacy/no-mutation smoke coverage.
+- Signed-in browser QA on 2026-07-01 verified the live local-Ollama path
+  end-to-end: 30-day review returned `Local AI · grounded`, changed only the
+  displayed aggregate window, and produced no browser warnings or errors.
+  The sparse 7-day case rejected ungrounded narration and safely displayed the
+  deterministic review.
+- The same browser pass verified that “I can only train Tuesday for 40 minutes
+  this week” produced one source-grounded, deterministically validated draft.
+  The draft was discarded without changing the saved plan.
 
 ## Phase 5: Full UI/UX Refresh
 
@@ -737,7 +745,8 @@ Completed.
 - `npm audit` still reports dependency vulnerabilities from the frontend dependency tree; these have not been triaged yet.
 - Other local-Ollama surfaces can still be slow; every user-facing AI path must remain async or fallback-safe.
 - Bounded natural-language intake and weekly/monthly training reviews are
-  implemented. The next AI workflow should be chosen only after live summary
-  QA and the existing beta-persistence gate remain green.
+  implemented, and signed-in live browser QA passes. Do not select another AI
+  workflow until the existing beta-persistence gate and privacy-conscious
+  observability are complete.
 - Firestore isolation rules pass in the emulator; authenticated cross-session hydration/deletion behavior still needs live browser verification before persistence is called beta-ready.
 - `.edge-qa*` profiles and temporary screenshots remain intentionally untracked and must not be included in product commits.

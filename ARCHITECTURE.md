@@ -80,6 +80,8 @@ remote-persistence gate before this layer is described as beta-ready.
 - Backend deterministic AI safety gates and generated
   [eval report](./EVAL_REPORT.md).
 - Signed-in responsive browser QA and strict Firebase token enforcement,
-  including authenticated intake review/confirmation and anonymous rejection.
+  including authenticated intake review/confirmation, anonymous rejection,
+  and live grounded 30-day training-review narration. Sparse ungrounded
+  narration is rejected for deterministic review copy.
 - Firestore owner, cross-user, guest, and unknown-domain emulator checks.
 - Optional local-model benchmarks that cannot block the fallback-safe demo.

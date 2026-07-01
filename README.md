@@ -48,7 +48,12 @@ Kinetic is designed as a hybrid deterministic + AI product.
 - [X] **Bounded Intake Workflow:** Natural-language changes produce a validated, reviewable draft; malformed output, ambiguity, timeouts, and unavailable AI fall back or stop safely, and only explicit confirmation can reach deterministic plan application.
 - [X] **Training Review Workflow:** Weekly and monthly summaries use typed,
   privacy-minimized inputs, deterministic metrics, grounded narration, and
-  fallback-safe read-only UI.
+  fallback-safe read-only UI. Signed-in browser QA verifies both live grounded
+  Ollama narration and safe deterministic rejection of ungrounded output.
+- [ ] **Next CTO Slice:** Close live two-session Firebase
+  hydration/deletion, then add privacy-conscious observability for AI
+  latency/fallback and key training actions without recording raw notes,
+  biometrics, calendar text, or unnecessary identity data.
 - [ ] **Later Integrations:** Native mobile app, Apple Health/Garmin/Oura ingestion, hosted AI provider option, coach sharing, and push notifications.
 
 Optional live-model verification (requires Ollama and the configured intake

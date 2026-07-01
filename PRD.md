@@ -116,11 +116,15 @@ A recreational runner training for a race while balancing work, travel, fatigue,
    - User can confirm, dismiss, or remove learned preferences.
    - Confirmed preferences may softly influence future scoring, but never override safety constraints.
 
-8. Ask what changed or what if. Planned after the first demo AI wedge.
+8. Ask what changed or what if.
    - User can provide natural-language context, such as "I am traveling Wednesday through Friday and slept badly last night."
-   - AI parses the note into structured constraints.
-   - Deterministic logic validates and applies any resulting changes.
-   - User can explore scenarios without committing them to the plan.
+   - Supported goal, schedule, availability, and experience details become a
+     source-grounded draft; recovery or medical context is routed to the
+     Recovery flow rather than inferred.
+   - Deterministic logic validates the complete draft before an explicit
+     confirmation can apply any resulting changes.
+   - User can explore deterministic scenarios without committing them to the
+     plan.
 
 ## 4. Product, Features, And Requirements
 
