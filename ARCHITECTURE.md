@@ -33,12 +33,23 @@ Natural-language intake follows a separate review boundary:
 5. Only **Confirm changes** reaches the existing deterministic plan generator
    and availability adjuster; sparse or ambiguous drafts cannot be confirmed.
 
+Training reviews use a read-only aggregate boundary:
+
+1. The Plan page maps logged outcomes into a bounded 7/30-day request. Workout
+   names, notes, rejection reasons, and calendar context never enter this path.
+2. `POST /ai/training-summary` calculates consistency, completed volume,
+   effort, and recovery trends deterministically.
+3. Optional local AI receives only those final metrics and may produce typed
+   narrative copy. Invented numbers, medical claims, malformed output, and
+   timeouts are rejected for deterministic fallback copy.
+4. The response is display-only and has no state-mutation action.
+
 ## Trust boundary
 
-AI may explain decisions, summarize recalibrations, detect tentative behavior
-patterns, parse supported notes into reviewable drafts, and evaluate output
-quality. It cannot mutate a workout, plan, mileage cap, recovery threshold, or
-persisted training state.
+AI may explain decisions, summarize recalibrations and bounded training
+aggregates, detect tentative behavior patterns, parse supported notes into
+reviewable drafts, and evaluate output quality. It cannot mutate a workout,
+plan, mileage cap, recovery threshold, or persisted training state.
 
 Confirmed preferences are bounded scoring inputs. Tentative patterns never
 affect decisions, and no preference can override a safety constraint.

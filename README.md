@@ -23,6 +23,7 @@ Most running apps provide static plans that exist in a vacuum. When life happens
 * **Training Memory:** Shows tentative patterns and confirmed preferences with confidence, supporting-history context, and explicit confirm/dismiss/remove controls. Only confirmed preferences can become bounded scoring nudges.
 * **Read-Only What-if Planning:** Previews day, duration, and easy-only plan variants without mutating the saved plan.
 * **Bounded Natural-Language Intake:** Parses explicit goal, training-day, availability, and experience changes into a typed, source-grounded draft. The draft remains read-only until the runner confirms it, then the existing deterministic planner validates and applies it.
+* **Read-Only Training Reviews:** Summarizes 7- or 30-day consistency, completed volume, and recovery trends from deterministic aggregates. Optional local AI can narrate those facts but cannot invent metrics or change the plan.
 * **Consistent Readiness Decisions:** Dashboard and Recovery use the same rolling biometric baselines, so the displayed recovery score and training state cannot drift between surfaces.
 * **Local-First Persistence:** Keeps the demo responsive through localStorage while authenticated Firebase repositories mirror user-scoped training domains in the background.
 * **Offline-Friendly Demo:** Supports deterministic fallback behavior so the demo does not require paid hosted AI or available remote persistence.
@@ -45,7 +46,9 @@ Kinetic is designed as a hybrid deterministic + AI product.
 - [X] **Demo Release Gate:** Signed-in responsive QA, strict backend token enforcement, Firestore rules, and deterministic evals pass.
 - [ ] **Beta-Ready Foundation:** Repository-backed Firebase persistence and security rules are implemented; live two-session persistence verification, privacy-conscious instrumentation, and broader beta hardening remain.
 - [X] **Bounded Intake Workflow:** Natural-language changes produce a validated, reviewable draft; malformed output, ambiguity, timeouts, and unavailable AI fall back or stop safely, and only explicit confirmation can reach deterministic plan application.
-- [ ] **Next AI Workflow:** Weekly and monthly training summaries with the same typed, grounded, fallback-safe architecture.
+- [X] **Training Review Workflow:** Weekly and monthly summaries use typed,
+  privacy-minimized inputs, deterministic metrics, grounded narration, and
+  fallback-safe read-only UI.
 - [ ] **Later Integrations:** Native mobile app, Apple Health/Garmin/Oura ingestion, hosted AI provider option, coach sharing, and push notifications.
 
 Optional live-model verification (requires Ollama and the configured intake

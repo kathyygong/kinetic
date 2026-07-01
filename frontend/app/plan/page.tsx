@@ -49,6 +49,7 @@ import {
 import { trackProductEvent } from "@/lib/instrumentation";
 import WhatIfPanel from "@/components/WhatIfPanel";
 import IntakePanel from "@/components/IntakePanel";
+import TrainingSummaryPanel from "@/components/TrainingSummaryPanel";
 
 // Until we track a real plan start date, week 1 is "this week".
 const CURRENT_WEEK = 1;
@@ -155,6 +156,10 @@ export default function PlanPage() {
           />
         </RevealSection>
       ) : null}
+
+      <RevealSection delay={0.03}>
+        <TrainingSummaryPanel />
+      </RevealSection>
 
       {/* Premium read on this week's adaptation. Renders a deterministic */}
       {/* "currently aligned" message when there are no week-1 changes,  */}

@@ -45,7 +45,7 @@ The shippable demo will not include:
 - Push notifications.
 - Autonomous AI plan mutation without deterministic validation.
 
-### Implementation Status — 2026-06-29
+### Implementation Status — 2026-07-01
 
 - The demo release gate is complete: signed-in responsive QA, strict Firebase
   token enforcement, deterministic evals, and Firestore isolation rules pass.
@@ -57,8 +57,10 @@ The shippable demo will not include:
 - Deterministic What-if planning and its bounded explanation contract are
   implemented as a read-only preview.
 - Bounded natural-language intake is implemented for explicit goal, schedule,
-  availability, and experience changes. Weekly/monthly training summaries
-  remain sequenced after intake.
+  availability, and experience changes.
+- Read-only weekly/monthly training reviews are implemented from bounded
+  outcome aggregates. Deterministic code owns every metric and trend; optional
+  AI may only narrate validated facts, and raw workout notes are excluded.
 
 ## 2. Problem Statement
 
@@ -274,7 +276,8 @@ Requirements:
 - What-if planning for uncommitted scenario exploration. Implemented for day,
   duration, and easy-only previews; applying a preview remains an explicit,
   deterministically validated user action.
-- Weekly and monthly training diary summaries.
+- Weekly and monthly training diary summaries. Implemented as read-only,
+  deterministic reviews with optional grounded local-AI narration.
 - AI-assisted eval/judge reports for explanation quality.
 
 #### Native Mobile App
@@ -364,8 +367,8 @@ Any AI-generated suggestion that could affect training must pass deterministic v
 ### Phase 4: AI Expansion
 
 - Expand beyond the first AI wedge only after demo eval gates are stable.
-- What-if planning and bounded natural-language intake are implemented; add
-  training summary contracts afterward.
+- What-if planning, bounded natural-language intake, and read-only training
+  summary contracts are implemented.
 - Normalize AI response envelopes across all AI features.
 - Add schema validation, caching, timeouts, and deterministic fallback paths for expanded AI features.
 

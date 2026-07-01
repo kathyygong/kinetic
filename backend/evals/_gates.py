@@ -17,6 +17,7 @@ from app.ai_safety import contains_medical_claim, contradicts_selected_action
 from app.api import app
 from app.llm_client import LLMUnavailable
 from app import intake_parser as intake_parser_module
+from app import training_summary as training_summary_module
 from app import weekly_reasoning as weekly_reasoning_module
 from evals.eval_cases import BEHAVIOR_INSIGHT_CASES, DAILY_REASONING_CASES
 
@@ -444,6 +445,151 @@ def check_intake_failure_fallbacks() -> None:
             os.environ["OLLAMA_MODEL"] = original_model
 
 
+def check_training_summary() -> None:
+    payload = {
+        "period": "weekly",
+        "as_of": "2026-07-01",
+        "events": [
+            {
+                "date": "2026-06-25",
+                "completed": True,
+                "distance_miles": 4,
+                "duration_minutes": 38,
+                "perceived_effort": 5,
+                "recovery_score": 0.5,
+            },
+            {
+                "date": "2026-06-27",
+                "completed": True,
+                "distance_miles": 6,
+                "duration_minutes": 55,
+                "perceived_effort": 6,
+                "recovery_score": 0.55,
+            },
+            {
+                "date": "2026-06-29",
+                "completed": False,
+                "recovery_score": 0.65,
+            },
+            {
+                "date": "2026-07-01",
+                "completed": True,
+                "distance_miles": 5,
+                "duration_minutes": 45,
+                "perceived_effort": 5,
+                "recovery_score": 0.7,
+            },
+            {
+                "date": "2026-06-02",
+                "completed": True,
+                "distance_miles": 3,
+            },
+        ],
+        "confirmed_preferences": ["Prefers long runs on Saturday"],
+    }
+    before = copy.deepcopy(payload)
+    res = client.post("/ai/training-summary", json=payload)
+    _assert(res.status_code == 200, f"training summary HTTP {res.status_code}")
+    body = res.json()
+    metrics = body["metrics"]
+    _assert(body["schema_version"] == "training-summary.v1", "bad summary schema")
+    _assert(body["fallback_used"], "fallback eval unexpectedly used live AI")
+    _assert(body["grounding"]["read_only"], "summary is not marked read-only")
+    _assert(
+        body["grounding"]["raw_notes_excluded"],
+        "summary does not declare note exclusion",
+    )
+    _assert(metrics["logged_sessions"] == 4, "weekly window filtering failed")
+    _assert(metrics["completed_sessions"] == 3, "completion count drifted")
+    _assert(metrics["missed_sessions"] == 1, "missed count drifted")
+    _assert(metrics["consistency_pct"] == 75, "consistency math drifted")
+    _assert(metrics["total_miles"] == 15, "completed mileage drifted")
+    _assert(metrics["total_minutes"] == 138, "duration sum drifted")
+    _assert(metrics["average_effort"] == 5.3, "effort average drifted")
+    _assert(metrics["recovery_trend"] == "improving", "trend classification drifted")
+    _assert(payload == before, "training summary request mutated")
+
+    monthly = client.post(
+        "/ai/training-summary", json={**payload, "period": "monthly"}
+    ).json()
+    _assert(
+        monthly["metrics"]["logged_sessions"] == 5,
+        "monthly window did not include older session",
+    )
+
+    sparse = client.post(
+        "/ai/training-summary",
+        json={
+            "period": "weekly",
+            "as_of": "2026-07-01",
+            "events": [],
+            "confirmed_preferences": [],
+        },
+    ).json()
+    _assert(sparse["metrics"]["logged_sessions"] == 0, "sparse summary invented history")
+    _assert(sparse["warnings"], "sparse summary omitted its warning")
+
+
+def check_training_summary_failure_fallbacks() -> None:
+    original_mode = os.environ.get("KINETIC_AI_MODE")
+    original_provider = os.environ.get("LLM_PROVIDER")
+    original_model = os.environ.get("OLLAMA_MODEL")
+    original_call = training_summary_module.call_llm
+    os.environ["KINETIC_AI_MODE"] = "local_ollama"
+    os.environ["LLM_PROVIDER"] = "ollama"
+    os.environ["OLLAMA_MODEL"] = "test-model"
+    payload = training_summary_module.TrainingSummaryRequest.model_validate(
+        {
+            "period": "weekly",
+            "as_of": "2026-07-01",
+            "events": [
+                {
+                    "date": "2026-07-01",
+                    "completed": True,
+                    "distance_miles": 5,
+                }
+            ],
+        }
+    )
+    try:
+        training_summary_module.call_llm = lambda *args, **kwargs: json.dumps(
+            {
+                "headline": "You ran 999 miles",
+                "overview": "Invented 999 mile total.",
+                "highlight": "Stable.",
+                "next_focus": "Keep going.",
+            }
+        )
+        ungrounded = training_summary_module.generate_training_summary(payload)
+        _assert(ungrounded.fallback_used, "invented summary number was accepted")
+        _assert(
+            ungrounded.metrics.total_miles == 5,
+            "fallback changed deterministic metrics",
+        )
+
+        def _timeout(*args, **kwargs):
+            raise LLMUnavailable("simulated timeout")
+
+        training_summary_module.call_llm = _timeout
+        timed_out = training_summary_module.generate_training_summary(payload)
+        _assert(timed_out.fallback_used, "summary timeout did not fall back")
+        _assert(timed_out.warnings, "summary timeout warning missing")
+    finally:
+        training_summary_module.call_llm = original_call
+        if original_mode is None:
+            os.environ.pop("KINETIC_AI_MODE", None)
+        else:
+            os.environ["KINETIC_AI_MODE"] = original_mode
+        if original_provider is None:
+            os.environ.pop("LLM_PROVIDER", None)
+        else:
+            os.environ["LLM_PROVIDER"] = original_provider
+        if original_model is None:
+            os.environ.pop("OLLAMA_MODEL", None)
+        else:
+            os.environ["OLLAMA_MODEL"] = original_model
+
+
 def main() -> None:
     checks = [
         ("ai status", check_ai_status),
@@ -454,6 +600,11 @@ def main() -> None:
         ("intake parsing", check_intake_parsing),
         ("intake failure fallbacks", check_intake_failure_fallbacks),
         ("behavior insights", check_behavior_insights),
+        ("training summary", check_training_summary),
+        (
+            "training summary failure fallbacks",
+            check_training_summary_failure_fallbacks,
+        ),
     ]
     for label, fn in checks:
         fn()

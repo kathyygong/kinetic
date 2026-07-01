@@ -16,6 +16,8 @@ from evals._gates import (
     check_daily_reasoning,
     check_intake_failure_fallbacks,
     check_intake_parsing,
+    check_training_summary,
+    check_training_summary_failure_fallbacks,
     check_what_if,
     check_what_if_failure_fallbacks,
     check_weekly_reasoning,
@@ -45,6 +47,12 @@ def main() -> None:
             check_behavior_insights,
             len(BEHAVIOR_INSIGHT_CASES),
         ),
+        ("Training-summary grounding and privacy", check_training_summary, 3),
+        (
+            "Training-summary invalid/timeout fallback",
+            check_training_summary_failure_fallbacks,
+            2,
+        ),
     ]
 
     rows: list[str] = []
@@ -70,7 +78,8 @@ Generated: {date.today().isoformat()}
 
 - AI explanations cannot change the deterministic selected workout.
 - Daily explanations cannot contradict the selected action.
-- Daily, weekly, behavior, What-if, and intake outputs match their schemas.
+- Daily, weekly, behavior, What-if, intake, and training-summary outputs match
+  their schemas.
 - Fallback output contains no medical claims.
 - Weekly reasoning cannot mutate the recalibration trace.
 - Intake changes require exact source grounding, remain drafts until explicit
@@ -79,6 +88,8 @@ Generated: {date.today().isoformat()}
   cannot invent or apply a change.
 - Sparse behavior history emits a limited-history warning and cannot claim
   moderate or high confidence.
+- Weekly/monthly reviews derive metrics deterministically from bounded outcome
+  fields, exclude raw notes, remain read-only, and reject invented AI facts.
 - The baseline suite runs with `KINETIC_AI_MODE=fallback`; live AI is never
   required for a passing demo.
 

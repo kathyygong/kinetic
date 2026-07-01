@@ -19,14 +19,16 @@ for recovery, calendar load, and training progression. Emphasize that malformed
 or unavailable AI falls back to deterministic prose and cannot change the
 workout.
 
-## 2:30–3:35 — Show intake, weekly adaptation, and What-if
+## 2:30–3:35 — Show intake, training review, and What-if
 
 Open **Plan** and review the weekly recalibration: what was preserved, modified,
 or dropped around schedule/travel constraints. In **Tell Kinetic what changed**,
 enter an explicit schedule note and show the source-grounded draft. Point out
 that the saved plan is unchanged until **Confirm changes**, which routes the
 draft through deterministic validation. Use the What-if panel to preview a day,
-duration, or easy-only change without mutating the saved plan.
+duration, or easy-only change without mutating the saved plan. Toggle the
+read-only training review from 7 to 30 days and point out that its metrics are
+deterministic, raw notes are excluded, and its narrative cannot alter the plan.
 
 ## 3:35–4:15 — Show recovery and learning
 
@@ -38,7 +40,8 @@ confirmed preferences become bounded scoring nudges.
 
 Open [EVAL_REPORT.md](./EVAL_REPORT.md). Highlight no recommendation drift, no
 medical claims, sparse-history warnings, schema validity, intake grounding,
-malformed/timeout fallback, and no AI mutation. Close with the architecture:
+training-summary privacy, malformed/timeout fallback, and no AI mutation.
+Close with the architecture:
 deterministic safety core, optional bounded AI, local fallback by default, and
 an authenticated Firebase mirror that remains non-blocking when remote
 persistence is unavailable.

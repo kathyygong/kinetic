@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "smoke": "tsx scripts/smoke-cases.ts && tsx scripts/smoke-plan.ts && tsx scripts/smoke-plan-adjuster.ts && tsx scripts/smoke-plan-refresh.ts && tsx scripts/smoke-plan-service.ts && tsx scripts/smoke-todays-workout.ts && tsx scripts/smoke-weekly-recalibration.ts && tsx scripts/smoke-demo-data.ts && tsx scripts/smoke-instrumentation.ts && tsx scripts/smoke-persistence.ts && tsx scripts/smoke-memory.ts && tsx scripts/smoke-what-if.ts && tsx scripts/smoke-intake.ts && tsx scripts/smoke-recovery-consistency.ts",
+    "smoke": "tsx scripts/smoke-cases.ts && tsx scripts/smoke-plan.ts && tsx scripts/smoke-plan-adjuster.ts && tsx scripts/smoke-plan-refresh.ts && tsx scripts/smoke-plan-service.ts && tsx scripts/smoke-todays-workout.ts && tsx scripts/smoke-weekly-recalibration.ts && tsx scripts/smoke-demo-data.ts && tsx scripts/smoke-instrumentation.ts && tsx scripts/smoke-persistence.ts && tsx scripts/smoke-memory.ts && tsx scripts/smoke-what-if.ts && tsx scripts/smoke-intake.ts && tsx scripts/smoke-recovery-consistency.ts && tsx scripts/smoke-training-summary.ts",
     "test:firestore-rules": "tsx scripts/firestore-rules-emulator.ts"
   },
   "dependencies": {

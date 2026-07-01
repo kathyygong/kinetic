@@ -30,6 +30,11 @@ from .intake_parser import (
     parse_intake,
     warm_intake_model,
 )
+from .training_summary import (
+    TrainingSummaryEnvelope,
+    TrainingSummaryRequest,
+    generate_training_summary,
+)
 from .types import Biometrics, TrainingContext, Constraints, DataFreshness
 
 _log = logging.getLogger(__name__)
@@ -363,6 +368,19 @@ def parse_natural_language_intake(
     """Parse a note into a grounded draft without mutating training state."""
 
     return parse_intake(payload)
+
+
+@app.post(
+    "/ai/training-summary",
+    response_model=TrainingSummaryEnvelope,
+    dependencies=[RequireAuth],
+)
+def training_summary(
+    payload: TrainingSummaryRequest,
+) -> TrainingSummaryEnvelope:
+    """Return a read-only aggregate review with bounded optional prose."""
+
+    return generate_training_summary(payload)
 
 
 # The endpoint short-circuits to the deterministic fallback when the

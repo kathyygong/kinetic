@@ -348,6 +348,65 @@ function isIntakeParseResponse(value: unknown): value is IntakeParseResponse {
   );
 }
 
+// --- Read-only training summaries -----------------------------------------
+
+export type TrainingSummaryResponse = {
+  mode: AIRuntimeMode;
+  source: string;
+  schema_version: "training-summary.v1";
+  fallback_used: boolean;
+  warnings: string[];
+  grounding: {
+    deterministic_authority: true;
+    read_only: true;
+    raw_notes_excluded: true;
+    aggregated_fields: string[];
+  };
+  metrics: {
+    window_days: 7 | 30;
+    window_start: string;
+    window_end: string;
+    logged_sessions: number;
+    completed_sessions: number;
+    missed_sessions: number;
+    consistency_pct: number;
+    total_miles: number;
+    total_minutes: number;
+    average_effort: number | null;
+    average_recovery: number | null;
+    recovery_trend: "improving" | "stable" | "declining" | "unknown";
+    confirmed_preferences: string[];
+  };
+  narrative: {
+    headline: string;
+    overview: string;
+    highlight: string;
+    next_focus: string;
+  };
+};
+
+export async function fetchTrainingSummary(
+  payload: import("@/lib/trainingSummary").TrainingSummaryRequest,
+  timeoutMs = 30_000,
+): Promise<TrainingSummaryResponse> {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await apiFetch("/ai/training-summary", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      throw new Error(`training-summary failed: HTTP ${response.status}`);
+    }
+    return (await response.json()) as TrainingSummaryResponse;
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
+
 // --- AI runtime ------------------------------------------------------------
 
 export type AIRuntimeMode = "fallback" | "local_ollama" | "disabled";

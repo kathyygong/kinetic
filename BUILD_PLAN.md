@@ -5,7 +5,9 @@
 Turn Kinetic into a resume-grade shippable demo with a beta-ready foundation:
 
 - Fast deterministic training decisions.
-- A grounded AI layer for explanation, recalibration summaries, behavior learning, read-only what-if analysis, bounded natural-language intake, and evals, with broader training summaries staged for later.
+- A grounded AI layer for explanation, recalibration summaries, behavior
+  learning, read-only What-if analysis, bounded natural-language intake,
+  weekly/monthly training reviews, and evals.
 - No paid AI dependency.
 - A polished Apple-inspired UI/UX refresh.
 - Honest documentation and repeatable verification.
@@ -366,10 +368,10 @@ Preserve the first wedge from Phase 2: daily reasoning, weekly recalibration, an
 - AI output cannot directly mutate a plan.
 - AI can be demonstrated live at no cost with local Ollama.
 
-### Status - Updated 2026-06-29
+### Status - Updated 2026-07-01
 
-What-if and bounded natural-language intake vertical slices are complete;
-training summaries remain intentionally sequenced afterward.
+What-if, bounded natural-language intake, and read-only training-summary
+vertical slices are complete.
 
 - Added deterministic, pure What-if simulation on Plan. It previews day, duration, and easy-only changes without mutating the saved plan.
 - Added `POST /ai/what-if` with a typed `what-if.v1` envelope, explicit deterministic grounding, timeout protection, and the existing bounded weekly reasoning fallback.
@@ -413,7 +415,20 @@ training summaries remain intentionally sequenced afterward.
 - Dashboard decision requests now use the same rolling HRV baseline as
   Recovery. Focused smoke coverage locks the seeded state to 84/100 and
   recovered on both surfaces.
-- Weekly/monthly training summaries are the next AI workflow.
+- Added authenticated `POST /ai/training-summary` with a typed
+  `training-summary.v1` envelope. Deterministic code owns 7/30-day consistency,
+  completed volume, effort, and recovery-trend calculations.
+- The request builder sends only bounded workout outcomes and explicitly
+  confirmed preference descriptions. Workout names, free-text notes, rejection
+  reasons, and calendar context are excluded.
+- Optional local Ollama narration uses the warmed `llama3.2:3b` model and a
+  native JSON schema. Any invented number, medical claim, malformed output,
+  timeout, or provider failure is discarded for deterministic review copy.
+- Plan now reuses `GlassCard` for a read-only 7/30-day training review. It
+  cannot write the saved plan or behavior history.
+- Added deterministic backend cases for weekly/monthly windows, sparse
+  history, immutability, privacy grounding, invented facts, and timeout
+  fallback, plus frontend request-privacy/no-mutation smoke coverage.
 
 ## Phase 5: Full UI/UX Refresh
 
@@ -673,8 +688,12 @@ Demo packaging is complete.
 2. Keep the shippable-demo proof green: readable eval report, architecture summary, and five-minute walkthrough.
 3. Build persistence by domain behind the local-first repository boundary; require UID scoping, idempotent migration, offline fallback, rules, and emulator tests.
 4. Deliver training memory on that repository boundary; tentative patterns never score and confirmed preferences remain bounded nudges.
-5. Expand AI one read-only workflow at a time: deterministic What-if plus explanation first, natural-language intake second, and training summaries last.
-6. Do not begin hosted AI, wearable ingestion, native mobile, or autonomous plan mutation.
+5. Completed the bounded AI sequence: deterministic What-if, review-first
+   natural-language intake, then read-only weekly/monthly training reviews.
+6. Next, close the live two-session Firebase persistence gate and add
+   privacy-conscious observability before selecting another AI workflow.
+7. Do not begin hosted AI, wearable ingestion, native mobile, or autonomous
+   plan mutation.
 
 ## Worktree Checkpoint - Updated 2026-06-29
 
@@ -717,7 +736,8 @@ Completed.
   deliberately warms and pins the model before accepting requests.
 - `npm audit` still reports dependency vulnerabilities from the frontend dependency tree; these have not been triaged yet.
 - Other local-Ollama surfaces can still be slow; every user-facing AI path must remain async or fallback-safe.
-- Bounded natural-language intake is implemented; weekly/monthly training
-  summaries are the next unimplemented AI workflow.
+- Bounded natural-language intake and weekly/monthly training reviews are
+  implemented. The next AI workflow should be chosen only after live summary
+  QA and the existing beta-persistence gate remain green.
 - Firestore isolation rules pass in the emulator; authenticated cross-session hydration/deletion behavior still needs live browser verification before persistence is called beta-ready.
 - `.edge-qa*` profiles and temporary screenshots remain intentionally untracked and must not be included in product commits.
