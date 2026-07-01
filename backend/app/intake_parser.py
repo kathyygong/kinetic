@@ -8,6 +8,7 @@ separate deterministic step.
 from __future__ import annotations
 
 import json
+import os
 import re
 from datetime import date, datetime
 from typing import Literal
@@ -118,26 +119,109 @@ class IntakeParseEnvelope(BaseModel):
     draft: IntakeDraft
 
 
-SYSTEM_PROMPT = """You parse a runner's note into a reviewable Kinetic draft.
-Return JSON only. Never recommend or apply a workout. Never infer facts that
-are not explicit in the note. Every proposed change needs an exact evidence
-substring from the note.
+class ModelAvailabilityChange(BaseModel):
+    day: Day
+    available_minutes: int | None = Field(default=None, ge=0, le=240)
+    easy_only: bool = False
 
-Allowed schema:
-{
-  "status": "ready|needs_clarification|unsupported",
-  "summary": "short plain-language summary",
-  "goal_changes": [{"id":"g1","field":"race_distance|target_date|weekly_mileage","value":"..."}],
-  "schedule_changes": [{"id":"s1","field":"preferred_training_days","value":["mon","wed"]}],
-  "availability_changes": [{"id":"a1","day":"wed","available_minutes":30|null,"easy_only":false}],
-  "preference_changes": [{"id":"p1","field":"experience_level","value":"beginner|intermediate|advanced"}],
-  "grounding": [{"change_id":"g1","evidence":"exact words from note"}],
-  "warnings": ["ambiguity or unsupported request"]
-}
 
-Use ISO YYYY-MM-DD dates. Allowed race distances are 5k, 10k, half, marathon.
-Allowed days are mon..sun. Available minutes must be 0..240 and weekly mileage
-1..150. Sparse or ambiguous notes must request clarification, not guess."""
+class IntakeModelExtraction(BaseModel):
+    """Compact provider schema; Kinetic builds IDs, evidence, and copy itself."""
+
+    status: Literal["ready", "needs_clarification", "unsupported"]
+    race_distance: RaceDistance | None = None
+    target_date: str | None = None
+    weekly_mileage: float | None = Field(default=None, ge=1, le=150)
+    preferred_training_days: list[Day] = Field(default_factory=list)
+    availability_changes: list[ModelAvailabilityChange] = Field(
+        default_factory=list
+    )
+    experience_level: Experience | None = None
+
+
+SYSTEM_PROMPT = """Extract only explicit runner-requested changes.
+Never recommend or apply workouts. Never guess. Normalize days to mon..sun,
+dates to YYYY-MM-DD, race distance to 5k|10k|half|marathon, and experience to
+beginner|intermediate|advanced. If the note is sparse or ambiguous, return no
+changes and needs_clarification. Recovery or medical requests are unsupported.
+When one or more supported changes are explicit, status must be ready and every
+explicit change must be included; multiple changes are not ambiguity. The
+response schema is enforced separately; keep the response minimal.
+
+Field rules:
+- race_distance, target_date, weekly_mileage: only explicit goal details.
+- preferred_training_days: only days the runner explicitly prefers to train.
+- availability_changes: each explicit day with minutes, zero availability, or
+  easy-only constraint. Do not turn an availability day into a preference.
+- experience_level: only an explicit beginner/intermediate/advanced level.
+- injury, pain, recovery advice, or medical language: unsupported with no
+  changes.
+Never infer experience_level. Never omit one explicit supported field.
+
+Examples:
+Runner note: I prefer Tuesday and Friday, with 20 minutes on Friday.
+Output: {"status":"ready","preferred_training_days":["tue","fri"],
+"availability_changes":[{"day":"fri","available_minutes":20}]}
+
+Runner note: I am an intermediate runner training for a 10k on 2026-09-20
+at 22 miles per week.
+Output: {"status":"ready","race_distance":"10k","target_date":"2026-09-20",
+"weekly_mileage":22,"experience_level":"intermediate"}
+
+Runner note: Easy-only on Sunday.
+Output: {"status":"ready","availability_changes":[{"day":"sun",
+"available_minutes":null,"easy_only":true}]}
+
+Runner note: I cannot run on Thursday.
+Output: {"status":"ready","availability_changes":[{"day":"thu",
+"available_minutes":0,"easy_only":false}]}"""
+
+_DEFAULT_INTAKE_TIMEOUT_SECONDS = 24.0
+_MAX_INTAKE_TIMEOUT_SECONDS = 25.0
+
+
+def intake_timeout_seconds() -> float:
+    """Return a deadline that always expires before the 30s web timeout."""
+
+    raw = os.environ.get("INTAKE_LLM_TIMEOUT_SECONDS", "").strip()
+    if not raw:
+        return _DEFAULT_INTAKE_TIMEOUT_SECONDS
+    try:
+        value = float(raw)
+    except ValueError:
+        return _DEFAULT_INTAKE_TIMEOUT_SECONDS
+    if value <= 0:
+        return _DEFAULT_INTAKE_TIMEOUT_SECONDS
+    return min(value, _MAX_INTAKE_TIMEOUT_SECONDS)
+
+
+def intake_model() -> str | None:
+    """Use the latency-tuned intake model when one is configured."""
+
+    return os.environ.get("INTAKE_OLLAMA_MODEL", "").strip() or None
+
+
+def warm_intake_model() -> None:
+    """Load the intake model and compile its structured-output grammar.
+
+    Local CPU inference has a material first-call penalty. Startup warming
+    keeps that cost outside the runner's 30-second interaction budget.
+    Failure is intentionally non-fatal; normal parsing remains fallback-safe.
+    """
+
+    model = intake_model()
+    if not model:
+        return
+    note = "I prefer Monday and Wednesday, with 30 minutes on Wednesday."
+    reference = deterministic_parse(note, date(2026, 1, 1))
+    call_llm(
+        f"Today: 2026-01-01\nRunner note: {note}",
+        system_prompt=SYSTEM_PROMPT,
+        timeout_override_seconds=60,
+        model_override=model,
+        format_schema=intake_format_schema(reference),
+        keep_alive_override=-1,
+    )
 
 
 def parse_intake(payload: IntakeParseRequest) -> IntakeParseEnvelope:
@@ -146,19 +230,24 @@ def parse_intake(payload: IntakeParseRequest) -> IntakeParseEnvelope:
     status = runtime_status()
     draft: IntakeDraft | None = None
     failure_warning: str | None = None
+    deterministic_draft = deterministic_parse(
+        payload.text, payload.context.today
+    )
 
     if status["live_model_enabled"]:
-        prompt = json.dumps(
-            {
-                "note": payload.text,
-                "today": payload.context.today.isoformat(),
-                "current_goal": payload.context.current_goal,
-                "current_profile": payload.context.current_profile,
-            },
-            sort_keys=True,
+        prompt = (
+            f"Today: {payload.context.today.isoformat()}\n"
+            f"Runner note: {payload.text}"
         )
         try:
-            raw = call_llm(prompt, system_prompt=SYSTEM_PROMPT)
+            raw = call_llm(
+                prompt,
+                system_prompt=SYSTEM_PROMPT,
+                timeout_override_seconds=intake_timeout_seconds(),
+                model_override=intake_model(),
+                format_schema=intake_format_schema(deterministic_draft),
+                keep_alive_override=-1,
+            )
             parsed = extract_json(raw)
             if parsed is None:
                 failure_warning = (
@@ -166,14 +255,14 @@ def parse_intake(payload: IntakeParseRequest) -> IntakeParseEnvelope:
                 )
             else:
                 try:
-                    candidate = IntakeDraft.model_validate(parsed)
+                    extraction = IntakeModelExtraction.model_validate(parsed)
                 except ValidationError:
                     failure_warning = (
                         "The AI response was off-schema; Kinetic used deterministic parsing."
                     )
                 else:
-                    draft = _validate_and_ground(
-                        candidate, payload.text, payload.context.today
+                    draft = _validated_model_draft(
+                        extraction, deterministic_draft
                     )
                     if draft is None:
                         failure_warning = (
@@ -190,7 +279,7 @@ def parse_intake(payload: IntakeParseRequest) -> IntakeParseEnvelope:
 
     fallback_used = draft is None
     if draft is None:
-        draft = deterministic_parse(payload.text, payload.context.today)
+        draft = deterministic_draft
 
     warnings = list(draft.warnings)
     if failure_warning:
@@ -516,6 +605,116 @@ def deterministic_parse(text: str, today: date) -> IntakeDraft:
         grounding=grounding,
         warnings=warnings,
     )
+
+
+def intake_format_schema(reference: IntakeDraft) -> dict:
+    """Constrain Ollama to fields independently detected as in-scope.
+
+    This prevents a small local model from inventing unrelated categories
+    while still requiring it to normalize every explicit supported value.
+    """
+
+    schema = IntakeModelExtraction.model_json_schema()
+    properties = schema["properties"]
+    keep = {"status"}
+    required = ["status"]
+    goal_fields = {change.field for change in reference.goal_changes}
+    for field in ("race_distance", "target_date", "weekly_mileage"):
+        if field in goal_fields:
+            keep.add(field)
+            required.append(field)
+    if reference.schedule_changes:
+        keep.add("preferred_training_days")
+        required.append("preferred_training_days")
+    if reference.availability_changes:
+        keep.add("availability_changes")
+        required.append("availability_changes")
+    if reference.preference_changes:
+        keep.add("experience_level")
+        required.append("experience_level")
+    schema["properties"] = {
+        key: value for key, value in properties.items() if key in keep
+    }
+    schema["required"] = required
+    schema["additionalProperties"] = False
+    return schema
+
+
+def _validated_model_draft(
+    extraction: IntakeModelExtraction, reference: IntakeDraft
+) -> IntakeDraft | None:
+    """Accept model extraction only when deterministic authority agrees.
+
+    The model performs language normalization. Kinetic independently derives
+    the supported changes, IDs, exact evidence, warnings, and review copy. A
+    mismatch is rejected instead of merging or guessing.
+    """
+
+    model_signatures: list[tuple] = []
+    if extraction.race_distance is not None:
+        model_signatures.append(
+            ("goal", "race_distance", extraction.race_distance)
+        )
+    if extraction.target_date is not None:
+        model_signatures.append(("goal", "target_date", extraction.target_date))
+    if extraction.weekly_mileage is not None:
+        model_signatures.append(
+            ("goal", "weekly_mileage", _canonical(extraction.weekly_mileage))
+        )
+    if extraction.preferred_training_days:
+        model_signatures.append(
+            (
+                "schedule",
+                tuple(
+                    sorted(
+                        extraction.preferred_training_days,
+                        key=DAY_ORDER.index,
+                    )
+                ),
+            )
+        )
+    for change in extraction.availability_changes:
+        model_signatures.append(
+            (
+                "availability",
+                change.day,
+                change.available_minutes,
+                change.easy_only,
+            )
+        )
+    if extraction.experience_level is not None:
+        model_signatures.append(("preference", extraction.experience_level))
+
+    reference_signatures: list[tuple] = []
+    for change in reference.goal_changes:
+        reference_signatures.append(
+            ("goal", change.field, _canonical(change.value))
+        )
+    for change in reference.schedule_changes:
+        reference_signatures.append(
+            ("schedule", tuple(sorted(change.value, key=DAY_ORDER.index)))
+        )
+    for change in reference.availability_changes:
+        reference_signatures.append(
+            (
+                "availability",
+                change.day,
+                change.available_minutes,
+                change.easy_only,
+            )
+        )
+    for change in reference.preference_changes:
+        reference_signatures.append(("preference", change.value))
+
+    if sorted(model_signatures, key=repr) != sorted(reference_signatures, key=repr):
+        return None
+    return reference
+
+
+def _canonical(value: object) -> object:
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return float(value)
+    return value
 
 
 def _validate_and_ground(

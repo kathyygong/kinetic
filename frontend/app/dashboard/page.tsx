@@ -40,7 +40,7 @@ import {
   startOfWeek,
   type ScheduleCheck,
 } from "@/lib/scheduling";
-import { scenarios, type Scenario, type Biometrics } from "@/lib/scenarios";
+import { scenarios, type Scenario } from "@/lib/scenarios";
 import {
   getReadinessBaselines,
   getTodayReadiness,
@@ -116,6 +116,7 @@ import type {
   RecommendationEvent,
 } from "@/lib/behaviorTypes";
 import { isoDateKey } from "@/lib/readinessStorage";
+import { applyManualReadiness } from "@/lib/decisionInputs";
 
 // Rejection reasons surfaced when a user declines an adjusted
 // recommendation. Slugged values get saved to storage so downstream
@@ -195,12 +196,17 @@ type DecisionOutput = {
 function toRequestBody(
   s: Scenario,
   readiness?: ManualReadiness | null,
+  readinessBaselines?: ReadinessBaselines | null,
   biasTowardOriginal: number = 0,
   learnedPreferences: LearnedPreference[] = [],
   plannedWorkoutOverride?: string | null,
 ) {
   return {
-    biometrics: applyManualReadiness(s.biometrics, readiness),
+    biometrics: applyManualReadiness(
+      s.biometrics,
+      readiness,
+      readinessBaselines,
+    ),
     // The demo scenario carries a placeholder `planned_workout`. When we
     // can resolve the runner's real plan slot for today we send that
     // instead, so the engine reasons about — and the AI explanation
@@ -232,32 +238,6 @@ function toRequestBody(
     // all. Newer servers should treat the empty list and a missing
     // field identically.
     learned_preferences: learnedPreferences,
-  };
-}
-
-/**
- * Layer the user's manually-entered readiness on top of a scenario's
- * baseline biometrics. We only override individual fields that the user
- * actually filled in — anything unset falls back to the scenario value.
- *
- * This is the "prioritize manual input when biometric data unavailable"
- * fallback path: until Apple Health / Oura / Garmin / Google Fit are
- * wired up, manual entry IS the biometric source. Self-reports
- * (fatigue / soreness) are forwarded directly so the backend's state
- * estimator can factor them into the recovery score.
- */
-function applyManualReadiness(
-  base: Biometrics,
-  readiness: ManualReadiness | null | undefined,
-): Biometrics {
-  if (!readiness) return base;
-  return {
-    hrv: readiness.hrv ?? base.hrv,
-    hrv_baseline: base.hrv_baseline,
-    sleep_hours: readiness.sleep_hours ?? base.sleep_hours,
-    resting_hr: readiness.resting_hr ?? base.resting_hr,
-    fatigue_level: readiness.fatigue_level ?? base.fatigue_level,
-    soreness_level: readiness.soreness_level ?? base.soreness_level,
   };
 }
 
@@ -483,6 +463,7 @@ export default function DashboardPage() {
             toRequestBody(
               activeScenario,
               todayReadiness,
+              readinessBaselines,
               biasTowardOriginal,
               confirmedPreferences,
               plannedWorkoutOverride,
@@ -525,7 +506,14 @@ export default function DashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [user, activeScenario, todayReadiness, goal, savedPlan]);
+  }, [
+    user,
+    activeScenario,
+    todayReadiness,
+    readinessBaselines,
+    goal,
+    savedPlan,
+  ]);
 
   // Hydrate the explanation asynchronously. The local ReasoningCard
   // renders immediately from deterministic decision fields; this call

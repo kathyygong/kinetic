@@ -24,7 +24,12 @@ from .behavior_insights import (
     deterministic_behavior_insights,
     generate_behavior_insights,
 )
-from .intake_parser import IntakeParseEnvelope, IntakeParseRequest, parse_intake
+from .intake_parser import (
+    IntakeParseEnvelope,
+    IntakeParseRequest,
+    parse_intake,
+    warm_intake_model,
+)
 from .types import Biometrics, TrainingContext, Constraints, DataFreshness
 
 _log = logging.getLogger(__name__)
@@ -117,6 +122,19 @@ class DecisionRequest(BaseModel):
 # --- App --------------------------------------------------------------------
 
 app = FastAPI(title="Kinetic", description="Adaptive training decision engine")
+
+
+@app.on_event("startup")
+def preload_intake_model() -> None:
+    """Warm latency-sensitive local intake before accepting requests."""
+
+    status = runtime_status()
+    if not status["live_model_enabled"]:
+        return
+    try:
+        warm_intake_model()
+    except Exception as exc:  # noqa: BLE001
+        _log.warning("Intake model warmup failed; fallback remains available: %s", exc)
 
 # CORS: comma-separated origins via env, defaulting to local dev. Use "*"
 # only if explicitly opted in.

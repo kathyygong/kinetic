@@ -19,6 +19,7 @@ class AIRuntimeStatus(TypedDict):
     fallback_used: bool
     provider: str | None
     model: str | None
+    intake_model: str | None
     timeout_seconds: float
     message: str
 
@@ -75,6 +76,7 @@ def runtime_status() -> AIRuntimeStatus:
     mode = runtime_mode()
     provider = provider_name() or None
     model = (os.environ.get("OLLAMA_MODEL") or "").strip() or None
+    intake_model = (os.environ.get("INTAKE_OLLAMA_MODEL") or "").strip() or None
     configured = mode == "local_ollama" and provider == "ollama" and bool(model)
 
     if mode == "disabled":
@@ -96,6 +98,7 @@ def runtime_status() -> AIRuntimeStatus:
         "fallback_used": mode != "local_ollama" or not configured,
         "provider": provider,
         "model": model if mode == "local_ollama" else None,
+        "intake_model": intake_model if mode == "local_ollama" else None,
         "timeout_seconds": timeout_seconds(),
         "message": message,
     }

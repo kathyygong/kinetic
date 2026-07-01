@@ -58,7 +58,9 @@ export default function AIStatusBadge({ className = "" }: AIStatusBadgeProps) {
   const label = failed ? "AI status unknown" : LABELS[mode];
   const detail = failed
     ? "Could not reach /ai/status; deterministic UI copy remains available."
-    : status?.message ?? "Checking AI runtime mode.";
+    : status?.intake_model
+      ? `${status.message} Intake: ${status.intake_model}.`
+      : status?.message ?? "Checking AI runtime mode.";
   const dot =
     mode === "local_ollama" && status?.live_model_enabled
       ? "bg-emerald-500"

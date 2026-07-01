@@ -20,10 +20,14 @@ summarizes those decisions.
 Natural-language intake follows a separate review boundary:
 
 1. `POST /ai/parse-intake` receives the note plus current goal/profile context.
-2. Local AI, when enabled, may propose only whitelisted `intake.v1` fields.
-3. The backend schema-validates every value and requires exact source-text
-   evidence; malformed, slow, unavailable, or ungrounded output falls back to
-   conservative deterministic parsing.
+2. Local AI uses a dedicated, startup-warmed `llama3.2:3b` model. Kinetic
+   derives the allowed field set first, then Ollama's native JSON Schema
+   requires the model to normalize every explicit value without introducing a
+   new category.
+3. The backend accepts the model result only when it exactly agrees with the
+   deterministic authority, then attaches Kinetic-owned IDs, source-text
+   evidence, warnings, and review copy. Malformed, slow, unavailable, or
+   disagreeing output falls back to conservative deterministic parsing.
 4. The frontend treats the response as untrusted and validates the complete
    draft again. Parsing cannot write storage.
 5. Only **Confirm changes** reaches the existing deterministic plan generator

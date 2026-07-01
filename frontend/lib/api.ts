@@ -289,7 +289,7 @@ export async function fetchIntakeDraft(
     current_goal: unknown;
     current_profile: unknown;
   },
-  timeoutMs = 25_000,
+  timeoutMs = 30_000,
 ): Promise<IntakeParseResponse> {
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), timeoutMs);
@@ -360,6 +360,7 @@ export type AIStatusResponse = {
   fallback_used: boolean;
   provider: string | null;
   model: string | null;
+  intake_model: string | null;
   timeout_seconds: number;
   message: string;
 };

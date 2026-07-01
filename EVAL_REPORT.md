@@ -1,6 +1,6 @@
 # Kinetic Deterministic AI Eval Report
 
-Generated: 2026-06-29
+Generated: 2026-06-30
 
 ## Result
 
@@ -43,4 +43,7 @@ From `backend/`:
 ```
 
 Optional local Ollama benchmarking is reported separately and never blocks
-the deterministic release gate.
+the deterministic release gate. Run
+`.\.venv\Scripts\python.exe -m evals.benchmark_intake_live` to require two
+identical model-backed passes across eight intake cases, exact expected values,
+request immutability, no fallback, and the 24-second server budget.

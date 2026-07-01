@@ -347,9 +347,55 @@ def check_intake_failure_fallbacks() -> None:
         }
     )
     try:
-        intake_parser_module.call_llm = lambda *args, **kwargs: "not json"
+        captured_timeout: dict[str, object] = {}
+
+        def _malformed(*args, **kwargs):
+            captured_timeout["seconds"] = kwargs.get("timeout_override_seconds")
+            captured_timeout["model_override"] = kwargs.get("model_override")
+            captured_timeout["format_schema"] = kwargs.get("format_schema")
+            captured_timeout["keep_alive_override"] = kwargs.get(
+                "keep_alive_override"
+            )
+            return "not json"
+
+        intake_parser_module.call_llm = _malformed
         malformed = intake_parser_module.parse_intake(payload)
         _assert(malformed.fallback_used, "malformed AI output did not fall back")
+        _assert(
+            captured_timeout.get("seconds")
+            == intake_parser_module.intake_timeout_seconds(),
+            "intake did not pass its dedicated model timeout",
+        )
+        _assert(
+            captured_timeout.get("model_override")
+            == intake_parser_module.intake_model(),
+            "intake did not pass its dedicated model",
+        )
+        _assert(
+            captured_timeout.get("format_schema")
+            == intake_parser_module.intake_format_schema(
+                intake_parser_module.deterministic_parse(
+                    payload.text, payload.context.today
+                )
+            ),
+            "intake did not request native structured output",
+        )
+        format_schema = captured_timeout["format_schema"]
+        _assert(
+            isinstance(format_schema, dict)
+            and set(format_schema["properties"])
+            == {"status", "availability_changes"}
+            and format_schema["additionalProperties"] is False,
+            "intake schema did not exclude unrelated fields",
+        )
+        _assert(
+            captured_timeout.get("keep_alive_override") == -1,
+            "intake model must stay resident after startup warmup",
+        )
+        _assert(
+            0 < float(captured_timeout["seconds"] or 0) < 30,
+            "intake model timeout must expire before the frontend timeout",
+        )
         _assert(
             malformed.draft.availability_changes[0].available_minutes == 25,
             "malformed fallback lost deterministic parse",
@@ -370,11 +416,14 @@ def check_intake_failure_fallbacks() -> None:
         intake_parser_module.call_llm = lambda *args, **kwargs: json.dumps(
             {
                 "status": "ready",
-                "summary": "Invented",
-                "goal_changes": [
-                    {"id": "g1", "field": "weekly_mileage", "value": 100}
+                "availability_changes": [
+                    {
+                        "day": "tue",
+                        "available_minutes": 25,
+                        "easy_only": False,
+                    }
                 ],
-                "grounding": [{"change_id": "g1", "evidence": "not in note"}],
+                "experience_level": "beginner",
             }
         )
         ungrounded = intake_parser_module.parse_intake(payload)

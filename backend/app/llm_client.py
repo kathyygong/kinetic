@@ -56,7 +56,8 @@ KINETIC_DEMO_MODE
 
 Public API
 ----------
-``call_llm(prompt, system_prompt=None) -> str``
+``call_llm(..., timeout_override_seconds=None, model_override=None,
+format_schema=None, keep_alive_override=None) -> str``
     Send a single non-streaming completion request and return the raw
     response text. Raises :class:`LLMUnavailable` on any controlled
     failure (provider not configured, network error, timeout, non-2xx
@@ -179,7 +180,7 @@ def _temperature() -> float:
 _DEFAULT_IDLE_TIMEOUT_SECONDS = 60.0
 
 
-def _idle_timeout_seconds() -> float:
+def _idle_timeout_seconds(overall_timeout: Optional[float] = None) -> float:
     """Return the per-chunk read-idle timeout in seconds.
 
     Bounded above by the overall ``LLM_TIMEOUT_SECONDS`` deadline so a
@@ -187,7 +188,7 @@ def _idle_timeout_seconds() -> float:
     intended wall-clock budget.
     """
     raw = os.environ.get("OLLAMA_STREAM_IDLE_SECONDS", "").strip()
-    overall = _timeout_seconds()
+    overall = overall_timeout or _timeout_seconds()
     if not raw:
         return min(_DEFAULT_IDLE_TIMEOUT_SECONDS, overall)
     try:
@@ -199,7 +200,14 @@ def _idle_timeout_seconds() -> float:
     return min(value, overall)
 
 
-def _call_ollama(prompt: str, system_prompt: Optional[str]) -> str:
+def _call_ollama(
+    prompt: str,
+    system_prompt: Optional[str],
+    timeout_override_seconds: Optional[float] = None,
+    model_override: Optional[str] = None,
+    format_schema: Optional[dict] = None,
+    keep_alive_override: Optional[str | int] = None,
+) -> str:
     """Stream from Ollama's ``/api/generate`` and accumulate the text.
 
     We use streaming (``stream=True``) instead of a single non-streaming
@@ -215,7 +223,7 @@ def _call_ollama(prompt: str, system_prompt: Optional[str]) -> str:
     disconnect and stops generating, freeing the runner for the next
     request.
     """
-    model = os.environ.get("OLLAMA_MODEL", "").strip()
+    model = (model_override or os.environ.get("OLLAMA_MODEL", "")).strip()
     if not model:
         raise LLMUnavailable("OLLAMA_MODEL is not set")
 
@@ -240,7 +248,7 @@ def _call_ollama(prompt: str, system_prompt: Optional[str]) -> str:
         # Keep the model resident between calls so we don't pay the
         # cold-load cost on every request. Ollama interprets this as
         # a duration string ("10m" = 10 minutes).
-        "keep_alive": "10m",
+        "keep_alive": keep_alive_override or "10m",
         # Cap output length so a runaway generation can't push us past
         # the request timeout. With thinking disabled, ~320 tokens is
         # plenty for the 4-field JSON schema given the conciseness
@@ -267,8 +275,14 @@ def _call_ollama(prompt: str, system_prompt: Optional[str]) -> str:
         payload["options"]["reasoning_effort"] = effort
     if system_prompt:
         payload["system"] = system_prompt
+    if format_schema:
+        payload["format"] = format_schema
 
-    timeout = _timeout_seconds()
+    timeout = (
+        timeout_override_seconds
+        if timeout_override_seconds is not None and timeout_override_seconds > 0
+        else _timeout_seconds()
+    )
     deadline = time.monotonic() + timeout
     # Idle timeout: if no chunk arrives for this many seconds, abort.
     # Critical for CPU inference — the previous behaviour set the
@@ -280,7 +294,7 @@ def _call_ollama(prompt: str, system_prompt: Optional[str]) -> str:
     # ``ReadTimeout`` and we fail fast. Tuned to 60s by default,
     # which is conservative even for 20B-class models on CPU at
     # ~2 tok/s (a single token is ~0.5s, a sentence ~5–10s).
-    idle_timeout = _idle_timeout_seconds()
+    idle_timeout = _idle_timeout_seconds(timeout)
     chunks: list[str] = []
     # Capture a short prefix of the model's chain-of-thought so that
     # if the response channel ends up empty (think:false ignored, or
@@ -298,7 +312,7 @@ def _call_ollama(prompt: str, system_prompt: Optional[str]) -> str:
             url,
             json=payload,
             stream=True,
-            timeout=(10.0, idle_timeout),
+            timeout=(min(10.0, timeout), idle_timeout),
         ) as response:
             if not response.ok:
                 # Drain a small slice of the body for diagnostics.
@@ -365,7 +379,14 @@ def _call_ollama(prompt: str, system_prompt: Optional[str]) -> str:
 # --- Public API -------------------------------------------------------------
 
 
-def call_llm(prompt: str, system_prompt: Optional[str] = None) -> str:
+def call_llm(
+    prompt: str,
+    system_prompt: Optional[str] = None,
+    timeout_override_seconds: Optional[float] = None,
+    model_override: Optional[str] = None,
+    format_schema: Optional[dict] = None,
+    keep_alive_override: Optional[str | int] = None,
+) -> str:
     """Send ``prompt`` to the configured LLM and return its raw text.
 
     Parameters
@@ -376,6 +397,19 @@ def call_llm(prompt: str, system_prompt: Optional[str] = None) -> str:
         Optional system / instruction prompt. Passed through to providers
         that support a distinct system channel (Ollama's ``system``
         field).
+    timeout_override_seconds:
+        Optional per-call deadline. Lets latency-sensitive, fallback-safe
+        surfaces fail before their client timeout without shortening slower
+        offline reasoning/eval workflows globally.
+    model_override:
+        Optional provider model for a specialized workflow. Other callers keep
+        using ``OLLAMA_MODEL``.
+    format_schema:
+        Optional JSON schema forwarded to Ollama's native structured-output
+        ``format`` field.
+    keep_alive_override:
+        Optional Ollama residency duration. Latency-sensitive local workflows
+        can remain loaded without changing other model calls.
 
     Returns
     -------
@@ -399,7 +433,14 @@ def call_llm(prompt: str, system_prompt: Optional[str] = None) -> str:
     provider = _provider()
     if provider == "ollama":
         _log.debug("call_llm: provider=ollama")
-        return _call_ollama(prompt, system_prompt)
+        return _call_ollama(
+            prompt,
+            system_prompt,
+            timeout_override_seconds=timeout_override_seconds,
+            model_override=model_override,
+            format_schema=format_schema,
+            keep_alive_override=keep_alive_override,
+        )
 
     if not provider:
         raise LLMUnavailable("LLM_PROVIDER is not set")

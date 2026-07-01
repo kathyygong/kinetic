@@ -395,6 +395,24 @@ training summaries remain intentionally sequenced afterward.
   review left the saved plan unchanged, confirmation applied through the
   deterministic planner, ambiguous input disabled confirmation, and the intake
   card had no horizontal overflow with 44px controls at 375px and 320px.
+- Intake now uses a dedicated `llama3.2:3b` model, Ollama-native structured
+  output, a compact typed extraction schema, and deterministic field
+  agreement. Kinetic constrains which fields are allowed, and Ollama must
+  normalize every explicit value before the response can report a live model
+  success.
+- Backend startup warms the intake model and keeps it resident for the server
+  session. A 24-second server deadline remains below the frontend's 30-second
+  safety deadline.
+- The optional live gate now runs two identical passes across eight cases:
+  schedule plus availability, bundled goals, experience, simple availability,
+  zero availability, easy-only constraints, sparse ambiguity, and unsupported
+  recovery language. It requires exact values, request immutability, stable
+  drafts, `source=ollama`, `fallback_used=false`, and sub-24-second latency.
+  On 2026-06-30 all 16 executions passed with p95/max 16.67 seconds; the first
+  post-startup HTTP request completed in 8.82 seconds.
+- Dashboard decision requests now use the same rolling HRV baseline as
+  Recovery. Focused smoke coverage locks the seeded state to 84/100 and
+  recovered on both surfaces.
 - Weekly/monthly training summaries are the next AI workflow.
 
 ## Phase 5: Full UI/UX Refresh
@@ -694,9 +712,11 @@ Completed.
 
 - Signed-in frontend routing, persistence fallback, authenticated shell rendering, and strict backend token enforcement now pass live browser QA. Local demo mode can continue using permissive auth.
 - Dashboard visual QA is complete across desktop, tablet, 375px, and 320px, including the authenticated mobile rail/avatar. `ThisWeekStrip` chips remain a watch item at narrow widths with unusually long workout labels.
-- Local Ollama mode is wired but not performance-tested on this machine; every user-facing path must remain fallback-safe.
+- Local Ollama intake passes the optional eight-case, two-repeat live gate on
+  this machine with `llama3.2:3b`; cold server startup is slower because it
+  deliberately warms and pins the model before accepting requests.
 - `npm audit` still reports dependency vulnerabilities from the frontend dependency tree; these have not been triaged yet.
-- Local Ollama can be slow; every user-facing AI path must remain async or fallback-safe.
+- Other local-Ollama surfaces can still be slow; every user-facing AI path must remain async or fallback-safe.
 - Bounded natural-language intake is implemented; weekly/monthly training
   summaries are the next unimplemented AI workflow.
 - Firestore isolation rules pass in the emulator; authenticated cross-session hydration/deletion behavior still needs live browser verification before persistence is called beta-ready.

@@ -23,6 +23,7 @@ Most running apps provide static plans that exist in a vacuum. When life happens
 * **Training Memory:** Shows tentative patterns and confirmed preferences with confidence, supporting-history context, and explicit confirm/dismiss/remove controls. Only confirmed preferences can become bounded scoring nudges.
 * **Read-Only What-if Planning:** Previews day, duration, and easy-only plan variants without mutating the saved plan.
 * **Bounded Natural-Language Intake:** Parses explicit goal, training-day, availability, and experience changes into a typed, source-grounded draft. The draft remains read-only until the runner confirms it, then the existing deterministic planner validates and applies it.
+* **Consistent Readiness Decisions:** Dashboard and Recovery use the same rolling biometric baselines, so the displayed recovery score and training state cannot drift between surfaces.
 * **Local-First Persistence:** Keeps the demo responsive through localStorage while authenticated Firebase repositories mirror user-scoped training domains in the background.
 * **Offline-Friendly Demo:** Supports deterministic fallback behavior so the demo does not require paid hosted AI or available remote persistence.
 
@@ -32,6 +33,10 @@ Kinetic is designed as a hybrid deterministic + AI product.
 * **Deterministic Safety Layer:** Owns training changes, safety caps, and persisted workout decisions.
 * **Reasoning Layer:** Produces typed, schema-validated explanations and summaries that are safe to ignore or regenerate.
 * **AI Runtime Modes:** Supports fallback, disabled, and optional local Ollama modes, reported through `GET /ai/status`.
+* **Live Local Intake:** Synchronous intake uses a dedicated `llama3.2:3b`
+  model, Ollama-native JSON Schema, deterministic field agreement, and startup
+  warming. The model stays resident for the backend session; its 24-second
+  server deadline remains below the frontend's 30-second safety deadline.
 * **Eval Harness:** Tests AI boundaries, fallback behavior, sparse-data warnings, schema validity, no medical claims, and no-drift guarantees before demo ship.
 
 ## 📈 Roadmap & Product Evolution
@@ -42,6 +47,15 @@ Kinetic is designed as a hybrid deterministic + AI product.
 - [X] **Bounded Intake Workflow:** Natural-language changes produce a validated, reviewable draft; malformed output, ambiguity, timeouts, and unavailable AI fall back or stop safely, and only explicit confirmation can reach deterministic plan application.
 - [ ] **Next AI Workflow:** Weekly and monthly training summaries with the same typed, grounded, fallback-safe architecture.
 - [ ] **Later Integrations:** Native mobile app, Apple Health/Garmin/Oura ingestion, hosted AI provider option, coach sharing, and push notifications.
+
+Optional live-model verification (requires Ollama and the configured intake
+model) runs two repeatability passes across eight exact-value, no-fallback
+cases:
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m evals.benchmark_intake_live
+```
 ---
 
 # 👩‍💻 About the Author
