@@ -76,10 +76,10 @@ storage domain so seed/reset bursts cannot race late tombstones over newer
 payloads.
 
 Firestore owner-only rules and Auth + Firestore emulator isolation tests pass.
-Live signed-in two-session hydration/deletion verification remains the final
-remote-persistence gate before this layer is described as beta-ready. The
-2026-07-08 live check was blocked by the configured Firebase project reporting
-Cloud Firestore API `SERVICE_DISABLED`.
+Cloud Firestore is enabled for `kinetic-aca73`, owner-only rules are deployed,
+and live signed-in QA verifies cross-session hydration, account isolation, and
+local-cache ownership. One final captured deletion tombstone reload/second-
+session proof remains before this layer is described as fully beta-ready.
 
 ## Observability direction
 

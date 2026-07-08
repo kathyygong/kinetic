@@ -45,15 +45,16 @@ Kinetic is designed as a hybrid deterministic + AI product.
 - [X] **Foundation:** Deterministic planning, calendar-aware adjustment, manual readiness flows, and core API/frontend surfaces.
 - [X] **Demo Vertical Slice:** AI status visibility, hardened explanation/fallback flows, training memory, read-only What-if planning, seed/reset controls, and the full responsive UI system.
 - [X] **Demo Release Gate:** Signed-in responsive QA, strict backend token enforcement, Firestore rules, and deterministic evals pass.
-- [ ] **Beta-Ready Foundation:** Repository-backed Firebase persistence, security rules, and privacy-conscious instrumentation are implemented; live two-session persistence verification is blocked until Cloud Firestore is enabled for the configured Firebase project, and broader beta hardening remains.
+- [ ] **Beta-Ready Foundation:** Repository-backed Firebase persistence, deployed security rules, and privacy-conscious instrumentation are implemented; live QA verifies cross-session hydration, account isolation, and cache ownership. One captured deletion tombstone reload/second-session proof remains before the persistence gate is fully closed.
 - [X] **Bounded Intake Workflow:** Natural-language changes produce a validated, reviewable draft; malformed output, ambiguity, timeouts, and unavailable AI fall back or stop safely, and only explicit confirmation can reach deterministic plan application.
 - [X] **Training Review Workflow:** Weekly and monthly summaries use typed,
   privacy-minimized inputs, deterministic metrics, grounded narration, and
   fallback-safe read-only UI. Signed-in browser QA verifies both live grounded
   Ollama narration and safe deterministic rejection of ungrounded output.
-- [ ] **Next CTO Slice:** Enable Cloud Firestore for `kinetic-aca73`, then
-  rerun the live two-session Firebase hydration/deletion/account-isolation
-  browser gate. Keep expanding beta hardening only after that gate is green.
+- [ ] **Next CTO Slice:** Capture the final live Firebase deletion tombstone
+  reload/second-session proof, then move into beta hardening: dependency audit,
+  minimal operational runbook, and any privacy-bounded telemetry gaps found by
+  real QA.
 - [ ] **Later Integrations:** Native mobile app, Apple Health/Garmin/Oura ingestion, hosted AI provider option, coach sharing, and push notifications.
 
 Optional live-model verification (requires Ollama and the configured intake

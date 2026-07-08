@@ -306,10 +306,11 @@ Move from local-only state toward beta-ready authenticated persistence while tre
 
 Implemented as domain slices; the Firestore security gate and strict backend
 authentication gate pass. Privacy-conscious observability and the demonstrated
-returning-sign-in persistence fixes are implemented. The live Firebase
-two-session gate is blocked by project configuration: `kinetic-aca73` currently
-returns Cloud Firestore API `SERVICE_DISABLED`, so remote hydration/mirroring
-cannot complete until Firestore is enabled.
+returning-sign-in persistence fixes are implemented. Cloud Firestore is enabled
+for `kinetic-aca73`, rules are deployed, and live signed-in QA verifies
+cross-session hydration, account isolation, and local-cache ownership. A final
+captured deletion tombstone reload/second-session proof remains before the
+remote persistence gate is closed completely.
 
 - Added the generic `StorageRepository<T>` contract with synchronous local reads/writes, asynchronous remote mirroring, Firebase hydration, idempotent migration markers, and deletion tombstones.
 - Added Firebase-backed repositories for profile/goal, plan/readiness/workout log, recommendation history/preferences, today completion, and calendar-freshness metadata.
@@ -338,10 +339,9 @@ cannot complete until Firestore is enabled.
 
 Remaining beta-ready gate:
 
-- Enable Cloud Firestore for the configured Firebase project, then rerun the
-  authenticated two-session browser test for user-scoped hydration, deletion
-  tombstones after reload/second session, account isolation, and local-cache
-  ownership.
+- Capture one clean signed-in browser pass proving deletion tombstones remain
+  deleted after reload and in a second session. Do not weaken UID scoping,
+  deletion semantics, owner-only rules, or local offline fallback.
 
 ## Phase 4: AI Expansion
 
@@ -768,11 +768,11 @@ Completed.
 - Other local-Ollama surfaces can still be slow; every user-facing AI path must remain async or fallback-safe.
 - Bounded natural-language intake and weekly/monthly training reviews are
   implemented, and signed-in live browser QA passes. Do not select another AI
-  workflow until the existing beta-persistence gate is complete.
+  workflow until the final deletion tombstone persistence proof is captured.
 - Privacy-conscious observability is implemented locally with typed,
   sanitized, failure-isolated envelopes. Firestore isolation rules pass in the
-  emulator; authenticated cross-session hydration/deletion behavior still needs
-  live browser verification before persistence is called beta-ready. The
-  2026-07-08 live check is blocked because the configured Firebase project has
-  Cloud Firestore disabled.
+  emulator; Cloud Firestore is enabled and rules are deployed for
+  `kinetic-aca73`. Live QA verifies cross-session hydration, account isolation,
+  and local-cache ownership. Deletion tombstones still need one clean captured
+  reload/second-session proof before persistence is called beta-ready.
 - `.edge-qa*` profiles and temporary screenshots remain intentionally untracked and must not be included in product commits.

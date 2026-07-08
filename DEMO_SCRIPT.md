@@ -45,6 +45,7 @@ privacy-conscious product event boundary.
 Close with the architecture:
 deterministic safety core, optional bounded AI, local fallback by default, and
 an authenticated Firebase mirror that remains non-blocking when remote
-persistence is unavailable. For beta-readiness, call out that live cross-session
-Firebase persistence still requires Cloud Firestore to be enabled in the
-configured project before the final hydration/deletion gate can pass.
+persistence is unavailable. For beta-readiness, call out that Cloud Firestore
+is enabled, rules are deployed, and live QA verifies hydration/account
+isolation; the last remaining persistence proof is a captured deletion
+tombstone reload/second-session pass.

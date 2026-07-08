@@ -57,7 +57,8 @@ request immutability, no fallback, and the 24-second server budget.
 
 Updated frontend smoke coverage now includes typed privacy-conscious
 instrumentation and returning-user sign-in hydration ordering. The live
-Firebase two-session persistence gate was attempted on 2026-07-08 and is
-blocked by project configuration: Cloud Firestore is disabled for
-`kinetic-aca73`, so authenticated remote hydration/mirroring cannot complete
-until the service is enabled.
+Firebase two-session persistence gate is unblocked: Cloud Firestore is enabled
+for `kinetic-aca73`, rules are deployed, and live QA verifies cross-session
+hydration, account isolation, and local-cache ownership. A final captured
+deletion tombstone reload/second-session proof remains before the remote
+persistence gate is closed completely.

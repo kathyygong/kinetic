@@ -54,10 +54,11 @@ The shippable demo will not include:
 - Local-first, user-scoped Firebase repositories and the training-memory center
   are implemented. Returning sign-in now hydrates authenticated storage before
   merging identity, demo seed mirroring is ordered per domain, and deletion
-  tombstones remain the remote delete contract. Live signed-in two-session
-  hydration/deletion verification is blocked on enabling Cloud Firestore for
-  the configured Firebase project (`kinetic-aca73`); persistence is not called
-  beta-ready until that live gate passes.
+  tombstones remain the remote delete contract. Cloud Firestore is enabled for
+  the configured Firebase project (`kinetic-aca73`), rules are deployed, and
+  live signed-in QA verifies cross-session hydration, account isolation, and
+  local-cache ownership. One final captured deletion tombstone reload/second-
+  session proof remains before persistence is called fully beta-ready.
 - Privacy-conscious local observability is implemented with typed event
   envelopes, bounded values, deterministic sanitization, and failure isolation.
   Events cover recommendation responses, AI source/fallback/latency/timeout,
@@ -375,8 +376,9 @@ Any AI-generated suggestion that could affect training must pass deterministic v
 
 - Firebase-backed persistence, local cache ownership/migration, Firestore rules,
   and reset/delete controls are implemented.
-- Complete live signed-in two-session hydration/deletion verification.
-- Add privacy-conscious instrumentation.
+- Complete the final captured deletion tombstone reload/second-session proof.
+- Extend privacy-conscious instrumentation only when a new product surface
+  needs a bounded event.
 - Keep demo/offline mode usable.
 
 ### Phase 4: AI Expansion
