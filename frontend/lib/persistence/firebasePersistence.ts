@@ -125,9 +125,17 @@ export async function hydrateUserStorage(
   const hydration = Promise.all(
     repositories.map(async (repository) => {
       try {
+        const initialValue = initialCache[repository.storageKey] ?? null;
+        const keyUnchanged = () => {
+          try {
+            return window.localStorage.getItem(repository.storageKey) === initialValue;
+          } catch {
+            return true;
+          }
+        };
         await repository.hydrate(
           userId,
-          () => hydrationActive && isSessionCurrent(),
+          () => hydrationActive && isSessionCurrent() && keyUnchanged(),
         );
       } catch {
         // Remote persistence is an enhancement. Local demo state remains valid.

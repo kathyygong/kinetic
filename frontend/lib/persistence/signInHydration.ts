@@ -5,7 +5,9 @@ type HydrationOutcome = "updated" | "unchanged" | "timeout";
 type SignInHydrationOptions = {
   hydrate: () => Promise<HydrationOutcome>;
   readProfile: () => UserProfile | null;
+  hasCompletedTrainingState?: () => boolean;
   mergeIdentity: () => UserProfile;
+  markProfileComplete?: () => void;
 };
 
 /**
@@ -18,7 +20,9 @@ type SignInHydrationOptions = {
 export async function completeReturningUserSignIn({
   hydrate,
   readProfile,
+  hasCompletedTrainingState = () => false,
   mergeIdentity,
+  markProfileComplete,
 }: SignInHydrationOptions): Promise<"/dashboard" | "/onboarding/goal"> {
   const hydration = await hydrate();
   if (hydration === "timeout" && !readProfile()) {
@@ -27,5 +31,10 @@ export async function completeReturningUserSignIn({
     );
   }
   const profile = mergeIdentity();
-  return profile.onboarding_completed ? "/dashboard" : "/onboarding/goal";
+  if (profile.onboarding_completed) return "/dashboard";
+  if (hasCompletedTrainingState()) {
+    markProfileComplete?.();
+    return "/dashboard";
+  }
+  return "/onboarding/goal";
 }

@@ -67,6 +67,22 @@ async function main() {
     "same-user offline cache should remain usable",
   );
 
+  let markedComplete = false;
+  const planBackedDestination = await completeReturningUserSignIn({
+    hydrate: async () => "updated",
+    readProfile: () => profile(false),
+    hasCompletedTrainingState: () => true,
+    mergeIdentity: () => profile(false),
+    markProfileComplete: () => {
+      markedComplete = true;
+    },
+  });
+  expect(
+    planBackedDestination === "/dashboard",
+    "hydrated saved plan should prove completed setup",
+  );
+  expect(markedComplete, "profile completion should be repaired from saved plan");
+
   console.log("OK - returning-user routing hydrates before identity merge");
 }
 

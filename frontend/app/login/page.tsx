@@ -12,10 +12,15 @@ import {
 } from "@/lib/firebase";
 import {
   getUserProfile,
+  markOnboardingComplete,
   mergeAuthIntoProfile,
 } from "@/lib/profileStorage";
-import { hydrateUserStorage } from "@/lib/persistence/firebasePersistence";
+import {
+  clearAllUserStorage,
+  hydrateUserStorage,
+} from "@/lib/persistence/firebasePersistence";
 import { completeReturningUserSignIn } from "@/lib/persistence/signInHydration";
+import { getSavedPlan } from "@/lib/storage";
 import { tokens } from "@/lib/tokens";
 import AthleticImage from "@/components/AthleticImage";
 import KineticLogo from "@/components/KineticLogo";
@@ -67,11 +72,18 @@ function LoginInner() {
           hydrate: () =>
             hydrateUserStorage(cred.user.uid, () => true, 10_000),
           readProfile: getUserProfile,
+          hasCompletedTrainingState: () => getSavedPlan() !== null,
           mergeIdentity: () => mergeAuthIntoProfile(cred.user),
+          markProfileComplete: markOnboardingComplete,
         });
         router.push(destination);
       } else {
         const cred = await signUpWithEmail(email, password);
+        // A new account must not inherit the previous signed-in runner's
+        // local-first cache. Clear local training domains before writing the
+        // new auth identity; no user id is supplied, so this does not write
+        // remote tombstones for the brand-new account.
+        await clearAllUserStorage();
         // Brand new account — seed the profile with their auth identity
         // so the rest of onboarding (goal/PRs/integrations/preview) has
         // a real name + email to write into.
@@ -98,7 +110,9 @@ function LoginInner() {
         hydrate: () =>
           hydrateUserStorage(cred.user.uid, () => true, 10_000),
         readProfile: getUserProfile,
+        hasCompletedTrainingState: () => getSavedPlan() !== null,
         mergeIdentity: () => mergeAuthIntoProfile(cred.user),
+        markProfileComplete: markOnboardingComplete,
       });
       router.push(destination);
     } catch (err) {
