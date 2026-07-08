@@ -21,6 +21,7 @@ import {
   localCacheChanged,
   prepareLocalCacheForUser,
 } from "@/lib/persistence/localCacheOwnership";
+import { trackProductEvent } from "@/lib/instrumentation";
 
 type JsonValue = unknown;
 const HYDRATION_TIMEOUT_MS = 2_000;
@@ -102,10 +103,15 @@ const byStorageKey = new Map<string, StorageRepository<JsonValue>>(
   repositories.map((repository) => [repository.storageKey, repository]),
 );
 
+const mirrorTimers = new Map<string, ReturnType<typeof setTimeout>>();
+const mirrorChains = new Map<string, Promise<void>>();
+
 export async function hydrateUserStorage(
   userId: string,
   isSessionCurrent: () => boolean = () => true,
+  timeoutMs = HYDRATION_TIMEOUT_MS,
 ): Promise<"updated" | "unchanged" | "timeout"> {
+  const startedAt = performance.now();
   prepareLocalCacheForUser(window.localStorage, userId, () => {
     repositories.forEach((repository) => repository.clearLocal());
   });
@@ -129,7 +135,7 @@ export async function hydrateUserStorage(
     }),
   );
   const deadline = new Promise<"timeout">((resolve) => {
-    timeoutId = setTimeout(() => resolve("timeout"), HYDRATION_TIMEOUT_MS);
+    timeoutId = setTimeout(() => resolve("timeout"), timeoutMs);
   });
 
   const outcome = await Promise.race([
@@ -146,6 +152,12 @@ export async function hydrateUserStorage(
   if (isSessionCurrent()) {
     claimLocalCacheForUser(window.localStorage, userId);
   }
+  trackProductEvent("persistence_sync_completed", {
+    operation: "hydrate",
+    outcome: outcome === "timeout" ? "timeout" : "success",
+    cache_changed: outcome === "updated",
+    latency_ms: performance.now() - startedAt,
+  });
   return outcome;
 }
 
@@ -153,19 +165,65 @@ export function mirrorPersistedStorageKey(storageKey: string): void {
   const user = auth.currentUser;
   const repository = byStorageKey.get(storageKey);
   if (!user || !repository) return;
-  void repository.mirror(user.uid).catch(() => {
-    // Never block or break a local training action on remote availability.
-  });
+  const existingTimer = mirrorTimers.get(storageKey);
+  if (existingTimer) clearTimeout(existingTimer);
+
+  const timer = setTimeout(() => {
+    mirrorTimers.delete(storageKey);
+    const currentUser = auth.currentUser;
+    if (!currentUser || currentUser.uid !== user.uid) return;
+
+    const startedAt = performance.now();
+    const previous = mirrorChains.get(storageKey) ?? Promise.resolve();
+    const next = previous
+      .catch(() => {
+        // Keep later mirrors moving even if an earlier remote write failed.
+      })
+      .then(() => repository.mirror(user.uid))
+      .then(() => {
+        trackProductEvent("persistence_sync_completed", {
+          operation: "mirror",
+          outcome: "success",
+          domain: repository.domain,
+          latency_ms: performance.now() - startedAt,
+        });
+      })
+      .catch(() => {
+        trackProductEvent("persistence_sync_completed", {
+          operation: "mirror",
+          outcome: "failed",
+          domain: repository.domain,
+          latency_ms: performance.now() - startedAt,
+        });
+        // Never block or break a local training action on remote availability.
+      })
+      .finally(() => {
+        if (mirrorChains.get(storageKey) === next) {
+          mirrorChains.delete(storageKey);
+        }
+      });
+    mirrorChains.set(storageKey, next);
+  }, 100);
+  mirrorTimers.set(storageKey, timer);
 }
 
 export async function clearAllUserStorage(userId?: string): Promise<void> {
+  const startedAt = performance.now();
+  let failed = false;
   await Promise.all(
     repositories.map(async (repository) => {
       try {
         await repository.clear(userId);
       } catch {
+        failed = true;
         repository.clearLocal();
       }
     }),
   );
+  trackProductEvent("persistence_sync_completed", {
+    operation: "delete",
+    outcome: failed ? "failed" : "success",
+    domain: "all",
+    latency_ms: performance.now() - startedAt,
+  });
 }

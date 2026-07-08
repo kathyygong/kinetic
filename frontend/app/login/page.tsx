@@ -14,6 +14,8 @@ import {
   getUserProfile,
   mergeAuthIntoProfile,
 } from "@/lib/profileStorage";
+import { hydrateUserStorage } from "@/lib/persistence/firebasePersistence";
+import { completeReturningUserSignIn } from "@/lib/persistence/signInHydration";
 import { tokens } from "@/lib/tokens";
 import AthleticImage from "@/components/AthleticImage";
 import KineticLogo from "@/components/KineticLogo";
@@ -56,15 +58,18 @@ function LoginInner() {
     try {
       if (mode === "signin") {
         const cred = await signInWithEmail(email, password);
-        // Make sure the saved profile carries this user's identity, even
-        // if they haven't touched /profile/edit yet.
-        mergeAuthIntoProfile(cred.user);
-        // Returning user with a finished profile → dashboard. Otherwise
-        // pick up onboarding where they left off.
-        const profile = getUserProfile();
-        router.push(
-          profile?.onboarding_completed ? "/dashboard" : "/onboarding/goal"
-        );
+        // A fresh browser has no local cache yet. Hydrate the authenticated
+        // user's remote profile before merging auth identity or deciding where
+        // to route; otherwise a minimal local profile can overwrite the real
+        // Firebase document and incorrectly send a returning runner through
+        // onboarding.
+        const destination = await completeReturningUserSignIn({
+          hydrate: () =>
+            hydrateUserStorage(cred.user.uid, () => true, 10_000),
+          readProfile: getUserProfile,
+          mergeIdentity: () => mergeAuthIntoProfile(cred.user),
+        });
+        router.push(destination);
       } else {
         const cred = await signUpWithEmail(email, password);
         // Brand new account — seed the profile with their auth identity
@@ -74,7 +79,11 @@ function LoginInner() {
         router.push("/onboarding/goal");
       }
     } catch (err) {
-      setError(err instanceof FirebaseError ? err.message : "Authentication failed.");
+      setError(
+        err instanceof FirebaseError || err instanceof Error
+          ? err.message
+          : "Authentication failed.",
+      );
     } finally {
       setLoading(false);
     }
@@ -85,16 +94,19 @@ function LoginInner() {
     setLoading(true);
     try {
       const cred = await signInWithGoogle();
-      // Google can mean either sign-in OR sign-up. Always merge identity
-      // (it's a no-op for fields the user has already customized), then
-      // route based on whether onboarding finished.
-      mergeAuthIntoProfile(cred.user);
-      const profile = getUserProfile();
-      router.push(
-        profile?.onboarding_completed ? "/dashboard" : "/onboarding/goal"
-      );
+      const destination = await completeReturningUserSignIn({
+        hydrate: () =>
+          hydrateUserStorage(cred.user.uid, () => true, 10_000),
+        readProfile: getUserProfile,
+        mergeIdentity: () => mergeAuthIntoProfile(cred.user),
+      });
+      router.push(destination);
     } catch (err) {
-      setError(err instanceof FirebaseError ? err.message : "Google sign-in failed.");
+      setError(
+        err instanceof FirebaseError || err instanceof Error
+          ? err.message
+          : "Google sign-in failed.",
+      );
     } finally {
       setLoading(false);
     }
