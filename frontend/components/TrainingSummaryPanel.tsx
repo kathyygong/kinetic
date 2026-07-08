@@ -12,6 +12,7 @@ import {
   buildTrainingSummaryRequest,
   type TrainingSummaryPeriod,
 } from "@/lib/trainingSummary";
+import { trackProductEvent } from "@/lib/instrumentation";
 
 export default function TrainingSummaryPanel() {
   const [period, setPeriod] = useState<TrainingSummaryPeriod>("weekly");
@@ -33,12 +34,34 @@ export default function TrainingSummaryPanel() {
     let cancelled = false;
     setLoading(true);
     setError(false);
+    const startedAt = performance.now();
     fetchTrainingSummary(input)
       .then((response) => {
-        if (!cancelled) setSummary(response);
+        if (!cancelled) {
+          setSummary(response);
+          trackProductEvent("training_review_loaded", {
+            outcome: "success",
+            window_days: response.metrics.window_days,
+            source: response.source,
+            fallback_used: response.fallback_used,
+            latency_ms: performance.now() - startedAt,
+            timed_out: false,
+            warning_count: response.warnings.length,
+            logged_sessions: response.metrics.logged_sessions,
+          });
+        }
       })
-      .catch(() => {
-        if (!cancelled) setError(true);
+      .catch((cause: unknown) => {
+        if (!cancelled) {
+          setError(true);
+          trackProductEvent("training_review_loaded", {
+            outcome: "failed",
+            window_days: input.period === "weekly" ? 7 : 30,
+            latency_ms: performance.now() - startedAt,
+            timed_out:
+              cause instanceof DOMException && cause.name === "AbortError",
+          });
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

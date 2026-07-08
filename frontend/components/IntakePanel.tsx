@@ -15,6 +15,7 @@ import {
   type ConfirmedIntakeState,
 } from "@/lib/intake";
 import type { SavedPlan } from "@/lib/storage";
+import { trackProductEvent } from "@/lib/instrumentation";
 import { tokens } from "@/lib/tokens";
 import type { Goal, UserProfile } from "@/lib/types";
 
@@ -66,6 +67,7 @@ export default function IntakePanel({
     setError(null);
     setApplied(null);
     setDraftState(null);
+    const startedAt = performance.now();
     try {
       const response = await fetchIntakeDraft(note, {
         today,
@@ -73,9 +75,27 @@ export default function IntakePanel({
         current_profile: profile,
       });
       setDraftState({ response, sourceText: note });
+      trackProductEvent("intake_lifecycle", {
+        action: "reviewed",
+        outcome: response.draft.status === "ready" ? "success" : "invalid",
+        status: response.draft.status,
+        source: response.source,
+        fallback_used: response.fallback_used,
+        latency_ms: performance.now() - startedAt,
+        timed_out: false,
+        change_count: countChanges(response.draft),
+        warning_count: response.warnings.length + response.draft.warnings.length,
+      });
     } catch (cause) {
+      const timedOut = cause instanceof DOMException && cause.name === "AbortError";
+      trackProductEvent("intake_lifecycle", {
+        action: "reviewed",
+        outcome: "failed",
+        latency_ms: performance.now() - startedAt,
+        timed_out: timedOut,
+      });
       setError(
-        cause instanceof DOMException && cause.name === "AbortError"
+        timedOut
           ? "Parsing timed out safely. No changes were made."
           : "Kinetic could not parse this note right now. No changes were made.",
       );
@@ -97,6 +117,15 @@ export default function IntakePanel({
       });
       persistConfirmedIntake(state);
       onApplied(state);
+      trackProductEvent("intake_lifecycle", {
+        action: "confirmed",
+        outcome: "success",
+        status: draftState.response.draft.status,
+        source: draftState.response.source,
+        fallback_used: draftState.response.fallback_used,
+        change_count: state.appliedCount,
+        warning_count: draftState.response.warnings.length,
+      });
       setApplied(
         `${state.appliedCount} confirmed change${
           state.appliedCount === 1 ? "" : "s"
@@ -105,6 +134,15 @@ export default function IntakePanel({
       setDraftState(null);
       setText("");
     } catch (cause) {
+      trackProductEvent("intake_lifecycle", {
+        action: "confirmed",
+        outcome: "invalid",
+        status: draftState.response.draft.status,
+        source: draftState.response.source,
+        fallback_used: draftState.response.fallback_used,
+        change_count: countChanges(draftState.response.draft),
+        warning_count: validation?.errors.length ?? 0,
+      });
       setError(
         cause instanceof Error
           ? cause.message
@@ -184,7 +222,18 @@ export default function IntakePanel({
           response={draftState.response}
           validationErrors={validation?.errors ?? []}
           onConfirm={confirmDraft}
-          onDiscard={() => setDraftState(null)}
+          onDiscard={() => {
+            trackProductEvent("intake_lifecycle", {
+              action: "discarded",
+              outcome: "success",
+              status: draftState.response.draft.status,
+              source: draftState.response.source,
+              fallback_used: draftState.response.fallback_used,
+              change_count: countChanges(draftState.response.draft),
+              warning_count: draftState.response.warnings.length,
+            });
+            setDraftState(null);
+          }}
         />
       ) : null}
     </GlassCard>
@@ -308,6 +357,15 @@ function describeChanges(draft: IntakeDraft) {
       value: change.value[0].toUpperCase() + change.value.slice(1),
     })),
   ];
+}
+
+function countChanges(draft: IntakeDraft) {
+  return (
+    draft.goal_changes.length +
+    draft.schedule_changes.length +
+    draft.availability_changes.length +
+    draft.preference_changes.length
+  );
 }
 
 function goalLabel(field: IntakeDraft["goal_changes"][number]["field"]) {
