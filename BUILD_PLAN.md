@@ -302,10 +302,14 @@ Move from local-only state toward beta-ready authenticated persistence while tre
 - No training recommendation depends on unavailable remote persistence.
 - Sensitive/raw health-adjacent data is not written into analytics events.
 
-### Status - Updated 2026-06-29
+### Status - Updated 2026-07-08
 
 Implemented as domain slices; the Firestore security gate and strict backend
-authentication gate pass.
+authentication gate pass. Privacy-conscious observability and the demonstrated
+returning-sign-in persistence fixes are implemented. The live Firebase
+two-session gate is blocked by project configuration: `kinetic-aca73` currently
+returns Cloud Firestore API `SERVICE_DISABLED`, so remote hydration/mirroring
+cannot complete until Firestore is enabled.
 
 - Added the generic `StorageRepository<T>` contract with synchronous local reads/writes, asynchronous remote mirroring, Firebase hydration, idempotent migration markers, and deletion tombstones.
 - Added Firebase-backed repositories for profile/goal, plan/readiness/workout log, recommendation history/preferences, today completion, and calendar-freshness metadata.
@@ -315,11 +319,29 @@ authentication gate pass.
 - Added persistence smoke coverage for migration, authenticated cache-owner switching, UID isolation, remote hydration, offline behavior, and deletion tombstones.
 - Added a Firestore emulator test for owner access, cross-user denial, guest denial, and unknown-domain denial. After installing Microsoft OpenJDK 21, the full Auth + Firestore emulator suite passed on 2026-06-27.
 - Added a Profile data-control action that clears local training state and the signed-in Firebase mirror. Existing demo reset, learning reset, and integration disconnect controls remain available.
+- Returning sign-in now waits for authenticated storage hydration before
+  merging Firebase identity into the local profile, preventing fresh sessions
+  from overwriting a complete remote profile or incorrectly routing a returning
+  runner to onboarding.
+- Remote mirrors are ordered and coalesced per storage key so demo seed/reset
+  bursts cannot race a late tombstone over a newer payload; true deletes still
+  write tombstones.
+- Added typed local product observability for recommendation responses, AI
+  source/fallback/latency/timeout, intake review/confirmation/discard,
+  training-review window/source, persistence hydrate/mirror/delete outcomes,
+  and stale-data warnings. The sanitizer drops raw notes, biometrics,
+  workout/calendar text, tokens, email, UID, and unnecessary identity data, and
+  telemetry failures are isolated from product flows.
+- Added focused returning-user smoke coverage to prove hydration precedes
+  identity merge, timeout-without-cache fails closed, and same-user offline
+  cache can still route safely.
 
 Remaining beta-ready gate:
 
-- Complete an authenticated two-session browser test against a configured Firebase project or emulator.
-- Add privacy-conscious product instrumentation without sending raw health-adjacent data.
+- Enable Cloud Firestore for the configured Firebase project, then rerun the
+  authenticated two-session browser test for user-scoped hydration, deletion
+  tombstones after reload/second session, account isolation, and local-cache
+  ownership.
 
 ## Phase 4: AI Expansion
 
@@ -746,7 +768,11 @@ Completed.
 - Other local-Ollama surfaces can still be slow; every user-facing AI path must remain async or fallback-safe.
 - Bounded natural-language intake and weekly/monthly training reviews are
   implemented, and signed-in live browser QA passes. Do not select another AI
-  workflow until the existing beta-persistence gate and privacy-conscious
-  observability are complete.
-- Firestore isolation rules pass in the emulator; authenticated cross-session hydration/deletion behavior still needs live browser verification before persistence is called beta-ready.
+  workflow until the existing beta-persistence gate is complete.
+- Privacy-conscious observability is implemented locally with typed,
+  sanitized, failure-isolated envelopes. Firestore isolation rules pass in the
+  emulator; authenticated cross-session hydration/deletion behavior still needs
+  live browser verification before persistence is called beta-ready. The
+  2026-07-08 live check is blocked because the configured Firebase project has
+  Cloud Firestore disabled.
 - `.edge-qa*` profiles and temporary screenshots remain intentionally untracked and must not be included in product commits.

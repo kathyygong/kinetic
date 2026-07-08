@@ -52,3 +52,12 @@ the deterministic release gate. Run
 `.\.venv\Scripts\python.exe -m evals.benchmark_intake_live` to require two
 identical model-backed passes across eight intake cases, exact expected values,
 request immutability, no fallback, and the 24-second server budget.
+
+## Additional product gates
+
+Updated frontend smoke coverage now includes typed privacy-conscious
+instrumentation and returning-user sign-in hydration ordering. The live
+Firebase two-session persistence gate was attempted on 2026-07-08 and is
+blocked by project configuration: Cloud Firestore is disabled for
+`kinetic-aca73`, so authenticated remote hydration/mirroring cannot complete
+until the service is enabled.

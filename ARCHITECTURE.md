@@ -69,10 +69,31 @@ profile/goal, plan/readiness/workout history, recommendation history,
 preferences, completion, and calendar-freshness domains in the background.
 Migration is idempotent, deletion uses tombstones, and the cache records its
 owning Firebase UID so one account cannot hydrate another account's data.
+Returning sign-in hydrates the authenticated cache before merging Firebase
+identity into the local profile, preventing a fresh auth shell from overwriting
+an existing remote profile. Remote mirrors are ordered and coalesced per
+storage domain so seed/reset bursts cannot race late tombstones over newer
+payloads.
 
 Firestore owner-only rules and Auth + Firestore emulator isolation tests pass.
 Live signed-in two-session hydration/deletion verification remains the final
-remote-persistence gate before this layer is described as beta-ready.
+remote-persistence gate before this layer is described as beta-ready. The
+2026-07-08 live check was blocked by the configured Firebase project reporting
+Cloud Firestore API `SERVICE_DISABLED`.
+
+## Observability direction
+
+Product observability is local/demo-safe by default. `frontend/lib/instrumentation.ts`
+stores a capped v2 event log with typed envelopes, event-specific whitelists,
+bounded numeric fields, bucketed enum values, and sensitive-key rejection.
+Telemetry failures are caught and isolated so training, persistence, auth, and
+AI fallback cannot be blocked by instrumentation.
+
+Tracked surfaces include recommendation responses/completions, AI status and
+reasoning source/fallback/latency/timeout, intake reviewed/confirmed/discarded,
+training-review window/source, persistence hydrate/mirror/delete outcomes, and
+stale-data warnings. The log intentionally excludes raw notes, biometrics,
+workout/calendar text, tokens, email, UID, and unnecessary identity data.
 
 ## Verification
 

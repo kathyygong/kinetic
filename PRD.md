@@ -45,15 +45,26 @@ The shippable demo will not include:
 - Push notifications.
 - Autonomous AI plan mutation without deterministic validation.
 
-### Implementation Status — 2026-07-01
+### Implementation Status — 2026-07-08
 
 - The demo release gate is complete: signed-in responsive QA, strict Firebase
   token enforcement, deterministic evals, and Firestore isolation rules pass.
 - The UI refresh is complete across Dashboard, Plan, Recovery, Profile,
   Settings, Login, and Onboarding.
 - Local-first, user-scoped Firebase repositories and the training-memory center
-  are implemented. Live signed-in two-session hydration/deletion verification
-  remains before persistence is called beta-ready.
+  are implemented. Returning sign-in now hydrates authenticated storage before
+  merging identity, demo seed mirroring is ordered per domain, and deletion
+  tombstones remain the remote delete contract. Live signed-in two-session
+  hydration/deletion verification is blocked on enabling Cloud Firestore for
+  the configured Firebase project (`kinetic-aca73`); persistence is not called
+  beta-ready until that live gate passes.
+- Privacy-conscious local observability is implemented with typed event
+  envelopes, bounded values, deterministic sanitization, and failure isolation.
+  Events cover recommendation responses, AI source/fallback/latency/timeout,
+  intake review/confirmation/discard, training-review window/source,
+  persistence sync success/failure, and stale-data warnings without recording
+  raw notes, biometrics, workout/calendar text, tokens, email, UID, or other
+  unnecessary identity data.
 - Deterministic What-if planning and its bounded explanation contract are
   implemented as a read-only preview.
 - Bounded natural-language intake is implemented for explicit goal, schedule,

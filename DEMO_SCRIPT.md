@@ -40,8 +40,11 @@ confirmed preferences become bounded scoring nudges.
 
 Open [EVAL_REPORT.md](./EVAL_REPORT.md). Highlight no recommendation drift, no
 medical claims, sparse-history warnings, schema validity, intake grounding,
-training-summary privacy, malformed/timeout fallback, and no AI mutation.
+training-summary privacy, malformed/timeout fallback, no AI mutation, and the
+privacy-conscious product event boundary.
 Close with the architecture:
 deterministic safety core, optional bounded AI, local fallback by default, and
 an authenticated Firebase mirror that remains non-blocking when remote
-persistence is unavailable.
+persistence is unavailable. For beta-readiness, call out that live cross-session
+Firebase persistence still requires Cloud Firestore to be enabled in the
+configured project before the final hydration/deletion gate can pass.

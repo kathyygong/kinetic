@@ -25,7 +25,8 @@ Most running apps provide static plans that exist in a vacuum. When life happens
 * **Bounded Natural-Language Intake:** Parses explicit goal, training-day, availability, and experience changes into a typed, source-grounded draft. The draft remains read-only until the runner confirms it, then the existing deterministic planner validates and applies it.
 * **Read-Only Training Reviews:** Summarizes 7- or 30-day consistency, completed volume, and recovery trends from deterministic aggregates. Optional local AI can narrate those facts but cannot invent metrics or change the plan.
 * **Consistent Readiness Decisions:** Dashboard and Recovery use the same rolling biometric baselines, so the displayed recovery score and training state cannot drift between surfaces.
-* **Local-First Persistence:** Keeps the demo responsive through localStorage while authenticated Firebase repositories mirror user-scoped training domains in the background.
+* **Local-First Persistence:** Keeps the demo responsive through localStorage while authenticated Firebase repositories mirror user-scoped training domains in the background. Returning sign-in hydrates remote state before identity merge, and tombstones preserve deletes.
+* **Privacy-Conscious Observability:** Records typed, local, bounded product events for recommendation, AI, intake, training-review, persistence, and stale-data surfaces without raw notes, biometrics, calendar/workout text, tokens, email, UID, or unnecessary identity data.
 * **Offline-Friendly Demo:** Supports deterministic fallback behavior so the demo does not require paid hosted AI or available remote persistence.
 
 ## 🛠 The AI Stack & Strategy
@@ -44,16 +45,15 @@ Kinetic is designed as a hybrid deterministic + AI product.
 - [X] **Foundation:** Deterministic planning, calendar-aware adjustment, manual readiness flows, and core API/frontend surfaces.
 - [X] **Demo Vertical Slice:** AI status visibility, hardened explanation/fallback flows, training memory, read-only What-if planning, seed/reset controls, and the full responsive UI system.
 - [X] **Demo Release Gate:** Signed-in responsive QA, strict backend token enforcement, Firestore rules, and deterministic evals pass.
-- [ ] **Beta-Ready Foundation:** Repository-backed Firebase persistence and security rules are implemented; live two-session persistence verification, privacy-conscious instrumentation, and broader beta hardening remain.
+- [ ] **Beta-Ready Foundation:** Repository-backed Firebase persistence, security rules, and privacy-conscious instrumentation are implemented; live two-session persistence verification is blocked until Cloud Firestore is enabled for the configured Firebase project, and broader beta hardening remains.
 - [X] **Bounded Intake Workflow:** Natural-language changes produce a validated, reviewable draft; malformed output, ambiguity, timeouts, and unavailable AI fall back or stop safely, and only explicit confirmation can reach deterministic plan application.
 - [X] **Training Review Workflow:** Weekly and monthly summaries use typed,
   privacy-minimized inputs, deterministic metrics, grounded narration, and
   fallback-safe read-only UI. Signed-in browser QA verifies both live grounded
   Ollama narration and safe deterministic rejection of ungrounded output.
-- [ ] **Next CTO Slice:** Close live two-session Firebase
-  hydration/deletion, then add privacy-conscious observability for AI
-  latency/fallback and key training actions without recording raw notes,
-  biometrics, calendar text, or unnecessary identity data.
+- [ ] **Next CTO Slice:** Enable Cloud Firestore for `kinetic-aca73`, then
+  rerun the live two-session Firebase hydration/deletion/account-isolation
+  browser gate. Keep expanding beta hardening only after that gate is green.
 - [ ] **Later Integrations:** Native mobile app, Apple Health/Garmin/Oura ingestion, hosted AI provider option, coach sharing, and push notifications.
 
 Optional live-model verification (requires Ollama and the configured intake
