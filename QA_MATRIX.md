@@ -22,7 +22,7 @@ the next beta checkpoint.
 | Live deletion tombstones | signed-in delete remains deleted after reload and second-origin sign-in | Passed 2026-07-09 |
 | Natural-language intake | review-only draft, confirmation required, anonymous blocked under strict auth | Passed in prior release gate |
 | Training review | grounded live local AI and deterministic fallback for unsafe output | Passed in prior release gate |
-| Observability privacy | sanitized, capped, typed event envelopes; failure isolation | Covered by smoke and code review |
+| Observability privacy | every event family sanitized, capped, typed, and failure-isolated | Covered by `smoke-instrumentation.ts` |
 
 ## Browser QA notes
 
@@ -34,4 +34,4 @@ local proof artifacts. The protected patterns are `.edge-qa*` and
 
 The demo is shippable and the Firebase persistence foundation is beta-ready.
 The overall product is still in beta hardening until final runbook review and
-any remaining telemetry QA gaps are closed.
+operational polish are closed.

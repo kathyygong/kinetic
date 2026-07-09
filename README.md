@@ -54,8 +54,8 @@ Kinetic is designed as a hybrid deterministic + AI product.
   Ollama narration and safe deterministic rejection of ungrounded output.
 - [ ] **Next CTO Slice:** Beta hardening is underway: the operational runbook,
   QA matrix, local readiness check, and connected npm advisory audit are in
-  place, and direct frontend/backend dependencies are pinned. Remaining gates
-  are final telemetry QA review and any real-QA operational gaps.
+  place, direct frontend/backend dependencies are pinned, and telemetry QA now
+  covers every event family. Remaining gate is final operational polish.
 - [ ] **Later Integrations:** Native mobile app, Apple Health/Garmin/Oura ingestion, hosted AI provider option, coach sharing, and push notifications.
 
 Optional live-model verification (requires Ollama and the configured intake

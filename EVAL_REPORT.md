@@ -70,3 +70,6 @@ matrix. `npm run beta:readiness` verifies lockfile presence, direct dependency
 pinning, protected QA artifact hygiene, and runbook/matrix presence. The
 connected `npm run beta:audit` advisory gate passes with no
 moderate/high/critical npm advisories. Re-run both gates after package changes.
+Telemetry QA now exercises every typed product event family with safe values
+and intentionally unsafe extra fields, then proves capped local storage and
+write/remove failure isolation.

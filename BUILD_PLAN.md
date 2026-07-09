@@ -780,6 +780,9 @@ Completed.
   verified versions. `npm run beta:audit` passes with no moderate/high/critical
   npm advisories, and `npm run beta:readiness` reports no dependency pinning
   warnings. Re-run both after package changes before broader beta exposure.
+- Telemetry QA now exercises every typed product event family, sensitive-key
+  rejection, numeric/enum bounding, log capping, and write/remove failure
+  isolation through `smoke-instrumentation.ts`.
 - Other local-Ollama surfaces can still be slow; every user-facing AI path must remain async or fallback-safe.
 - Bounded natural-language intake and weekly/monthly training reviews are
   implemented, signed-in live browser QA passes, and the live Firebase

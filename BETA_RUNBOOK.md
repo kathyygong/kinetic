@@ -109,7 +109,9 @@ Kinetic observability is local/demo-safe only. It must remain:
   unnecessary identity data.
 
 Run `npm run smoke` and confirm `smoke-instrumentation.ts` passes before
-shipping telemetry changes. Telemetry failures must never block training,
+shipping telemetry changes. The smoke covers every typed event family,
+sensitive-key rejection, bounded values, log capping, and localStorage
+write/remove failure isolation. Telemetry failures must never block training,
 persistence, authentication, or AI fallback.
 
 ## Dependency posture

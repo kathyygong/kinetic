@@ -30,6 +30,16 @@ class MemoryStorage implements Storage {
   }
 }
 
+class FailingStorage extends MemoryStorage {
+  override removeItem(): void {
+    throw new Error("simulated remove failure");
+  }
+
+  override setItem(): void {
+    throw new Error("simulated write failure");
+  }
+}
+
 Object.defineProperty(globalThis, "window", {
   value: { localStorage: new MemoryStorage() },
   configurable: true,
@@ -51,6 +61,194 @@ async function main(): Promise<void> {
   const expect = (condition: boolean, message: string) => {
     if (!condition) errors.push(message);
   };
+
+  clearProductEvents();
+
+  const requiredEventCases = [
+    {
+      name: "recommendation_response",
+      properties: {
+        response: "accepted",
+        rejection_reason: "felt_better",
+        selected_action: "proceed",
+        confidence_bucket: "high",
+        staleness_warning_count: 0,
+      },
+    },
+    {
+      name: "recommendation_completion",
+      properties: {
+        status: "completed",
+        response_status: "accepted",
+        selected_action: "modify",
+        accepted_adjustment: true,
+      },
+    },
+    {
+      name: "post_workout_checkin_saved",
+      properties: {
+        completed: true,
+        has_effort: true,
+        has_user_reflection: true,
+        perceived_effort: 7,
+        update_succeeded: true,
+      },
+    },
+    {
+      name: "ai_status_checked",
+      properties: {
+        outcome: "success",
+        mode: "local_ollama",
+        source: "ollama",
+        fallback_used: false,
+        live_model_enabled: true,
+        timeout_seconds: 8,
+        latency_ms: 230,
+        timed_out: false,
+      },
+    },
+    {
+      name: "ai_reasoning_completed",
+      properties: {
+        surface: "dashboard_daily",
+        outcome: "success",
+        source: "ollama",
+        fallback_used: false,
+        ui_fallback_used: false,
+        latency_ms: 1200,
+        timed_out: false,
+        selected_action: "proceed",
+        factor_count: 3,
+        modified_workout_count: 0,
+        dropped_workout_count: 0,
+        recommendation_event_count: 6,
+        staleness_warning_count: 0,
+        preserved_workout_count: 4,
+        pattern_count: 1,
+        warning_count: 0,
+      },
+    },
+    {
+      name: "calendar_sync_completed",
+      properties: {
+        outcome: "failed",
+        availability_ok: false,
+        travel_ok: true,
+        horizon_days: 14,
+        travel_horizon_days: 14,
+        week_count: 2,
+        has_changes: true,
+        total_changes: 2,
+        easy_only_day_count: 2,
+      },
+    },
+    {
+      name: "stale_data_warning_shown",
+      properties: {
+        warning_count: 2,
+        has_calendar_warning: true,
+        has_recovery_warning: true,
+        selected_action: "modify",
+        confidence_bucket: "moderate",
+      },
+    },
+    {
+      name: "weekly_plan_recalibrated",
+      properties: {
+        surface: "plan_weekly",
+        outcome: "accepted",
+        total_changes: 2,
+        week_adjustment_count: 1,
+        easy_only_day_count: 2,
+      },
+    },
+    {
+      name: "learned_preference_updated",
+      properties: {
+        action: "confirmed",
+        preference_type: "schedule_preference",
+        confidence: "high",
+      },
+    },
+    {
+      name: "demo_data_control_used",
+      properties: {
+        action: "seed",
+        plan_weeks: 16,
+        readiness_entries: 10,
+        recommendation_events: 12,
+      },
+    },
+    {
+      name: "intake_lifecycle",
+      properties: {
+        action: "reviewed",
+        outcome: "success",
+        status: "ready",
+        source: "ollama",
+        fallback_used: false,
+        latency_ms: 900,
+        timed_out: false,
+        change_count: 2,
+        warning_count: 0,
+      },
+    },
+    {
+      name: "training_review_loaded",
+      properties: {
+        outcome: "success",
+        window_days: 30,
+        source: "deterministic",
+        fallback_used: false,
+        latency_ms: 400,
+        timed_out: false,
+        warning_count: 0,
+        logged_sessions: 8,
+      },
+    },
+    {
+      name: "persistence_sync_completed",
+      properties: {
+        operation: "hydrate",
+        outcome: "success",
+        domain: "plan",
+        cache_changed: true,
+        latency_ms: 320,
+      },
+    },
+  ] as const;
+
+  const unsafeExtras = {
+    note: "raw note should never be persisted",
+    email: "runner@example.com",
+    uid: "firebase-uid",
+    full_name: "Alex Runner",
+    access_token: "secret-token",
+    raw_calendar_event_text: "Doctor appointment at 2pm",
+    workout_text: "raw workout text",
+    biometric_sleep_hrv: "private biometrics",
+  };
+
+  for (const testCase of requiredEventCases) {
+    trackProductEvent(
+      testCase.name as never,
+      { ...testCase.properties, ...unsafeExtras } as never,
+    );
+  }
+
+  const coverageEvents = listProductEvents();
+  const observedNames = new Set(coverageEvents.map((item) => item.name));
+  for (const testCase of requiredEventCases) {
+    expect(observedNames.has(testCase.name), `${testCase.name} should be tracked`);
+  }
+  for (const item of coverageEvents) {
+    for (const unsafeKey of Object.keys(unsafeExtras)) {
+      expect(
+        !(unsafeKey in item.properties),
+        `${item.name} should not persist sensitive key ${unsafeKey}`,
+      );
+    }
+  }
 
   clearProductEvents();
 
@@ -121,11 +319,34 @@ async function main(): Promise<void> {
   clearProductEvents();
   expect(listProductEvents().length === 0, "clearProductEvents should empty the log");
 
+  Object.defineProperty(globalThis, "window", {
+    value: { localStorage: new FailingStorage() },
+    configurable: true,
+  });
+
+  const isolated = trackProductEvent("persistence_sync_completed", {
+    operation: "mirror",
+    outcome: "failed",
+    domain: "profile",
+    cache_changed: false,
+    latency_ms: 25,
+  });
+  expect(isolated !== null, "telemetry write failures should not block event creation");
+  expect(listProductEvents().length === 0, "broken telemetry storage should read as empty");
+  clearProductEvents();
+
+  Object.defineProperty(globalThis, "window", {
+    value: { localStorage: new MemoryStorage() },
+    configurable: true,
+  });
+
   if (errors.length > 0) {
     console.error("FAIL:");
     for (const error of errors) console.error("  -", error);
     process.exit(1);
   }
 
-  console.log("OK - product instrumentation is local, capped, and sanitized");
+  console.log(
+    "OK - product instrumentation covers all event families and stays local, capped, sanitized, and failure-isolated",
+  );
 }
