@@ -59,8 +59,8 @@ The shippable demo will not include:
   live signed-in QA verifies cross-session hydration, account isolation, and
   local-cache ownership. Signed-in deletion now surfaces a retryable error
   instead of silently clearing local state when Firebase tombstones cannot be
-  confirmed. One final captured deletion tombstone reload/second-session proof
-  remains before persistence is called fully beta-ready.
+  confirmed. The live deletion tombstone reload/second-session proof passed on
+  2026-07-09, so the remote persistence gate is closed.
 - Privacy-conscious local observability is implemented with typed event
   envelopes, bounded values, deterministic sanitization, and failure isolation.
   Events cover recommendation responses, AI source/fallback/latency/timeout,
@@ -378,7 +378,8 @@ Any AI-generated suggestion that could affect training must pass deterministic v
 
 - Firebase-backed persistence, local cache ownership/migration, Firestore rules,
   and reset/delete controls are implemented.
-- Complete the final captured deletion tombstone reload/second-session proof.
+- Live signed-in two-session hydration, account isolation, local-cache
+  ownership, and deletion tombstone verification are complete.
 - Extend privacy-conscious instrumentation only when a new product surface
   needs a bounded event.
 - Keep demo/offline mode usable.

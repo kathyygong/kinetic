@@ -308,9 +308,9 @@ Implemented as domain slices; the Firestore security gate and strict backend
 authentication gate pass. Privacy-conscious observability and the demonstrated
 returning-sign-in persistence fixes are implemented. Cloud Firestore is enabled
 for `kinetic-aca73`, rules are deployed, and live signed-in QA verifies
-cross-session hydration, account isolation, and local-cache ownership. A final
-captured deletion tombstone reload/second-session proof remains before the
-remote persistence gate is closed completely.
+cross-session hydration, account isolation, local-cache ownership, and deletion
+tombstones after reload and second-origin sign-in. The remote persistence gate
+is closed as of 2026-07-09.
 
 - Added the generic `StorageRepository<T>` contract with synchronous local reads/writes, asynchronous remote mirroring, Firebase hydration, idempotent migration markers, and deletion tombstones.
 - Added Firebase-backed repositories for profile/goal, plan/readiness/workout log, recommendation history/preferences, today completion, and calendar-freshness metadata.
@@ -342,11 +342,12 @@ remote persistence gate is closed completely.
   identity merge, timeout-without-cache fails closed, and same-user offline
   cache can still route safely.
 
-Remaining beta-ready gate:
+Closed beta-ready persistence gate:
 
-- Capture one clean signed-in browser pass proving deletion tombstones remain
-  deleted after reload and in a second session. Do not weaken UID scoping,
-  deletion semantics, owner-only rules, or local offline fallback.
+- Live signed-in browser QA proves deletion tombstones remain deleted after
+  reload and after signing into the same account from the second local origin.
+  Keep UID scoping, deletion semantics, owner-only rules, and local offline
+  fallback intact during later beta hardening.
 
 ## Phase 4: AI Expansion
 
@@ -725,8 +726,9 @@ Demo packaging is complete.
 4. Deliver training memory on that repository boundary; tentative patterns never score and confirmed preferences remain bounded nudges.
 5. Completed the bounded AI sequence: deterministic What-if, review-first
    natural-language intake, then read-only weekly/monthly training reviews.
-6. Next, close the live two-session Firebase persistence gate and add
-   privacy-conscious observability before selecting another AI workflow.
+6. Live two-session Firebase persistence and privacy-conscious observability
+   are closed; next, harden the beta runbook, dependency posture, and final QA
+   matrix before selecting another AI workflow.
 7. Do not begin hosted AI, wearable ingestion, native mobile, or autonomous
    plan mutation.
 
@@ -772,13 +774,13 @@ Completed.
 - `npm audit` still reports dependency vulnerabilities from the frontend dependency tree; these have not been triaged yet.
 - Other local-Ollama surfaces can still be slow; every user-facing AI path must remain async or fallback-safe.
 - Bounded natural-language intake and weekly/monthly training reviews are
-  implemented, and signed-in live browser QA passes. Do not select another AI
-  workflow until the final deletion tombstone persistence proof is captured.
+  implemented, signed-in live browser QA passes, and the live Firebase
+  persistence gate is closed. Prefer beta hardening over new AI workflows.
 - Privacy-conscious observability is implemented locally with typed,
   sanitized, failure-isolated envelopes. Firestore isolation rules pass in the
   emulator; Cloud Firestore is enabled and rules are deployed for
   `kinetic-aca73`. Live QA verifies cross-session hydration, account isolation,
-  and local-cache ownership. Signed-in delete failure now fails visibly instead
-  of silently clearing local state; deletion tombstones still need one clean
-  captured reload/second-session proof before persistence is called beta-ready.
+  local-cache ownership, and deletion tombstones after reload and second-origin
+  sign-in. Signed-in delete failure now fails visibly instead of silently
+  clearing local state.
 - `.edge-qa*` profiles and temporary screenshots remain intentionally untracked and must not be included in product commits.

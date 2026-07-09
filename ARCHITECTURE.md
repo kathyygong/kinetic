@@ -82,8 +82,9 @@ and keeping browser QA repeatable.
 Firestore owner-only rules and Auth + Firestore emulator isolation tests pass.
 Cloud Firestore is enabled for `kinetic-aca73`, owner-only rules are deployed,
 and live signed-in QA verifies cross-session hydration, account isolation, and
-local-cache ownership. One final captured deletion tombstone reload/second-
-session proof remains before this layer is described as fully beta-ready.
+local-cache ownership. The 2026-07-09 live gate also verifies deletion
+tombstones remain deleted after reload and after signing into the same account
+from the second local origin, closing the remote persistence gate.
 
 ## Observability direction
 
