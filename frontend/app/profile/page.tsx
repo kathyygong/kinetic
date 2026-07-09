@@ -140,6 +140,8 @@ export default function ProfilePage() {
   }>({ weekly_mileage: undefined, preferred_training_days: [] });
 
   const [editingPRs, setEditingPRs] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   // PR drafts are intentionally Partial — new users haven't logged
   // every distance yet, and the per-row clear button uses
   // `delete next[key]` to drop a value back to "unset". Mirrors the
@@ -284,18 +286,30 @@ export default function ProfilePage() {
     router.replace("/login");
   };
 
-  const handleDeleteTrainingData = async () => {
-    const confirmed = window.confirm(
-      "Delete your Kinetic profile, plan, readiness, workout history, and training memory? This cannot be undone.",
-    );
-    if (!confirmed) return;
+  const handleDeleteTrainingData = () => {
+    setDeleteError(null);
+    setConfirmingDelete(true);
+  };
 
+  const handleCancelDeleteTrainingData = () => {
+    if (deletingData) return;
+    setConfirmingDelete(false);
+    setDeleteError(null);
+  };
+
+  const handleConfirmDeleteTrainingData = async () => {
     setDeletingData(true);
+    setDeleteError(null);
     try {
       await clearAllUserStorage(authUser?.uid);
       clearProductEvents();
+      setConfirmingDelete(false);
       setProfile(null);
       router.replace("/onboarding");
+    } catch {
+      setDeleteError(
+        "We couldn't confirm deletion from Firebase. Your training data has not been marked deleted in this session; check your connection and try again.",
+      );
     } finally {
       setDeletingData(false);
     }
@@ -813,6 +827,41 @@ export default function ProfilePage() {
                 {deletingData ? "Deleting…" : "Delete training data"}
               </button>
             </div>
+            {confirmingDelete ? (
+              <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50/80 p-4 text-sm text-rose-900 dark:border-rose-400/30 dark:bg-rose-400/10 dark:text-rose-100">
+                <p className="font-semibold">
+                  Delete your Kinetic profile, plan, readiness, workout history,
+                  and training memory?
+                </p>
+                <p className="mt-1 text-rose-800 dark:text-rose-200/90">
+                  This cannot be undone. Connected-service authorization is
+                  managed separately and will not delete data at those providers.
+                </p>
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                  <button
+                    type="button"
+                    onClick={handleCancelDeleteTrainingData}
+                    disabled={deletingData}
+                    className={`min-h-10 rounded-full border border-rose-300/70 px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-white/70 disabled:cursor-wait disabled:opacity-60 dark:border-rose-300/30 dark:text-rose-100 dark:hover:bg-white/10 ${tokens.motion}`}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmDeleteTrainingData}
+                    disabled={deletingData}
+                    className={`min-h-10 rounded-full bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700 disabled:cursor-wait disabled:opacity-60 dark:bg-rose-500 dark:hover:bg-rose-400 ${tokens.motion}`}
+                  >
+                    {deletingData ? "Deleting…" : "Confirm delete"}
+                  </button>
+                </div>
+              </div>
+            ) : null}
+            {deleteError ? (
+              <p className="mt-3 text-sm text-rose-700 dark:text-rose-300">
+                {deleteError}
+              </p>
+            ) : null}
           </SectionCard>
 
           {/* Empty-state hint, only when nothing has been saved yet */}

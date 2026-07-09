@@ -98,6 +98,36 @@ async function main() {
     "clear should write a remote tombstone",
   );
 
+  const failingDeleteRepository = createStorageRepository<{ name: string }>({
+    domain: "goal",
+    storageKey: "kinetic_goal",
+    remote: {
+      async read() {
+        return null;
+      },
+      async write() {
+        throw new Error("remote unavailable");
+      },
+    },
+  });
+  failingDeleteRepository.writeLocal({ name: "Keep until remote delete works" });
+  let deleteFailed = false;
+  try {
+    await failingDeleteRepository.clear("runner-a");
+  } catch {
+    deleteFailed = true;
+  }
+  expect(deleteFailed, "signed-in clear should surface remote delete failure");
+  expect(
+    failingDeleteRepository.readLocal()?.name === "Keep until remote delete works",
+    "signed-in clear must not silently wipe local cache when remote tombstone fails",
+  );
+  await failingDeleteRepository.clear();
+  expect(
+    failingDeleteRepository.readLocal() === null,
+    "local-only clear should still remove local data",
+  );
+
   repository.writeLocal({ name: "Stale cache" });
   await repository.hydrate("runner-a");
   expect(

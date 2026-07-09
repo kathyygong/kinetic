@@ -224,7 +224,9 @@ export async function clearAllUserStorage(userId?: string): Promise<void> {
         await repository.clear(userId);
       } catch {
         failed = true;
-        repository.clearLocal();
+        if (!userId) {
+          repository.clearLocal();
+        }
       }
     }),
   );
@@ -234,4 +236,7 @@ export async function clearAllUserStorage(userId?: string): Promise<void> {
     domain: "all",
     latency_ms: performance.now() - startedAt,
   });
+  if (failed && userId) {
+    throw new Error("Remote deletion did not complete.");
+  }
 }

@@ -57,8 +57,10 @@ The shippable demo will not include:
   tombstones remain the remote delete contract. Cloud Firestore is enabled for
   the configured Firebase project (`kinetic-aca73`), rules are deployed, and
   live signed-in QA verifies cross-session hydration, account isolation, and
-  local-cache ownership. One final captured deletion tombstone reload/second-
-  session proof remains before persistence is called fully beta-ready.
+  local-cache ownership. Signed-in deletion now surfaces a retryable error
+  instead of silently clearing local state when Firebase tombstones cannot be
+  confirmed. One final captured deletion tombstone reload/second-session proof
+  remains before persistence is called fully beta-ready.
 - Privacy-conscious local observability is implemented with typed event
   envelopes, bounded values, deterministic sanitization, and failure isolation.
   Events cover recommendation responses, AI source/fallback/latency/timeout,

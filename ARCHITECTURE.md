@@ -73,7 +73,11 @@ Returning sign-in hydrates the authenticated cache before merging Firebase
 identity into the local profile, preventing a fresh auth shell from overwriting
 an existing remote profile. Remote mirrors are ordered and coalesced per
 storage domain so seed/reset bursts cannot race late tombstones over newer
-payloads.
+payloads. Signed-in deletion requires confirmed Firebase tombstones before
+local deletion is finalized; if tombstones cannot be confirmed, Profile shows a
+retryable error instead of pretending remote data was deleted. The destructive
+delete action uses an in-page confirmation panel, avoiding native dialog hangs
+and keeping browser QA repeatable.
 
 Firestore owner-only rules and Auth + Firestore emulator isolation tests pass.
 Cloud Firestore is enabled for `kinetic-aca73`, owner-only rules are deployed,

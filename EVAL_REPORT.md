@@ -59,6 +59,8 @@ Updated frontend smoke coverage now includes typed privacy-conscious
 instrumentation and returning-user sign-in hydration ordering. The live
 Firebase two-session persistence gate is unblocked: Cloud Firestore is enabled
 for `kinetic-aca73`, rules are deployed, and live QA verifies cross-session
-hydration, account isolation, and local-cache ownership. A final captured
-deletion tombstone reload/second-session proof remains before the remote
-persistence gate is closed completely.
+hydration, account isolation, and local-cache ownership. Frontend persistence
+smoke coverage now also asserts signed-in delete failures do not silently wipe
+local cache before Firebase tombstones are confirmed. A final captured deletion
+tombstone reload/second-session proof remains before the remote persistence
+gate is closed completely.

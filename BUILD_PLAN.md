@@ -327,6 +327,11 @@ remote persistence gate is closed completely.
 - Remote mirrors are ordered and coalesced per storage key so demo seed/reset
   bursts cannot race a late tombstone over a newer payload; true deletes still
   write tombstones.
+- Signed-in deletion now requires confirmed Firebase tombstones before local
+  deletion is finalized; failures surface a retryable Profile error instead of
+  silently leaving remote data undeleted. Profile uses an in-page confirmation
+  panel rather than a native browser dialog so the flow is accessible,
+  stylable, and repeatable in browser QA.
 - Added typed local product observability for recommendation responses, AI
   source/fallback/latency/timeout, intake review/confirmation/discard,
   training-review window/source, persistence hydrate/mirror/delete outcomes,
@@ -773,6 +778,7 @@ Completed.
   sanitized, failure-isolated envelopes. Firestore isolation rules pass in the
   emulator; Cloud Firestore is enabled and rules are deployed for
   `kinetic-aca73`. Live QA verifies cross-session hydration, account isolation,
-  and local-cache ownership. Deletion tombstones still need one clean captured
-  reload/second-session proof before persistence is called beta-ready.
+  and local-cache ownership. Signed-in delete failure now fails visibly instead
+  of silently clearing local state; deletion tombstones still need one clean
+  captured reload/second-session proof before persistence is called beta-ready.
 - `.edge-qa*` profiles and temporary screenshots remain intentionally untracked and must not be included in product commits.

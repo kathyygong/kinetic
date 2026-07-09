@@ -64,6 +64,22 @@ type RepositoryOptions<T> = {
 };
 
 const MIGRATION_VERSION = 1;
+const REMOTE_CLEAR_TIMEOUT_MS = 10_000;
+
+function withTimeout<T>(
+  operation: Promise<T>,
+  timeoutMs: number,
+  message: string,
+): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(new Error(message));
+    }, timeoutMs);
+    operation
+      .then(resolve, reject)
+      .finally(() => clearTimeout(timeoutId));
+  });
+}
 
 export function createStorageRepository<T>({
   domain,
@@ -171,11 +187,17 @@ export function createStorageRepository<T>({
     },
 
     async clear(userId) {
-      clearLocal();
-      if (userId) {
-        await remote.write(userId, domain, envelope(null, true));
-        markMigrated(userId);
+      if (!userId) {
+        clearLocal();
+        return;
       }
+      await withTimeout(
+        remote.write(userId, domain, envelope(null, true)),
+        REMOTE_CLEAR_TIMEOUT_MS,
+        `Timed out deleting ${domain}`,
+      );
+      clearLocal();
+      markMigrated(userId);
     },
   };
 }
