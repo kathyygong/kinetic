@@ -8,8 +8,9 @@ the next beta checkpoint.
 | Frontend lint | `cd frontend && npm run lint` | Required before checkpoint |
 | Frontend production build | `cd frontend && npm run build` | Required before checkpoint |
 | Frontend deterministic smoke | `cd frontend && npm run smoke` | Required before checkpoint |
-| Frontend beta posture | `cd frontend && npm run beta:readiness` | Added for beta hardening |
+| Frontend beta posture | `cd frontend && npm run beta:readiness` | Dependency pinning passes; default audit skip warning expected |
 | Frontend advisory audit | `cd frontend && npm run beta:audit` | Passed 2026-07-09; rerun after package changes |
+| Dependency pin review | direct frontend/backend dependencies exact-pinned | Passed 2026-07-09 |
 | Backend compile | `cd backend && .\.venv\Scripts\python.exe -m compileall app evals` | Required before checkpoint |
 | Backend deterministic gates | `cd backend && .\.venv\Scripts\python.exe -m evals._gates` | Required before checkpoint |
 | Backend smoke | `cd backend && .\.venv\Scripts\python.exe -m evals._smoke` | Required before checkpoint |
@@ -32,5 +33,5 @@ local proof artifacts. The protected patterns are `.edge-qa*` and
 ## Release interpretation
 
 The demo is shippable and the Firebase persistence foundation is beta-ready.
-The overall product is still in beta hardening until dependency pin/range
-review, final runbook review, and any remaining telemetry QA gaps are closed.
+The overall product is still in beta hardening until final runbook review and
+any remaining telemetry QA gaps are closed.

@@ -114,13 +114,13 @@ persistence, authentication, or AI fallback.
 
 ## Dependency posture
 
-The current dependency posture is not yet a public-beta signoff:
+The current dependency posture is beta-checkpoint ready:
 
 - connected frontend advisory audit passes, but should be rerun after package
   changes;
-- flexible frontend dependency ranges should be reviewed before public beta;
-- backend requirements are intentionally simple but currently floating and
-  should be version-constrained before hosted beta.
+- direct frontend dependencies are exact-pinned in `package.json` and
+  `package-lock.json`;
+- direct backend requirements are exact-pinned in `backend/requirements.txt`.
 
 Use `npm run beta:readiness` for the local posture report and
 `npm run beta:audit` for the connected advisory gate.

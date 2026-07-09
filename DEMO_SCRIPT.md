@@ -51,5 +51,6 @@ isolation plus deletion tombstones after reload and second-origin sign-in.
 
 If the reviewer asks about beta operations, point to `BETA_RUNBOOK.md` and
 `QA_MATRIX.md`: the product is demo-shippable with the Firebase persistence
-gate closed and npm advisory audit passing, while dependency pin/range review
-remains the next beta-hardening gate.
+gate closed, npm advisory audit passing, and direct dependencies pinned. Final
+beta hardening is now about telemetry QA and operational polish rather than a
+missing product capability.

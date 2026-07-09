@@ -432,7 +432,9 @@ Any AI-generated suggestion that could affect training must pass deterministic v
 - Firebase persistence must include user-scoped security rules before it is treated as beta-ready.
 - Product analytics must avoid raw health notes, full calendar text, and unnecessary personally identifiable information.
 - Beta checkpoints must run the local readiness check and, from a connected
-  shell, the npm advisory audit before broader beta exposure.
+  shell, the npm advisory audit before broader beta exposure. Direct
+  frontend/backend dependencies should stay exact-pinned unless a package
+  change is intentionally reviewed.
 
 ## 7. Open Questions And Considerations
 

@@ -776,11 +776,10 @@ Completed.
 - Local Ollama intake passes the optional eight-case, two-repeat live gate on
   this machine with `llama3.2:3b`; cold server startup is slower because it
   deliberately warms and pins the model before accepting requests.
-- `npm run beta:audit` passes with no moderate/high/critical npm advisories.
-  `npm run beta:readiness` still reports explicit warnings for flexible
-  frontend ranges, floating backend requirements, and the intentionally skipped
-  default advisory lookup. Dependency pin/range review remains before broader
-  beta exposure.
+- Direct frontend and backend dependencies are pinned to the currently
+  verified versions. `npm run beta:audit` passes with no moderate/high/critical
+  npm advisories, and `npm run beta:readiness` reports no dependency pinning
+  warnings. Re-run both after package changes before broader beta exposure.
 - Other local-Ollama surfaces can still be slow; every user-facing AI path must remain async or fallback-safe.
 - Bounded natural-language intake and weekly/monthly training reviews are
   implemented, signed-in live browser QA passes, and the live Firebase
