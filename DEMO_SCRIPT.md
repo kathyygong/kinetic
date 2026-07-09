@@ -48,3 +48,8 @@ an authenticated Firebase mirror that remains non-blocking when remote
 persistence is unavailable. For beta-readiness, call out that Cloud Firestore
 is enabled, rules are deployed, and live QA verifies hydration/account
 isolation plus deletion tombstones after reload and second-origin sign-in.
+
+If the reviewer asks about beta operations, point to `BETA_RUNBOOK.md` and
+`QA_MATRIX.md`: the product is demo-shippable with the Firebase persistence
+gate closed and npm advisory audit passing, while dependency pin/range review
+remains the next beta-hardening gate.

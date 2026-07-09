@@ -111,3 +111,7 @@ workout/calendar text, tokens, email, UID, and unnecessary identity data.
   narration is rejected for deterministic review copy.
 - Firestore owner, cross-user, guest, and unknown-domain emulator checks.
 - Optional local-model benchmarks that cannot block the fallback-safe demo.
+- Beta handoff checks are captured in [BETA_RUNBOOK.md](./BETA_RUNBOOK.md) and
+  [QA_MATRIX.md](./QA_MATRIX.md). `npm run beta:readiness` provides the local
+  posture check for dependency metadata, protected QA artifact hygiene, and
+  required documentation; `npm run beta:audit` is the connected advisory gate.

@@ -8,7 +8,8 @@ Product requirements live in [PRD.md](./PRD.md), and the execution plan lives in
 
 For a fast technical review, see [ARCHITECTURE.md](./ARCHITECTURE.md), the
 [five-minute demo script](./DEMO_SCRIPT.md), and the generated
-[deterministic AI eval report](./EVAL_REPORT.md).
+[deterministic AI eval report](./EVAL_REPORT.md). For beta handoff, see the
+[beta runbook](./BETA_RUNBOOK.md) and [QA matrix](./QA_MATRIX.md).
 
 ## 🏃 The Problem
 Most running apps provide static plans that exist in a vacuum. When life happens (e.g. a late-night meeting, poor sleep, or an unexpected trip) the plan breaks. Users are left to manually adjust their training or, more often, lose consistency and abandon the plan entirely.
@@ -51,8 +52,9 @@ Kinetic is designed as a hybrid deterministic + AI product.
   privacy-minimized inputs, deterministic metrics, grounded narration, and
   fallback-safe read-only UI. Signed-in browser QA verifies both live grounded
   Ollama narration and safe deterministic rejection of ungrounded output.
-- [ ] **Next CTO Slice:** Move into beta hardening: dependency audit, minimal
-  operational runbook, final QA matrix, and any privacy-bounded telemetry gaps
+- [ ] **Next CTO Slice:** Beta hardening is underway: the operational runbook,
+  QA matrix, local readiness check, and connected npm advisory audit are in
+  place. Remaining gates are dependency pin/range review and any telemetry gaps
   found by real QA.
 - [ ] **Later Integrations:** Native mobile app, Apple Health/Garmin/Oura ingestion, hosted AI provider option, coach sharing, and push notifications.
 

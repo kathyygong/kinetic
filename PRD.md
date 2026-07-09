@@ -68,6 +68,9 @@ The shippable demo will not include:
   persistence sync success/failure, and stale-data warnings without recording
   raw notes, biometrics, workout/calendar text, tokens, email, UID, or other
   unnecessary identity data.
+- Beta hardening has started with a minimal runbook, QA matrix, and local
+  readiness check that keeps dependency posture, protected QA artifact hygiene,
+  and connected advisory-audit requirements visible before the next checkpoint.
 - Deterministic What-if planning and its bounded explanation contract are
   implemented as a read-only preview.
 - Bounded natural-language intake is implemented for explicit goal, schedule,
@@ -428,6 +431,8 @@ Any AI-generated suggestion that could affect training must pass deterministic v
 - Google Calendar integration must degrade gracefully when credentials, tokens, or user OAuth are unavailable.
 - Firebase persistence must include user-scoped security rules before it is treated as beta-ready.
 - Product analytics must avoid raw health notes, full calendar text, and unnecessary personally identifiable information.
+- Beta checkpoints must run the local readiness check and, from a connected
+  shell, the npm advisory audit before broader beta exposure.
 
 ## 7. Open Questions And Considerations
 

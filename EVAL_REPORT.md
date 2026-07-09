@@ -64,3 +64,10 @@ smoke coverage now also asserts signed-in delete failures do not silently wipe
 local cache before Firebase tombstones are confirmed. The 2026-07-09 live gate
 also verifies deletion tombstones remain deleted after reload and after
 second-origin sign-in, closing the remote persistence gate.
+
+Beta hardening now includes a repeatable local readiness check and handoff
+matrix. `npm run beta:readiness` verifies lockfile presence, reports dependency
+pinning warnings, confirms protected QA artifacts are not staged, and checks
+that the runbook and QA matrix are present. The connected `npm run beta:audit`
+advisory gate passes with no moderate/high/critical npm advisories; dependency
+pin/range review remains before broader beta exposure.

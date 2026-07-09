@@ -717,6 +717,11 @@ Demo packaging is complete.
 - README links directly to the proof artifacts and separates demo-complete from beta work.
 - Added a user-facing training-data deletion control.
 - Deployment/monitoring guidance can expand when a hosted beta target is selected; hosted AI, wearable ingestion, native mobile, and autonomous AI mutation remain out of scope.
+- Added [BETA_RUNBOOK.md](./BETA_RUNBOOK.md), [QA_MATRIX.md](./QA_MATRIX.md),
+  and `npm run beta:readiness` as the first beta-hardening checkpoint. The
+  connected `npm run beta:audit` advisory gate is documented separately and
+  passes after the Windows-safe audit runner fix; the offline demo path still
+  works without registry access.
 
 ## Execution Order
 
@@ -771,7 +776,11 @@ Completed.
 - Local Ollama intake passes the optional eight-case, two-repeat live gate on
   this machine with `llama3.2:3b`; cold server startup is slower because it
   deliberately warms and pins the model before accepting requests.
-- `npm audit` still reports dependency vulnerabilities from the frontend dependency tree; these have not been triaged yet.
+- `npm run beta:audit` passes with no moderate/high/critical npm advisories.
+  `npm run beta:readiness` still reports explicit warnings for flexible
+  frontend ranges, floating backend requirements, and the intentionally skipped
+  default advisory lookup. Dependency pin/range review remains before broader
+  beta exposure.
 - Other local-Ollama surfaces can still be slow; every user-facing AI path must remain async or fallback-safe.
 - Bounded natural-language intake and weekly/monthly training reviews are
   implemented, signed-in live browser QA passes, and the live Firebase
