@@ -115,3 +115,6 @@ workout/calendar text, tokens, email, UID, and unnecessary identity data.
   [QA_MATRIX.md](./QA_MATRIX.md). `npm run beta:readiness` provides the local
   posture check for dependency metadata, protected QA artifact hygiene, and
   required documentation; `npm run beta:audit` is the connected advisory gate.
+- Hosted beta operations keep strict backend auth, owner-only Firestore rules,
+  UID-scoped storage, deletion tombstones, deterministic fallback, and bounded
+  AI validation as non-negotiable rollback boundaries.

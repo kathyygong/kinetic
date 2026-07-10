@@ -23,6 +23,7 @@ the next beta checkpoint.
 | Natural-language intake | review-only draft, confirmation required, anonymous blocked under strict auth | Passed in prior release gate |
 | Training review | grounded live local AI and deterministic fallback for unsafe output | Passed in prior release gate |
 | Observability privacy | every event family sanitized, capped, typed, and failure-isolated | Covered by `smoke-instrumentation.ts` |
+| Final runbook review | hosted preflight, rollback, triage, and protected-artifact handling documented | Passed 2026-07-09 |
 
 ## Browser QA notes
 
@@ -33,5 +34,5 @@ local proof artifacts. The protected patterns are `.edge-qa*` and
 ## Release interpretation
 
 The demo is shippable and the Firebase persistence foundation is beta-ready.
-The overall product is still in beta hardening until final runbook review and
-operational polish are closed.
+Beta hardening is complete for a small controlled beta. Later integrations
+remain intentionally out of scope until selected as a new product phase.

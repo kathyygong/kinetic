@@ -71,6 +71,9 @@ The shippable demo will not include:
 - Beta hardening has started with a minimal runbook, QA matrix, and local
   readiness check that keeps dependency posture, protected QA artifact hygiene,
   and connected advisory-audit requirements visible before the next checkpoint.
+- Final beta hardening is complete for a small controlled beta: dependency
+  pins, advisory audit, telemetry QA, hosted preflight, rollback, and triage are
+  documented without broadening product scope.
 - Deterministic What-if planning and its bounded explanation contract are
   implemented as a read-only preview.
 - Bounded natural-language intake is implemented for explicit goal, schedule,

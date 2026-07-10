@@ -73,3 +73,8 @@ moderate/high/critical npm advisories. Re-run both gates after package changes.
 Telemetry QA now exercises every typed product event family with safe values
 and intentionally unsafe extra fields, then proves capped local storage and
 write/remove failure isolation.
+
+Final beta hardening adds hosted preflight, rollback, and triage guidance to the
+runbook/deploy docs without weakening authentication, Firestore owner-only
+rules, UID scoping, deletion tombstones, deterministic fallback, or bounded AI
+validation.

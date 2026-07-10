@@ -783,6 +783,10 @@ Completed.
 - Telemetry QA now exercises every typed product event family, sensitive-key
   rejection, numeric/enum bounding, log capping, and write/remove failure
   isolation through `smoke-instrumentation.ts`.
+- Final operational polish is complete: [BETA_RUNBOOK.md](./BETA_RUNBOOK.md),
+  [QA_MATRIX.md](./QA_MATRIX.md), and [DEPLOY.md](./DEPLOY.md) document hosted
+  preflight, strict-auth posture, rollback, triage, protected artifact handling,
+  and the boundary that later integrations are a separate product phase.
 - Other local-Ollama surfaces can still be slow; every user-facing AI path must remain async or fallback-safe.
 - Bounded natural-language intake and weekly/monthly training reviews are
   implemented, signed-in live browser QA passes, and the live Firebase

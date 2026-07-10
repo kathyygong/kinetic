@@ -1,18 +1,31 @@
 # Kinetic Beta Runbook
 
-This runbook is the operational handoff for the current beta-ready foundation.
-It keeps the demo/free-tier path working while making the remaining beta gates
-explicit.
+This runbook is the operational handoff for the beta-ready foundation. It keeps
+the demo/free-tier path working while making release checks, rollback, and
+triage explicit.
 
 ## Current phase
 
-Kinetic is past the demo release gate and the live Firebase persistence gate.
-The current phase is beta hardening: dependency posture, repeatable operational
-checks, final QA coverage, and privacy-bounded telemetry review.
+Kinetic is past the demo release gate, live Firebase persistence gate,
+dependency posture gate, privacy-bounded telemetry QA gate, and final runbook
+review. The current foundation is beta-ready for a small controlled audience,
+not a broad production launch.
 
 Do not expand into hosted AI, wearable ingestion, native mobile, push
-notifications, coach sharing, or autonomous AI plan mutation until this phase
-is clean.
+notifications, coach sharing, or autonomous AI plan mutation until a separate
+product decision selects that scope.
+
+## Environment posture
+
+| Environment | Auth posture | AI posture | Persistence posture |
+| --- | --- | --- | --- |
+| Local demo | permissive backend auth is allowed | `fallback` or optional `local_ollama` | local-first with Firebase mirror when signed in |
+| Strict local QA | `KINETIC_AUTH_REQUIRED=true` | usually `fallback` for deterministic proof | Firebase ID token required for protected backend calls |
+| Hosted beta | `KINETIC_AUTH_REQUIRED=true` | `fallback` unless local/hosted AI is explicitly selected | Cloud Firestore with owner-only rules |
+
+Hosted beta should keep `KINETIC_AI_MODE=fallback` unless a live AI runtime is
+being intentionally demonstrated. Fallback mode is a product-supported mode, not
+an outage state.
 
 ## Local services
 
@@ -76,6 +89,20 @@ Firebase rule checks:
 npx firebase-tools emulators:exec --only auth,firestore "cd frontend && npm run test:firestore-rules"
 ```
 
+## Hosted beta preflight
+
+Before sending a hosted beta link:
+
+1. Confirm `KINETIC_AUTH_REQUIRED=true` on the backend.
+2. Confirm `KINETIC_CORS_ORIGINS` contains only the intended frontend origins.
+3. Confirm Firebase Auth authorized domains include the frontend domain.
+4. Confirm Cloud Firestore rules are deployed from `firestore.rules`.
+5. Confirm `NEXT_PUBLIC_API_BASE_URL` points at the intended backend.
+6. Confirm `/health` returns `{"status":"ok"}` on the backend.
+7. Sign in from the hosted frontend and verify `/decision` returns 200.
+8. Run the live persistence QA again if repository, auth, rules, or deletion
+   behavior changed after the last proof.
+
 ## Live Firebase persistence QA
 
 The live persistence gate is closed as of 2026-07-09. Re-run this QA whenever
@@ -126,6 +153,25 @@ The current dependency posture is beta-checkpoint ready:
 
 Use `npm run beta:readiness` for the local posture report and
 `npm run beta:audit` for the connected advisory gate.
+
+## Rollback and triage
+
+If a hosted beta issue appears:
+
+1. Preserve the deterministic safety core first: do not loosen auth, Firestore
+   rules, UID scoping, tombstones, or AI validation to make a demo pass.
+2. Check whether the problem is frontend-only, backend-only, Firebase auth,
+   Firestore rules, or external availability.
+3. If training recommendations fail, switch or keep the backend in
+   `KINETIC_AI_MODE=fallback`; AI failures should not block deterministic
+   recommendations.
+4. If persistence fails, keep local-first behavior available and surface the
+   retryable error. Do not silently clear signed-in local state unless remote
+   deletion tombstones are confirmed.
+5. Roll back to the last green commit/deploy in Vercel or Render if the issue
+   affects auth, persistence, or the primary training flow.
+6. After rollback, rerun the checkpoint checks and update `EVAL_REPORT.md` or
+   `QA_MATRIX.md` if the release proof changed.
 
 ## Protected local QA artifacts
 

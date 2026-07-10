@@ -52,6 +52,6 @@ isolation plus deletion tombstones after reload and second-origin sign-in.
 If the reviewer asks about beta operations, point to `BETA_RUNBOOK.md` and
 `QA_MATRIX.md`: the product is demo-shippable with the Firebase persistence
 gate closed, npm advisory audit passing, and direct dependencies pinned. Final
-beta hardening is now about operational polish rather than a missing product
-capability; telemetry QA covers every typed event family without collecting raw
-notes, biometrics, workout/calendar text, tokens, email, or UID.
+beta hardening is complete for a small controlled beta; telemetry QA covers
+every typed event family without collecting raw notes, biometrics,
+workout/calendar text, tokens, email, or UID.

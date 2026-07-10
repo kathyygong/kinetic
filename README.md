@@ -46,16 +46,15 @@ Kinetic is designed as a hybrid deterministic + AI product.
 - [X] **Foundation:** Deterministic planning, calendar-aware adjustment, manual readiness flows, and core API/frontend surfaces.
 - [X] **Demo Vertical Slice:** AI status visibility, hardened explanation/fallback flows, training memory, read-only What-if planning, seed/reset controls, and the full responsive UI system.
 - [X] **Demo Release Gate:** Signed-in responsive QA, strict backend token enforcement, Firestore rules, and deterministic evals pass.
-- [ ] **Beta-Ready Foundation:** Repository-backed Firebase persistence, deployed security rules, and privacy-conscious instrumentation are implemented; live QA verifies cross-session hydration, account isolation, cache ownership, and deletion tombstones after reload and second-origin sign-in. Broader beta hardening remains.
+- [X] **Beta-Ready Foundation:** Repository-backed Firebase persistence, deployed security rules, dependency pinning, advisory audit, privacy-conscious instrumentation, telemetry QA, runbook, and QA matrix are complete for a small controlled beta.
 - [X] **Bounded Intake Workflow:** Natural-language changes produce a validated, reviewable draft; malformed output, ambiguity, timeouts, and unavailable AI fall back or stop safely, and only explicit confirmation can reach deterministic plan application.
 - [X] **Training Review Workflow:** Weekly and monthly summaries use typed,
   privacy-minimized inputs, deterministic metrics, grounded narration, and
   fallback-safe read-only UI. Signed-in browser QA verifies both live grounded
   Ollama narration and safe deterministic rejection of ungrounded output.
-- [ ] **Next CTO Slice:** Beta hardening is underway: the operational runbook,
-  QA matrix, local readiness check, and connected npm advisory audit are in
-  place, direct frontend/backend dependencies are pinned, and telemetry QA now
-  covers every event family. Remaining gate is final operational polish.
+- [X] **Beta Hardening:** Live persistence, auth/rules proof, dependency
+  posture, telemetry privacy coverage, final runbook review, and operational
+  rollback guidance are complete.
 - [ ] **Later Integrations:** Native mobile app, Apple Health/Garmin/Oura ingestion, hosted AI provider option, coach sharing, and push notifications.
 
 Optional live-model verification (requires Ollama and the configured intake

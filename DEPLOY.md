@@ -12,6 +12,11 @@ flow described here.
 > inactivity, so the very first request after idling takes ~30 s to
 > wake the dyno. Subsequent requests are fast.
 
+Before deploying a beta link, run the checkpoint in
+[BETA_RUNBOOK.md](./BETA_RUNBOOK.md). Hosted beta should use strict backend
+auth, deployed Firestore owner-only rules, and deterministic AI fallback unless
+a live AI runtime is intentionally selected.
+
 ---
 
 ## 1. Deploy the backend to Render
@@ -34,6 +39,8 @@ flow described here.
 4. Trigger a deploy. When it goes live, note the URL (something like
    `https://kinetic-backend.onrender.com`) and confirm
    `https://<your-url>/health` returns `{"status":"ok"}`.
+5. Keep `KINETIC_AUTH_REQUIRED=true` for hosted beta. Local permissive auth is
+   only for development.
 
 ## 2. Deploy the frontend to Vercel
 
@@ -68,6 +75,20 @@ Visit your Vercel URL, sign in with Google, walk through onboarding,
 and the dashboard should pull a real recommendation from the Render
 backend. Open browser DevTools → Network and confirm the `/decision`
 request hits `https://kinetic-backend.onrender.com` and returns 200.
+
+Also verify Profile deletion still writes confirmed Firebase tombstones before
+local state clears. If auth, persistence, or repository code changed, rerun the
+live Firebase persistence QA from [BETA_RUNBOOK.md](./BETA_RUNBOOK.md).
+
+## 5. Rollback
+
+- **Frontend** — use Vercel's deployment history to promote the last green
+  deployment.
+- **Backend** — use Render's deploy history or redeploy the last green commit.
+- **Firebase rules** — redeploy the last known-good `firestore.rules`; never
+  temporarily allow cross-user reads/writes to unblock a demo.
+- After rollback, rerun the runbook checkpoint and confirm `/health`,
+  signed-in `/decision`, and Profile deletion behavior.
 
 ---
 
