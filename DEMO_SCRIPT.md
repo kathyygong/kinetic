@@ -33,15 +33,17 @@ deterministic, raw notes are excluded, and its narrative cannot alter the plan.
 ## 3:35–4:15 — Show recovery and learning
 
 Open **Recovery** and enter a manual readiness signal. Then open **Profile** and
-show a tentative behavior pattern. Confirm or dismiss it, noting that only
-confirmed preferences become bounded scoring nudges.
+show the Apple Health CSV import path for bounded readiness metrics, noting
+that native HealthKit/Garmin/Oura background sync remains future work. Show a
+tentative behavior pattern. Confirm or dismiss it, noting that only confirmed
+preferences become bounded scoring nudges.
 
 ## 4:15–5:00 — Prove the boundaries
 
 Open [EVAL_REPORT.md](./EVAL_REPORT.md). Highlight no recommendation drift, no
 medical claims, sparse-history warnings, schema validity, intake grounding,
-training-summary privacy, malformed/timeout fallback, no AI mutation, and the
-privacy-conscious product event boundary.
+training-summary privacy, behavior-prompt privacy, malformed/timeout fallback,
+no AI mutation, and the privacy-conscious product event boundary.
 Close with the architecture:
 deterministic safety core, optional bounded AI, local fallback by default, and
 an authenticated Firebase mirror that remains non-blocking when remote

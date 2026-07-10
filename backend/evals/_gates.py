@@ -143,6 +143,35 @@ def check_behavior_insights() -> None:
                 _assert(pattern["confidence"] == "low", "sparse pattern not low")
 
 
+def check_behavior_prompt_privacy() -> None:
+    private_note = "PRIVATE ATHLETE NOTE: knee pain after mile six"
+    events = [
+        {
+            "id": "privacy-note-1",
+            "date": "2026-07-01",
+            "plannedWorkout": "60 min tempo run",
+            "recommendedWorkout": "40 min easy run",
+            "selectedAction": "modify",
+            "confidence": "moderate",
+            "userResponse": "accepted",
+            "actualWorkout": {
+                "completed": True,
+                "perceivedEffort": 6,
+                "note": private_note,
+            },
+            "context": {"calendarLoad": "moderate", "recoveryStatus": "moderate"},
+        }
+    ]
+    from app import behavior_insights
+
+    sanitised = behavior_insights._sanitise_events(events)
+    aggregates = behavior_insights._compute_aggregates(sanitised)
+    prompt = behavior_insights._build_user_prompt(sanitised, aggregates)
+    _assert(private_note not in prompt, "behavior prompt leaked raw workout note")
+    _assert('"note"' not in prompt, "behavior prompt includes note field")
+    _assert("perceivedEffort" in prompt, "behavior prompt lost bounded effort signal")
+
+
 def check_weekly_reasoning() -> None:
     trace = {
         "original_week_plan": [
@@ -600,6 +629,7 @@ def main() -> None:
         ("intake parsing", check_intake_parsing),
         ("intake failure fallbacks", check_intake_failure_fallbacks),
         ("behavior insights", check_behavior_insights),
+        ("behavior prompt privacy", check_behavior_prompt_privacy),
         ("training summary", check_training_summary),
         (
             "training summary failure fallbacks",

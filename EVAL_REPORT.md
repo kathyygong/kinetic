@@ -1,10 +1,10 @@
 # Kinetic Deterministic AI Eval Report
 
-Generated: 2026-07-01
+Generated: 2026-07-10
 
 ## Result
 
-**PASS — all 23 deterministic fallback cases satisfied the demo safety gates.**
+**PASS — all 24 deterministic fallback cases satisfied the demo safety gates.**
 
 | Gate group | Cases | Result |
 | --- | ---: | --- |
@@ -16,6 +16,7 @@ Generated: 2026-07-01
 | Intake grounding and no-mutation safety | 2 | PASS |
 | Intake malformed/timeout/ungrounded fallback | 3 | PASS |
 | Behavior-learning safety | 4 | PASS |
+| Behavior prompt privacy | 1 | PASS |
 | Training-summary grounding and privacy | 3 | PASS |
 | Training-summary invalid/timeout fallback | 2 | PASS |
 
@@ -55,26 +56,27 @@ request immutability, no fallback, and the 24-second server budget.
 
 ## Additional product gates
 
-Updated frontend smoke coverage now includes typed privacy-conscious
-instrumentation and returning-user sign-in hydration ordering. The live
-Firebase two-session persistence gate is unblocked: Cloud Firestore is enabled
-for `kinetic-aca73`, rules are deployed, and live QA verifies cross-session
-hydration, account isolation, and local-cache ownership. Frontend persistence
-smoke coverage now also asserts signed-in delete failures do not silently wipe
-local cache before Firebase tombstones are confirmed. The 2026-07-09 live gate
-also verifies deletion tombstones remain deleted after reload and after
-second-origin sign-in, closing the remote persistence gate.
+Frontend smoke coverage includes typed privacy-conscious instrumentation,
+returning-user sign-in hydration ordering, Apple Health CSV import bounding and
+note-dropping, and plan-safety invariants across race distance, experience
+level, and very low starting mileage.
 
-Beta hardening now includes a repeatable local readiness check and handoff
-matrix. `npm run beta:readiness` verifies lockfile presence, direct dependency
-pinning, protected QA artifact hygiene, and runbook/matrix presence. The
-connected `npm run beta:audit` advisory gate passes with no
-moderate/high/critical npm advisories. Re-run both gates after package changes.
-Telemetry QA now exercises every typed product event family with safe values
-and intentionally unsafe extra fields, then proves capped local storage and
-write/remove failure isolation.
+The live Firebase two-session persistence gate is closed: Cloud Firestore is
+enabled for `kinetic-aca73`, rules are deployed, and live QA verifies
+cross-session hydration, account isolation, local-cache ownership, and deletion
+tombstones after reload and second-origin sign-in. Frontend persistence smoke
+coverage also asserts signed-in delete failures do not silently wipe local
+cache before Firebase tombstones are confirmed.
 
-Final beta hardening adds hosted preflight, rollback, and triage guidance to the
-runbook/deploy docs without weakening authentication, Firestore owner-only
-rules, UID scoping, deletion tombstones, deterministic fallback, or bounded AI
-validation.
+Beta hardening includes a repeatable local readiness check and handoff matrix.
+`npm run beta:readiness` verifies lockfile presence, direct dependency pinning,
+protected QA artifact hygiene, and runbook/matrix presence. The connected
+`npm run beta:audit` advisory gate passes with no moderate/high/critical npm
+advisories. Re-run both gates after package changes.
+
+Telemetry QA exercises every typed product event family with safe values and
+intentionally unsafe extra fields, then proves capped local storage and
+write/remove failure isolation. Final beta hardening adds hosted preflight,
+rollback, and triage guidance without weakening authentication, Firestore
+owner-only rules, UID scoping, deletion tombstones, deterministic fallback, or
+bounded AI validation.

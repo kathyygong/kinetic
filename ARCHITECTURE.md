@@ -86,6 +86,15 @@ local-cache ownership. The 2026-07-09 live gate also verifies deletion
 tombstones remain deleted after reload and after signing into the same account
 from the second local origin, closing the remote persistence gate.
 
+## Readiness integration boundary
+
+The web beta supports two readiness inputs: manual Recovery entry and Apple
+Health CSV import from Profile. The importer accepts only bounded readiness
+metrics, writes through the same local-first readiness store, and drops
+unsupported columns such as raw notes. Browser-native HealthKit background
+sync, Garmin, and Oura ingestion are intentionally not implemented in this
+web build.
+
 ## Observability direction
 
 Product observability is local/demo-safe by default. `frontend/lib/instrumentation.ts`
@@ -105,6 +114,11 @@ workout/calendar text, tokens, email, UID, and unnecessary identity data.
 - Frontend lint, production build, and deterministic smoke suites.
 - Backend deterministic AI safety gates and generated
   [eval report](./EVAL_REPORT.md).
+- Frontend smoke includes Apple Health CSV import privacy/bounding and
+  plan-safety invariants across race distance, experience level, and low
+  starting mileage.
+- Backend gates include behavior-prompt privacy, proving raw athlete notes are
+  excluded before optional AI narration.
 - Signed-in responsive browser QA and strict Firebase token enforcement,
   including authenticated intake review/confirmation, anonymous rejection,
   and live grounded 30-day training-review narration. Sparse ungrounded

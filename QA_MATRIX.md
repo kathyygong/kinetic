@@ -23,6 +23,9 @@ the next beta checkpoint.
 | Natural-language intake | review-only draft, confirmation required, anonymous blocked under strict auth | Passed in prior release gate |
 | Training review | grounded live local AI and deterministic fallback for unsafe output | Passed in prior release gate |
 | Observability privacy | every event family sanitized, capped, typed, and failure-isolated | Covered by `smoke-instrumentation.ts` |
+| Apple Health CSV import | bounded readiness metrics imported, unsupported note columns dropped | Covered by `smoke-apple-health.ts` |
+| Plan safety invariants | race/experience/low-mileage plans stay bounded and coherent | Covered by `smoke-plan-safety.ts` |
+| Behavior prompt privacy | raw workout notes excluded before AI narration | Covered by backend deterministic gates |
 | Final runbook review | hosted preflight, rollback, triage, and protected-artifact handling documented | Passed 2026-07-09 |
 
 ## Browser QA notes
@@ -34,5 +37,7 @@ local proof artifacts. The protected patterns are `.edge-qa*` and
 ## Release interpretation
 
 The demo is shippable and the Firebase persistence foundation is beta-ready.
-Beta hardening is complete for a small controlled beta. Later integrations
-remain intentionally out of scope until selected as a new product phase.
+Beta hardening is complete for a small controlled beta. Apple Health CSV import
+is an implemented web-beta bridge for readiness metrics; native/background
+HealthKit sync, Garmin, and Oura remain intentionally out of scope until
+selected as a new product phase.

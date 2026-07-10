@@ -57,6 +57,7 @@ a live AI runtime is intentionally selected.
      `frontend/.env.local`).
    - `NEXT_PUBLIC_API_BASE_URL` = the Render URL from step 1
      (e.g. `https://kinetic-backend.onrender.com`).
+   - Leave `NEXT_PUBLIC_ENABLE_DEMO_TOOLS` unset or `false` for hosted beta.
 5. Click **Deploy**. Vercel will give you a URL like
    `https://kinetic-<hash>.vercel.app`.
 

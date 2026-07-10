@@ -11,9 +11,11 @@ dependency posture gate, privacy-bounded telemetry QA gate, and final runbook
 review. The current foundation is beta-ready for a small controlled audience,
 not a broad production launch.
 
-Do not expand into hosted AI, wearable ingestion, native mobile, push
-notifications, coach sharing, or autonomous AI plan mutation until a separate
-product decision selects that scope.
+The web beta includes Apple Health CSV import as a bounded readiness-input
+bridge. Do not expand into hosted AI, native/background HealthKit sync,
+Garmin/Oura ingestion, native mobile, push notifications, coach sharing, or
+autonomous AI plan mutation until a separate product decision selects that
+scope.
 
 ## Environment posture
 
@@ -98,9 +100,10 @@ Before sending a hosted beta link:
 3. Confirm Firebase Auth authorized domains include the frontend domain.
 4. Confirm Cloud Firestore rules are deployed from `firestore.rules`.
 5. Confirm `NEXT_PUBLIC_API_BASE_URL` points at the intended backend.
-6. Confirm `/health` returns `{"status":"ok"}` on the backend.
-7. Sign in from the hosted frontend and verify `/decision` returns 200.
-8. Run the live persistence QA again if repository, auth, rules, or deletion
+6. Confirm `NEXT_PUBLIC_ENABLE_DEMO_TOOLS` is unset or `false` for hosted beta.
+7. Confirm `/health` returns `{"status":"ok"}` on the backend.
+8. Sign in from the hosted frontend and verify `/decision` returns 200.
+9. Run the live persistence QA again if repository, auth, rules, or deletion
    behavior changed after the last proof.
 
 ## Live Firebase persistence QA

@@ -127,9 +127,9 @@ const EMPTY_SERVICES: ConnectedServices = {
  * Onboarding step 3 — connect data sources.
  *
  * Google Calendar runs a real OAuth popup via Firebase (calendar.readonly
- * scope on top of GoogleAuthProvider). The other three services are mocked
- * for now: clicking Connect runs a short shimmer and flips the persisted
- * connection state so the UI looks complete end-to-end.
+ * scope on top of GoogleAuthProvider). Wearable integrations are shown
+ * honestly as future/setup-later options; Apple Health CSV import lives
+ * on Profile where a file picker fits the flow.
  */
 export default function OnboardingIntegrationsPage() {
   const router = useRouter();
@@ -194,8 +194,11 @@ export default function OnboardingIntegrationsPage() {
         const conn = await connectGoogleCalendar();
         setGcalEmail(conn.email);
       } else {
-        // Mock flow — small delay so the loading state feels real.
-        await new Promise((resolve) => setTimeout(resolve, 700));
+        throw new Error(
+          svc.key === "apple_health"
+            ? "Import Apple Health CSV from Profile after setup."
+            : "Coming soon — not connected yet.",
+        );
       }
       const next: ConnectedServices = {
         ...services,
@@ -402,13 +405,15 @@ function ServiceCard({
           <button
             type="button"
             onClick={onConnect}
-            disabled={status === "connecting"}
+            disabled={status === "connecting" || meta.flow === "mock"}
             className={`shrink-0 inline-flex items-center justify-center rounded-full border border-black/10 bg-white px-4 py-1.5 text-xs font-medium text-neutral-800 hover:border-black/20 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-neutral-950/40 dark:text-neutral-100 dark:hover:border-white/20 dark:hover:bg-neutral-900 ${tokens.motion}`}
           >
             {status === "connecting" ? (
               <span className="inline-flex items-center gap-1.5">
                 <Spinner /> Connecting…
               </span>
+            ) : meta.flow === "mock" ? (
+              "Set up later"
             ) : status === "error" ? (
               "Try again"
             ) : (

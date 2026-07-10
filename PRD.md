@@ -38,14 +38,14 @@ Demo success metrics:
 The shippable demo will not include:
 
 - Native mobile app.
-- Real Apple Health, Garmin, or Oura data ingestion.
+- Native/background Apple HealthKit, Garmin, or Oura data ingestion.
 - Paid hosted AI as a required dependency.
 - A chat-first coaching assistant.
 - Coach/team sharing.
 - Push notifications.
 - Autonomous AI plan mutation without deterministic validation.
 
-### Implementation Status — 2026-07-08
+### Implementation Status — 2026-07-10
 
 - The demo release gate is complete: signed-in responsive QA, strict Firebase
   token enforcement, deterministic evals, and Firestore isolation rules pass.
@@ -74,6 +74,13 @@ The shippable demo will not include:
 - Final beta hardening is complete for a small controlled beta: dependency
   pins, advisory audit, telemetry QA, hosted preflight, rollback, and triage are
   documented without broadening product scope.
+- Current readiness input supports both manual entry and a privacy-minimized
+  Apple Health CSV import for bounded metrics. Browser-native HealthKit
+  background sync, Garmin, and Oura remain future integrations.
+- Hardening now includes a behavior-prompt privacy gate that proves raw
+  athlete notes are excluded before optional AI narration, plus frontend smoke
+  coverage for plan safety invariants across race distance, experience level,
+  and very low starting mileage.
 - Deterministic What-if planning and its bounded explanation contract are
   implemented as a read-only preview.
 - Bounded natural-language intake is implemented for explicit goal, schedule,
@@ -121,7 +128,10 @@ A recreational runner training for a race while balancing work, travel, fatigue,
 
 4. Log recovery and readiness.
    - User manually enters sleep, HRV, resting heart rate, fatigue, and soreness.
-   - Kinetic uses those signals as the current recovery source until real wearable integrations exist.
+   - User can optionally import an Apple Health CSV with bounded sleep, HRV,
+     and resting-heart-rate fields.
+   - Kinetic uses those signals as the current recovery source until native
+     wearable sync exists.
 
 5. Handle calendar conflicts and travel.
    - User connects Google Calendar or uses available fallback data.
@@ -174,9 +184,12 @@ Requirements:
 Requirements:
 
 - Allow manual entry for HRV, HRV baseline, sleep hours, resting heart rate, fatigue, and soreness.
+- Allow Apple Health CSV import for bounded readiness metrics where supported.
+- Drop unsupported columns and raw notes during import.
 - Store historical readiness values.
 - Use freshness metadata to lower confidence when recovery data is stale or missing.
-- Make clear that manual readiness is the implemented MVP input source.
+- Make clear that manual entry and Apple Health CSV import are the implemented
+  MVP input sources; native wearable background sync is later.
 
 #### Daily Decision Engine
 
@@ -309,9 +322,9 @@ Requirements:
 - Mobile-first training, notifications, and wearable integration.
 - Native background sync for health and calendar data.
 
-#### Real Apple Health, Garmin, And Oura Integrations
+#### Native Apple HealthKit, Garmin, And Oura Integrations
 
-- Replace manual recovery input with automatic biometric retrieval.
+- Replace manual/CSV recovery input with automatic biometric retrieval.
 - Support source freshness, source confidence, and conflict resolution across providers.
 
 #### Hosted AI Provider Option

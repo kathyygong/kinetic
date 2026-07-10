@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
 import { motion, type HTMLMotionProps, type Variants } from "framer-motion";
@@ -24,6 +24,7 @@ import {
   disconnectGoogleCalendar,
   getGoogleCalendarConnection,
 } from "@/lib/integrations/googleCalendar";
+import { importAppleHealthCsv } from "@/lib/integrations/appleHealth";
 import {
   getUserProfile,
   planAffectingFieldsChanged,
@@ -81,11 +82,11 @@ const PR_PLACEHOLDERS_SEC: Record<keyof CurrentPRs, number> = {
 const SERVICE_FIELDS: Array<{
   key: ConnectedService;
   label: string;
-  /** "real" → live OAuth flow; "mock" → simulated connect (placeholder UI). */
-  flow: "real" | "mock";
+  /** "real" → OAuth, "import" → local file import, "mock" → future work. */
+  flow: "real" | "import" | "mock";
 }> = [
   { key: "google_calendar", label: "Google Calendar", flow: "real" },
-  { key: "apple_health", label: "Apple Health", flow: "mock" },
+  { key: "apple_health", label: "Apple Health", flow: "import" },
   { key: "garmin", label: "Garmin", flow: "mock" },
   { key: "oura", label: "Oura", flow: "mock" },
 ];
@@ -162,6 +163,9 @@ export default function ProfilePage() {
   const [serviceErrors, setServiceErrors] = useState<
     Partial<Record<ConnectedService, string>>
   >({});
+  const [serviceNotices, setServiceNotices] = useState<
+    Partial<Record<ConnectedService, string>>
+  >({});
   const [gcalEmail, setGcalEmail] = useState<string | undefined>();
   // Google Calendar can be "connected" (token present) but failing
   // to reach Google through the backend (token expired, scopes
@@ -186,6 +190,7 @@ export default function ProfilePage() {
   // the response is the same amber state.
   const [gcalHealthChecking, setGcalHealthChecking] = useState(false);
   const [deletingData, setDeletingData] = useState(false);
+  const appleHealthInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const stored = getUserProfile();
@@ -403,16 +408,34 @@ export default function ProfilePage() {
     setProfile(next);
   };
 
-  const handleConnect = async (key: ConnectedService, flow: "real" | "mock") => {
+  const handleConnect = async (
+    key: ConnectedService,
+    flow: "real" | "import" | "mock",
+  ) => {
     setServiceErrors((prev) => ({ ...prev, [key]: undefined }));
+    setServiceNotices((prev) => ({ ...prev, [key]: undefined }));
+
+    if (flow === "mock") {
+      setServiceErrors((prev) => ({
+        ...prev,
+        [key]: "Coming soon — not connected yet.",
+      }));
+      return;
+    }
+
+    if (flow === "import" && key === "apple_health") {
+      if (appleHealthInputRef.current) {
+        appleHealthInputRef.current.value = "";
+        appleHealthInputRef.current.click();
+      }
+      return;
+    }
+
     setServiceStatus((prev) => ({ ...prev, [key]: "connecting" }));
     try {
       if (flow === "real" && key === "google_calendar") {
         const conn = await connectGoogleCalendar();
         setGcalEmail(conn.email);
-      } else {
-        // Mock flow — short delay so the loading affordance feels real.
-        await new Promise((r) => setTimeout(r, 700));
       }
       persistService(key, {
         connected: true,
@@ -455,6 +478,46 @@ export default function ProfilePage() {
     }
   };
 
+  const handleAppleHealthImport = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setServiceStatus((prev) => ({ ...prev, apple_health: "connecting" }));
+    setServiceErrors((prev) => ({ ...prev, apple_health: undefined }));
+    setServiceNotices((prev) => ({ ...prev, apple_health: undefined }));
+    try {
+      const text = await file.text();
+      const result = importAppleHealthCsv(text);
+      if (result.importedCount <= 0) {
+        throw new Error(
+          result.warnings[0] ?? "No supported Apple Health metrics found.",
+        );
+      }
+      persistService("apple_health", {
+        connected: true,
+        last_synced_at: new Date().toISOString(),
+      });
+      setServiceStatus((prev) => ({ ...prev, apple_health: "connected" }));
+      setServiceNotices((prev) => ({
+        ...prev,
+        apple_health: `Imported ${result.importedCount} readiness row${
+          result.importedCount === 1 ? "" : "s"
+        }${result.skippedRows ? ` · skipped ${result.skippedRows}` : ""}.`,
+      }));
+    } catch (err) {
+      setServiceStatus((prev) => ({ ...prev, apple_health: "error" }));
+      setServiceNotices((prev) => ({ ...prev, apple_health: undefined }));
+      setServiceErrors((prev) => ({
+        ...prev,
+        apple_health:
+          err instanceof Error
+            ? err.message
+            : "Apple Health import failed.",
+      }));
+    }
+  };
+
   const handleDisconnect = (key: ConnectedService) => {
     if (key === "google_calendar") {
       disconnectGoogleCalendar();
@@ -463,6 +526,7 @@ export default function ProfilePage() {
     persistService(key, { connected: false });
     setServiceStatus((prev) => ({ ...prev, [key]: "idle" }));
     setServiceErrors((prev) => ({ ...prev, [key]: undefined }));
+    setServiceNotices((prev) => ({ ...prev, [key]: undefined }));
   };
 
   // Re-probe the backend's calendar health on demand. We use this for
@@ -712,6 +776,14 @@ export default function ProfilePage() {
             description="External data sources Kinetic can read from."
             motionProps={{ variants: itemVariants }}
           >
+            <input
+              ref={appleHealthInputRef}
+              type="file"
+              accept=".csv,text/csv"
+              className="sr-only"
+              aria-label="Import Apple Health CSV"
+              onChange={handleAppleHealthImport}
+            />
             <ul className="divide-y divide-black/5 dark:divide-white/10">
               {SERVICE_FIELDS.map(({ key, label, flow }) => {
                 const conn = profile?.connected_services?.[key];
@@ -748,11 +820,13 @@ export default function ProfilePage() {
                   ? gcalHealth?.message ??
                     "Couldn't reach Google · Reconnect to sync your schedule"
                   : key === "google_calendar" && connected && gcalEmail
-                    ? gcalEmail
+                      ? gcalEmail
                     : connected && conn?.last_synced_at
                       ? `Last synced ${formatDate(conn.last_synced_at)}`
                       : flow === "mock"
                         ? "Coming soon"
+                        : flow === "import"
+                          ? "Import CSV with date, sleep, HRV, and resting HR"
                         : null;
                 return (
                   <li
@@ -779,6 +853,11 @@ export default function ProfilePage() {
                         {serviceErrors[key] && (
                           <p className="mt-0.5 text-xs text-rose-600 dark:text-rose-400">
                             {serviceErrors[key]}
+                          </p>
+                        )}
+                        {serviceNotices[key] && !serviceErrors[key] && (
+                          <p className="mt-0.5 text-xs text-emerald-700 dark:text-emerald-300">
+                            {serviceNotices[key]}
                           </p>
                         )}
                       </div>
@@ -1106,7 +1185,7 @@ function ConnectControl({
 }: {
   status: ServiceStatus;
   connected: boolean;
-  flow: "real" | "mock";
+  flow: "real" | "import" | "mock";
   /**
    * `connected === true` but the integration is currently failing in
    * a way the runner can fix from the UI (e.g. they need to grant
@@ -1227,7 +1306,7 @@ function ConnectControl({
     );
   }
 
-  // Not connected — show a Connect button. Mock-flow services are
+  // Not connected — show the appropriate action. Mock-flow services are
   // disabled with a quiet badge so the user knows the integration is
   // still scaffolded.
   if (flow === "mock") {
@@ -1235,10 +1314,10 @@ function ConnectControl({
       <button
         type="button"
         onClick={onConnect}
-        disabled={connecting}
-        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border border-black/10 bg-white/60 px-3 py-1.5 text-xs font-medium text-neutral-600 hover:border-black/20 hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/15 dark:bg-neutral-900/60 dark:text-neutral-300 dark:hover:bg-neutral-900 ${tokens.motion}`}
+        disabled
+        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border border-black/10 bg-white/60 px-3 py-1.5 text-xs font-medium text-neutral-500 disabled:cursor-not-allowed disabled:opacity-70 dark:border-white/15 dark:bg-neutral-900/60 dark:text-neutral-400 ${tokens.motion}`}
       >
-        {connecting ? "Connecting…" : "Connect"}
+        Coming soon
       </button>
     );
   }
@@ -1250,7 +1329,7 @@ function ConnectControl({
       disabled={connecting}
       className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-70 ${tokens.primary.solid} ${tokens.motion}`}
     >
-      {connecting ? "Connecting…" : "Connect"}
+      {connecting ? "Connecting…" : flow === "import" ? "Import CSV" : "Connect"}
     </button>
   );
 }

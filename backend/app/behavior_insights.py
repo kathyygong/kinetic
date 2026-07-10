@@ -26,8 +26,7 @@ A flat list of ``RecommendationEvent`` dicts as serialised by
         "completed":         bool,
         "distanceMiles":     float | absent,
         "durationMinutes":   int   | absent,
-        "perceivedEffort":   int   | absent,
-        "note":              str   | absent
+        "perceivedEffort":   int   | absent
       } | absent,
       "context": {
         "calendarLoad":   "light"|"moderate"|"heavy" | absent,
@@ -319,8 +318,7 @@ def _build_user_prompt(
 
     We hand the model both the pre-computed counts (so it doesn't have
     to do arithmetic) and a compact projection of each event (so it
-    can quote the runner's actual rejection reasons / notes when it
-    phrases the description).
+    can explain patterns without receiving raw athlete notes).
     """
     # Keep only the fields the model needs. Pruning here keeps prompt
     # eval fast on CPU inference.
@@ -340,7 +338,7 @@ def _build_user_prompt(
         if isinstance(actual, dict):
             projection["actualWorkout"] = {
                 k: actual.get(k)
-                for k in ("completed", "perceivedEffort", "note")
+                for k in ("completed", "perceivedEffort")
                 if actual.get(k) is not None
             }
         event_view.append(projection)

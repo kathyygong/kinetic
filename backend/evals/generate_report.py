@@ -13,6 +13,7 @@ from pathlib import Path
 from evals._gates import (
     check_ai_status,
     check_behavior_insights,
+    check_behavior_prompt_privacy,
     check_daily_reasoning,
     check_intake_failure_fallbacks,
     check_intake_parsing,
@@ -47,6 +48,7 @@ def main() -> None:
             check_behavior_insights,
             len(BEHAVIOR_INSIGHT_CASES),
         ),
+        ("Behavior prompt privacy", check_behavior_prompt_privacy, 1),
         ("Training-summary grounding and privacy", check_training_summary, 3),
         (
             "Training-summary invalid/timeout fallback",
@@ -107,6 +109,33 @@ the deterministic release gate. Run
 `.\\.venv\\Scripts\\python.exe -m evals.benchmark_intake_live` to require two
 identical model-backed passes across eight intake cases, exact expected values,
 request immutability, no fallback, and the 24-second server budget.
+
+## Additional product gates
+
+Frontend smoke coverage includes typed privacy-conscious instrumentation,
+returning-user sign-in hydration ordering, Apple Health CSV import bounding and
+note-dropping, and plan-safety invariants across race distance, experience
+level, and very low starting mileage.
+
+The live Firebase two-session persistence gate is closed: Cloud Firestore is
+enabled for `kinetic-aca73`, rules are deployed, and live QA verifies
+cross-session hydration, account isolation, local-cache ownership, and deletion
+tombstones after reload and second-origin sign-in. Frontend persistence smoke
+coverage also asserts signed-in delete failures do not silently wipe local
+cache before Firebase tombstones are confirmed.
+
+Beta hardening includes a repeatable local readiness check and handoff matrix.
+`npm run beta:readiness` verifies lockfile presence, direct dependency pinning,
+protected QA artifact hygiene, and runbook/matrix presence. The connected
+`npm run beta:audit` advisory gate passes with no moderate/high/critical npm
+advisories. Re-run both gates after package changes.
+
+Telemetry QA exercises every typed product event family with safe values and
+intentionally unsafe extra fields, then proves capped local storage and
+write/remove failure isolation. Final beta hardening adds hosted preflight,
+rollback, and triage guidance without weakening authentication, Firestore
+owner-only rules, UID scoping, deletion tombstones, deterministic fallback, or
+bounded AI validation.
 """
 
     REPORT_PATH.write_text(report, encoding="utf-8")

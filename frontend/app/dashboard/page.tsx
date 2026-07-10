@@ -117,6 +117,9 @@ import type {
 } from "@/lib/behaviorTypes";
 import { isoDateKey } from "@/lib/readinessStorage";
 import { applyManualReadiness } from "@/lib/decisionInputs";
+import { areDemoToolsEnabled } from "@/lib/demoTools";
+
+const DEMO_TOOLS_ENABLED = areDemoToolsEnabled();
 
 // Rejection reasons surfaced when a user declines an adjusted
 // recommendation. Slugged values get saved to storage so downstream
@@ -1209,14 +1212,16 @@ export default function DashboardPage() {
           </>
         )}
 
-        <motion.div variants={itemVariants}>
-          <DemoControls
-            notice={demoNotice}
-            onSeed={() => handleSeedDemoData("seed")}
-            onReset={() => handleSeedDemoData("reset")}
-            onClearLearning={handleClearDemoLearning}
-          />
-        </motion.div>
+        {DEMO_TOOLS_ENABLED && (
+          <motion.div variants={itemVariants}>
+            <DemoControls
+              notice={demoNotice}
+              onSeed={() => handleSeedDemoData("seed")}
+              onReset={() => handleSeedDemoData("reset")}
+              onClearLearning={handleClearDemoLearning}
+            />
+          </motion.div>
+        )}
       </motion.div>
 
       {/* Rejection-reason dialog. Mounted at the page root so the */}

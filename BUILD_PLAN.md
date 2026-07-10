@@ -44,7 +44,7 @@ Demo success metrics:
 ## Non-Goals For Demo Ship
 
 - Native mobile app.
-- Real Apple Health, Garmin, or Oura ingestion.
+- Native/background Apple HealthKit, Garmin, or Oura ingestion.
 - Required paid hosted AI.
 - Chat-first coaching assistant.
 - Coach/team sharing.
@@ -701,7 +701,7 @@ Package the product so it is easy to show, explain, and extend.
   - BYO AI key mode
   - hosted AI provider
   - native mobile
-  - real wearable integrations
+  - native/background HealthKit, Garmin, and Oura integrations
 
 ### Acceptance Criteria
 
@@ -716,7 +716,9 @@ Demo packaging is complete.
 - Added the architecture summary and five-minute walkthrough.
 - README links directly to the proof artifacts and separates demo-complete from beta work.
 - Added a user-facing training-data deletion control.
-- Deployment/monitoring guidance can expand when a hosted beta target is selected; hosted AI, wearable ingestion, native mobile, and autonomous AI mutation remain out of scope.
+- Deployment/monitoring guidance can expand when a hosted beta target is
+  selected; hosted AI, native/background HealthKit sync, Garmin/Oura ingestion,
+  native mobile, and autonomous AI mutation remain out of scope.
 - Added [BETA_RUNBOOK.md](./BETA_RUNBOOK.md), [QA_MATRIX.md](./QA_MATRIX.md),
   and `npm run beta:readiness` as the first beta-hardening checkpoint. The
   connected `npm run beta:audit` advisory gate is documented separately and
@@ -732,10 +734,12 @@ Demo packaging is complete.
 5. Completed the bounded AI sequence: deterministic What-if, review-first
    natural-language intake, then read-only weekly/monthly training reviews.
 6. Live two-session Firebase persistence and privacy-conscious observability
-   are closed; next, harden the beta runbook, dependency posture, and final QA
-   matrix before selecting another AI workflow.
-7. Do not begin hosted AI, wearable ingestion, native mobile, or autonomous
-   plan mutation.
+   are closed; dependency posture, final QA matrix, hosted preflight, and
+   rollback guidance are complete.
+7. Apple Health CSV readiness import is implemented as a web-beta bridge; do
+   not begin native/background HealthKit sync, Garmin/Oura ingestion, hosted AI,
+   native mobile, or autonomous plan mutation without selecting that as a new
+   product phase.
 
 ## Worktree Checkpoint - Updated 2026-06-29
 
@@ -783,6 +787,15 @@ Completed.
 - Telemetry QA now exercises every typed product event family, sensitive-key
   rejection, numeric/enum bounding, log capping, and write/remove failure
   isolation through `smoke-instrumentation.ts`.
+- Hardening now also excludes raw workout notes from behavior-AI prompts and
+  adds a deterministic backend privacy gate for that boundary. Frontend smoke
+  coverage includes plan-safety invariants across race distance, experience
+  level, and very low starting mileage.
+- Apple Health CSV import is implemented from Profile as a privacy-minimized
+  readiness input path. It accepts bounded sleep, HRV, resting-heart-rate,
+  fatigue, and soreness fields, drops unsupported columns/notes, and writes
+  through the existing readiness store. Native/background HealthKit sync,
+  Garmin, and Oura remain later integrations.
 - Final operational polish is complete: [BETA_RUNBOOK.md](./BETA_RUNBOOK.md),
   [QA_MATRIX.md](./QA_MATRIX.md), and [DEPLOY.md](./DEPLOY.md) document hosted
   preflight, strict-auth posture, rollback, triage, protected artifact handling,

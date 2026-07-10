@@ -19,7 +19,7 @@ Most running apps provide static plans that exist in a vacuum. When life happens
 ## ✨ Current Product Direction
 * **Deterministic Training Core:** Generates and adjusts running plans with explicit safety constraints, including mileage progression and recovery-aware workout selection.
 * **Calendar-Aware Adjustment:** Uses schedule constraints to adapt the upcoming week while keeping the plan explainable and user-controlled.
-* **Manual Readiness Input:** Lets runners log sleep, soreness, stress, and recovery signals without requiring wearable integrations for the demo.
+* **Readiness Input:** Lets runners log sleep, soreness, stress, and recovery signals manually, or import bounded Apple Health CSV exports for sleep/HRV/resting-heart-rate readiness without requiring native wearable sync for the demo.
 * **Grounded AI Reasoning:** Uses bounded reasoning for decision explanations, recalibration summaries, behavior patterns, and evals. Deterministic validation remains the authority for plan changes.
 * **Training Memory:** Shows tentative patterns and confirmed preferences with confidence, supporting-history context, and explicit confirm/dismiss/remove controls. Only confirmed preferences can become bounded scoring nudges.
 * **Read-Only What-if Planning:** Previews day, duration, and easy-only plan variants without mutating the saved plan.
@@ -33,9 +33,18 @@ Most running apps provide static plans that exist in a vacuum. When life happens
 ## 🛠 The AI Stack & Strategy
 Kinetic is designed as a hybrid deterministic + AI product.
 
-* **Deterministic Safety Layer:** Owns training changes, safety caps, and persisted workout decisions.
-* **Reasoning Layer:** Produces typed, schema-validated explanations and summaries that are safe to ignore or regenerate.
-* **AI Runtime Modes:** Supports fallback, disabled, and optional local Ollama modes, reported through `GET /ai/status`.
+### 3-layer architecture
+
+1. **Deterministic safety core** — owns plan generation, recovery classification, candidate scoring, mileage caps, calendar-aware adjustments, and every persisted workout decision.
+2. **Bounded AI reasoning layer** — explains decisions, summarizes recalibrations/training reviews, and parses supported intake into reviewable drafts. AI output is typed, schema-validated, timeout-protected, grounded, and safe to discard.
+3. **Local-first persistence and privacy layer** — keeps the app usable offline through localStorage, mirrors authenticated training domains to user-scoped Firebase documents, enforces owner-only Firestore rules, and records only sanitized local product events.
+
+Runtime modes are explicit:
+
+* `fallback` — deterministic explanation templates; safe hosted/default mode.
+* `disabled` — deterministic training flow without AI reasoning calls.
+* `local_ollama` — optional no-cost live AI demo mode, reported through `GET /ai/status`.
+
 * **Live Local Intake:** Synchronous intake uses a dedicated `llama3.2:3b`
   model, Ollama-native JSON Schema, deterministic field agreement, and startup
   warming. The model stays resident for the backend session; its 24-second
@@ -43,7 +52,7 @@ Kinetic is designed as a hybrid deterministic + AI product.
 * **Eval Harness:** Tests AI boundaries, fallback behavior, sparse-data warnings, schema validity, no medical claims, and no-drift guarantees before demo ship.
 
 ## 📈 Roadmap & Product Evolution
-- [X] **Foundation:** Deterministic planning, calendar-aware adjustment, manual readiness flows, and core API/frontend surfaces.
+- [X] **Foundation:** Deterministic planning, calendar-aware adjustment, manual/Apple Health CSV readiness flows, and core API/frontend surfaces.
 - [X] **Demo Vertical Slice:** AI status visibility, hardened explanation/fallback flows, training memory, read-only What-if planning, seed/reset controls, and the full responsive UI system.
 - [X] **Demo Release Gate:** Signed-in responsive QA, strict backend token enforcement, Firestore rules, and deterministic evals pass.
 - [X] **Beta-Ready Foundation:** Repository-backed Firebase persistence, deployed security rules, dependency pinning, advisory audit, privacy-conscious instrumentation, telemetry QA, runbook, and QA matrix are complete for a small controlled beta.
@@ -53,9 +62,10 @@ Kinetic is designed as a hybrid deterministic + AI product.
   fallback-safe read-only UI. Signed-in browser QA verifies both live grounded
   Ollama narration and safe deterministic rejection of ungrounded output.
 - [X] **Beta Hardening:** Live persistence, auth/rules proof, dependency
-  posture, telemetry privacy coverage, final runbook review, and operational
-  rollback guidance are complete.
-- [ ] **Later Integrations:** Native mobile app, Apple Health/Garmin/Oura ingestion, hosted AI provider option, coach sharing, and push notifications.
+  posture, telemetry privacy coverage, behavior-prompt privacy gates, plan
+  safety smoke coverage, final runbook review, and operational rollback
+  guidance are complete.
+- [ ] **Later Integrations:** Native mobile app, native/background HealthKit sync, Garmin/Oura ingestion, hosted AI provider option, coach sharing, and push notifications.
 
 Optional live-model verification (requires Ollama and the configured intake
 model) runs two repeatability passes across eight exact-value, no-fallback
