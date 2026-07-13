@@ -17,6 +17,12 @@ secrets/*
 Thumbs.db
 .DS_Store
 
+# iOS local/private files
+ios/**/GoogleService-Info.plist
+ios/**/*.xcuserstate
+ios/**/*.xcuserdata/
+ios/**/DerivedData/
+
 # Local runtime logs
 backend/.uvicorn.*.log
 firebase-debug.log

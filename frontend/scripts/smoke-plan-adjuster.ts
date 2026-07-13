@@ -1,11 +1,24 @@
 // Smoke test for adjustPlanForWeek: verifies swap, shorten, and drop paths.
 
 import { generateTrainingPlan, type PlanWeek } from "../lib/planGenerator";
-import { adjustPlanForWeek, type CalendarAvailability } from "../lib/planAdjuster";
+import {
+  adjustPlanForWeek,
+  type AdjustedPlanWeek,
+  type CalendarAvailability,
+} from "../lib/planAdjuster";
 import { formatPace } from "../lib/paceCalculator";
 import type { Goal } from "../lib/types";
+import { prsFromMinutes } from "./fixtureHelpers";
 
-function dump(label: string, week: PlanWeek, availability: CalendarAvailability) {
+function assert(condition: boolean, message: string): void {
+  if (!condition) throw new Error(message);
+}
+
+function dump(
+  label: string,
+  week: PlanWeek,
+  availability: CalendarAvailability,
+): AdjustedPlanWeek {
   const adjusted = adjustPlanForWeek(week, availability);
   console.log("--- " + label + " ---");
   console.log("Availability:", availability);
@@ -48,6 +61,7 @@ function dump(label: string, week: PlanWeek, availability: CalendarAvailability)
     );
   }
   console.log("");
+  return adjusted;
 }
 
 const marathon: Goal = {
@@ -55,7 +69,12 @@ const marathon: Goal = {
   race_distance: "marathon",
   target_date: "2026-11-01",
   experience_level: "intermediate",
-  current_prs: { "5k": 22, "10k": 46, half: 100, marathon: 215 },
+  current_prs: prsFromMinutes({
+    "5k": 22,
+    "10k": 46,
+    half: 100,
+    marathon: 215,
+  }),
   weekly_mileage: 25,
 };
 
@@ -63,7 +82,7 @@ const plan = generateTrainingPlan(marathon);
 const week = plan[3]; // some mid-build week with a long run
 
 // Scenario A: lots of time, nothing to do.
-dump("Plenty of time", week, {
+const open = dump("Plenty of time", week, {
   Mon: 60,
   Tue: 90,
   Wed: 120,
@@ -72,10 +91,11 @@ dump("Plenty of time", week, {
   Sat: 240,
   Sun: 240,
 });
+assert(open.adjustments.length === 0, "open week should not be adjusted");
 
 // Scenario B: Wednesday slammed with meetings, but Thursday is wide open
 // → should swap Wed's intervals to a free day (Tue/Thu/Sat).
-dump("Wed blocked, Thu free", week, {
+const swapped = dump("Wed blocked, Thu free", week, {
   Mon: 60,
   Tue: 90,
   Wed: 15,
@@ -84,20 +104,30 @@ dump("Wed blocked, Thu free", week, {
   Sat: 240,
   Sun: 240,
 });
+assert(
+  swapped.adjustments.some((item) => item.action === "swapped"),
+  "blocked quality day should exercise the swap path",
+);
 
 // Scenario C: Sunday partially blocked → long run shortened, not dropped.
-dump("Long-run day half-blocked", week, {
+const shortened = dump("Long-run day half-blocked", week, {
   Mon: 60,
-  Tue: 90,
-  Wed: 90,
-  Thu: 90,
+  Tue: 40,
+  Wed: 80,
+  Thu: 40,
   Fri: 60,
-  Sat: 60,
+  Sat: 40,
   Sun: 60,
 });
+assert(
+  shortened.adjustments.some(
+    (item) => item.action === "shortened" && item.type === "long run",
+  ),
+  "partially blocked long-run day should exercise the shorten path",
+);
 
 // Scenario D: very busy week → easy runs should drop, key workouts kept.
-dump("Very busy week", week, {
+const dropped = dump("Very busy week", week, {
   Mon: 10,
   Tue: 30,
   Wed: 15,
@@ -106,10 +136,16 @@ dump("Very busy week", week, {
   Sat: 60,
   Sun: 30,
 });
+assert(
+  dropped.adjustments.some(
+    (item) => item.action === "dropped" && item.type === "easy",
+  ),
+  "very busy week should exercise the low-priority drop path",
+);
 
 // Scenario E: every day busy and the long run can't fit anywhere
 // → long run kept (can't drop) with a manual-reschedule warning.
-dump("Long run can't fit anywhere", week, {
+const kept = dump("Long run can't fit anywhere", week, {
   Mon: 30,
   Tue: 30,
   Wed: 30,
@@ -118,3 +154,11 @@ dump("Long run can't fit anywhere", week, {
   Sat: 30,
   Sun: 30,
 });
+assert(
+  kept.adjustments.some(
+    (item) => item.action === "kept" && item.type === "long run",
+  ),
+  "unschedulable long run should be kept with a warning",
+);
+
+console.log("OK - plan adjuster exercises no-op, swap, shorten, drop, and keep paths");

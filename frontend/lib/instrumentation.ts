@@ -119,6 +119,52 @@ type ProductEventProperties = {
     cache_changed?: boolean;
     latency_ms: number;
   };
+  mobile_companion_sync_completed: {
+    platform: "ios";
+    sync_type: "healthkit_readiness" | "calendar_context" | "decision_readback";
+    outcome: "success" | "failed" | "partial" | "stale";
+    permission_state?: "not_determined" | "denied" | "partial" | "granted";
+    background_delivery?: "unknown" | "enabled" | "disabled" | "stale";
+    coverage_bucket?: "none" | "partial" | "complete";
+    confidence_bucket: string;
+    conflict?: "none" | "manual_wins" | "csv_wins" | "healthkit_update" | "stale_healthkit";
+    latency_ms: number;
+  };
+  mobile_decision_validated: {
+    platform: "ios";
+    outcome: "success" | "failed" | "invalid" | "timeout";
+    selected_action: string;
+    confidence_bucket: string;
+    calendar_state: "clear" | "conflict" | "stale" | "missing";
+    readiness_state: "ready" | "caution" | "unknown" | "stale";
+    deterministic_validation: "passed" | "failed" | "not_run";
+    has_calendar_warning: boolean;
+    has_recovery_warning: boolean;
+    ai_assisted: boolean;
+    latency_ms: number;
+  };
+  mobile_intake_lifecycle: {
+    platform: "ios";
+    action: "reviewed" | "confirmed" | "discarded";
+    outcome: "success" | "failed" | "invalid" | "timeout";
+    status?: string;
+    source?: string;
+    fallback_used?: boolean;
+    latency_ms?: number;
+    timed_out?: boolean;
+    change_count?: number;
+    warning_count?: number;
+    deterministic_validation: "passed" | "failed" | "not_run";
+  };
+  mobile_checkin_synced: {
+    platform: "ios";
+    status: "completed" | "skipped" | "checked_in";
+    outcome: "success" | "failed" | "timeout";
+    has_effort: boolean;
+    has_user_reflection: boolean;
+    update_succeeded?: boolean;
+    latency_ms: number;
+  };
 };
 
 export type ProductEventName = keyof ProductEventProperties;
@@ -251,9 +297,57 @@ const EVENT_KEYS: {
     "cache_changed",
     "latency_ms",
   ],
+  mobile_companion_sync_completed: [
+    "platform",
+    "sync_type",
+    "outcome",
+    "permission_state",
+    "background_delivery",
+    "coverage_bucket",
+    "confidence_bucket",
+    "conflict",
+    "latency_ms",
+  ],
+  mobile_decision_validated: [
+    "platform",
+    "outcome",
+    "selected_action",
+    "confidence_bucket",
+    "calendar_state",
+    "readiness_state",
+    "deterministic_validation",
+    "has_calendar_warning",
+    "has_recovery_warning",
+    "ai_assisted",
+    "latency_ms",
+  ],
+  mobile_intake_lifecycle: [
+    "platform",
+    "action",
+    "outcome",
+    "status",
+    "source",
+    "fallback_used",
+    "latency_ms",
+    "timed_out",
+    "change_count",
+    "warning_count",
+    "deterministic_validation",
+  ],
+  mobile_checkin_synced: [
+    "platform",
+    "status",
+    "outcome",
+    "has_effort",
+    "has_user_reflection",
+    "update_succeeded",
+    "latency_ms",
+  ],
 };
 
 const ENUM_VALUES: Record<string, readonly string[]> = {
+  platform: ["web", "ios", "unknown", "other"],
+  sync_type: ["healthkit_readiness", "calendar_context", "decision_readback", "other"],
   response: ["accepted", "rejected", "modified"],
   rejection_reason: [
     "too_hard",
@@ -267,6 +361,7 @@ const ENUM_VALUES: Record<string, readonly string[]> = {
   status: [
     "completed",
     "skipped",
+    "checked_in",
     "ready",
     "needs_clarification",
     "unsupported",
@@ -282,6 +377,8 @@ const ENUM_VALUES: Record<string, readonly string[]> = {
     "generated",
     "accepted",
     "rejected",
+    "partial",
+    "stale",
     "timeout",
     "other",
   ],
@@ -306,6 +403,20 @@ const ENUM_VALUES: Record<string, readonly string[]> = {
     "discarded",
     "other",
   ],
+  permission_state: ["not_determined", "denied", "partial", "granted", "unknown", "other"],
+  background_delivery: ["unknown", "enabled", "disabled", "stale", "other"],
+  coverage_bucket: ["none", "partial", "complete", "unknown", "other"],
+  conflict: [
+    "none",
+    "manual_wins",
+    "csv_wins",
+    "healthkit_update",
+    "stale_healthkit",
+    "other",
+  ],
+  calendar_state: ["clear", "conflict", "stale", "missing", "unknown", "other"],
+  readiness_state: ["ready", "caution", "unknown", "stale", "other"],
+  deterministic_validation: ["passed", "failed", "not_run", "other"],
   preference_type: [
     "busy_day_preference",
     "rest_day_preference",
@@ -328,6 +439,7 @@ const ENUM_VALUES: Record<string, readonly string[]> = {
     "schedule",
     "calendar_sync",
     "calendar_failure",
+    "health_sync",
     "all",
     "other",
   ],

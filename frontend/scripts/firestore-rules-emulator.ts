@@ -74,6 +74,13 @@ async function main() {
     );
     const guestA = doc(dbGuest, "users", userA.uid, "kinetic", "profile");
     const ownB = doc(dbB, "users", userB.uid, "kinetic", "profile");
+    const ownHealthSync = doc(
+      dbA,
+      "users",
+      userA.uid,
+      "kinetic",
+      "health_sync",
+    );
     const unknownDomainA = doc(
       dbA,
       "users",
@@ -84,8 +91,17 @@ async function main() {
 
     await setDoc(ownA, { schemaVersion: 1, payload: { name: "A" } });
     await setDoc(ownB, { schemaVersion: 1, payload: { name: "B" } });
+    await setDoc(ownHealthSync, {
+      schemaVersion: 1,
+      deleted: false,
+      payload: { provider: "apple_health", schema: "health-sync.v1" },
+    });
     expect((await getDoc(ownA)).exists(), "owner A should read their document");
     expect((await getDoc(ownB)).exists(), "owner B should read their document");
+    expect(
+      (await getDoc(ownHealthSync)).exists(),
+      "owner A should read their mobile health sync document",
+    );
     await expectDenied(() => getDoc(foreignAFromB), "cross-user read");
     await expectDenied(
       () => setDoc(foreignAFromB, { payload: { name: "overwrite" } }),

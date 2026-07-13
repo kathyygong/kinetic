@@ -13,8 +13,9 @@ export type AppleHealthImportResult = {
 };
 
 type ReadinessPatch = Omit<Partial<ManualReadiness>, "date" | "updated_at">;
+type CsvReadinessField = Exclude<keyof ReadinessPatch, "source">;
 
-const HEADER_ALIASES: Record<keyof ReadinessPatch, string[]> = {
+const HEADER_ALIASES: Record<CsvReadinessField, string[]> = {
   sleep_hours: ["sleep_hours", "sleep", "asleep_hours", "time_asleep_hours"],
   hrv: ["hrv", "hrv_ms", "heart_rate_variability", "heart_rate_variability_ms"],
   resting_hr: ["resting_hr", "resting_heart_rate", "rhr", "resting_bpm"],
@@ -45,11 +46,11 @@ export function importAppleHealthCsv(text: string): AppleHealthImportResult {
   }
 
   const fieldIndexes = Object.fromEntries(
-    (Object.keys(HEADER_ALIASES) as Array<keyof ReadinessPatch>).map((field) => [
+    (Object.keys(HEADER_ALIASES) as CsvReadinessField[]).map((field) => [
       field,
       findHeaderIndex(header, HEADER_ALIASES[field]),
     ]),
-  ) as Record<keyof ReadinessPatch, number>;
+  ) as Record<CsvReadinessField, number>;
 
   let importedCount = 0;
   let skippedRows = 0;
@@ -74,8 +75,9 @@ export function importAppleHealthCsv(text: string): AppleHealthImportResult {
     if (restingHr !== undefined) patch.resting_hr = restingHr;
     if (fatigue !== undefined) patch.fatigue_level = fatigue;
     if (soreness !== undefined) patch.soreness_level = soreness;
+    patch.source = "apple_health_csv";
 
-    if (Object.keys(patch).length === 0) {
+    if (Object.keys(patch).length <= 1) {
       skippedRows += 1;
       continue;
     }

@@ -15,7 +15,8 @@ service cloud.firestore {
         'today',
         'schedule',
         'calendar_sync',
-        'calendar_failure'
+        'calendar_failure',
+        'health_sync'
       ];
     }
 

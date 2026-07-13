@@ -216,6 +216,64 @@ async function main(): Promise<void> {
         latency_ms: 320,
       },
     },
+    {
+      name: "mobile_companion_sync_completed",
+      properties: {
+        platform: "ios",
+        sync_type: "healthkit_readiness",
+        outcome: "partial",
+        permission_state: "partial",
+        background_delivery: "enabled",
+        coverage_bucket: "partial",
+        confidence_bucket: "moderate",
+        conflict: "none",
+        latency_ms: 450,
+      },
+    },
+    {
+      name: "mobile_decision_validated",
+      properties: {
+        platform: "ios",
+        outcome: "success",
+        selected_action: "modify",
+        confidence_bucket: "moderate",
+        calendar_state: "conflict",
+        readiness_state: "caution",
+        deterministic_validation: "passed",
+        has_calendar_warning: true,
+        has_recovery_warning: false,
+        ai_assisted: true,
+        latency_ms: 620,
+      },
+    },
+    {
+      name: "mobile_intake_lifecycle",
+      properties: {
+        platform: "ios",
+        action: "reviewed",
+        outcome: "success",
+        status: "ready",
+        source: "ollama",
+        fallback_used: false,
+        latency_ms: 980,
+        timed_out: false,
+        change_count: 1,
+        warning_count: 0,
+        deterministic_validation: "not_run",
+      },
+    },
+    {
+      name: "mobile_checkin_synced",
+      properties: {
+        platform: "ios",
+        status: "checked_in",
+        outcome: "success",
+        has_effort: false,
+        has_user_reflection: false,
+        update_succeeded: true,
+        latency_ms: 180,
+      },
+    },
   ] as const;
 
   const unsafeExtras = {
@@ -315,6 +373,40 @@ async function main(): Promise<void> {
   expect(bounded?.properties.latency_ms === 120_000, "latency should be capped");
   expect(bounded?.properties.warning_count === 100, "warning count should be capped");
   expect(bounded?.properties.logged_sessions === 1_000, "session count should be capped");
+
+  const mobileBounded = trackProductEvent("mobile_decision_validated", {
+    platform: "ios",
+    outcome: "success",
+    selected_action: "unexpected-action",
+    confidence_bucket: "surprisingly-certain",
+    calendar_state: "raw-calendar-state",
+    readiness_state: "raw-readiness-state",
+    deterministic_validation: "maybe",
+    has_calendar_warning: true,
+    has_recovery_warning: true,
+    ai_assisted: true,
+    latency_ms: 999_999,
+  } as never);
+  expect(
+    mobileBounded?.properties.selected_action === "other",
+    "mobile selected_action should be bucketed",
+  );
+  expect(
+    mobileBounded?.properties.confidence_bucket === "other",
+    "mobile confidence should be bucketed",
+  );
+  expect(
+    mobileBounded?.properties.calendar_state === "other",
+    "mobile calendar state should be bucketed",
+  );
+  expect(
+    mobileBounded?.properties.deterministic_validation === "other",
+    "mobile validation state should be bucketed",
+  );
+  expect(
+    mobileBounded?.properties.latency_ms === 120_000,
+    "mobile latency should be capped",
+  );
 
   clearProductEvents();
   expect(listProductEvents().length === 0, "clearProductEvents should empty the log");

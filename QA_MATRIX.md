@@ -5,11 +5,11 @@ the next beta checkpoint.
 
 | Area | Required check | Current status |
 | --- | --- | --- |
-| Frontend lint | `cd frontend && npm run lint` | Required before checkpoint |
-| Frontend production build | `cd frontend && npm run build` | Required before checkpoint |
-| Frontend deterministic smoke | `cd frontend && npm run smoke` | Required before checkpoint |
+| Frontend lint | `cd frontend && npm run lint` | Passed 2026-07-13 |
+| Frontend production build | `cd frontend && npm run build` | Passed 2026-07-13 |
+| Frontend deterministic smoke | `cd frontend && npm run smoke` | Passed 2026-07-13; canonical PR units and calendar adjustment paths asserted |
 | Frontend beta posture | `cd frontend && npm run beta:readiness` | Dependency pinning passes; default audit skip warning expected |
-| Frontend advisory audit | `cd frontend && npm run beta:audit` | Passed 2026-07-09; rerun after package changes |
+| Frontend advisory audit | `cd frontend && npm run beta:audit` | Passed 2026-07-13; no moderate/high/critical findings |
 | Dependency pin review | direct frontend/backend dependencies exact-pinned | Passed 2026-07-09 |
 | Backend compile | `cd backend && .\.venv\Scripts\python.exe -m compileall app evals` | Required before checkpoint |
 | Backend deterministic gates | `cd backend && .\.venv\Scripts\python.exe -m evals._gates` | Required before checkpoint |
@@ -25,8 +25,18 @@ the next beta checkpoint.
 | Observability privacy | every event family sanitized, capped, typed, and failure-isolated | Covered by `smoke-instrumentation.ts` |
 | Apple Health CSV import | bounded readiness metrics imported, unsupported note columns dropped | Covered by `smoke-apple-health.ts` |
 | Plan safety invariants | race/experience/low-mileage plans stay bounded and coherent | Covered by `smoke-plan-safety.ts` |
+| Plan fixture data contract | human-readable PR fixtures convert explicitly to canonical integer seconds; generated paces stay plausible | Covered by `fixtureHelpers.ts`, `smoke-plan.ts`, `smoke-plan-adjuster.ts`, and `smoke-plan-refresh.ts` |
 | Behavior prompt privacy | raw workout notes excluded before AI narration | Covered by backend deterministic gates |
 | Final runbook review | hosted preflight, rollback, triage, and protected-artifact handling documented | Passed 2026-07-09 |
+| Mobile phase scope | [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md) defines iOS MVP, privacy boundary, phases, and gates | Selected 2026-07-10 |
+| iOS HealthKit permissions | denied, partial, granted, and stale background delivery states handled | Required before mobile beta |
+| iOS readiness sync | [MOBILE_READINESS_SCHEMA.md](./MOBILE_READINESS_SCHEMA.md) contract followed; bounded daily summaries only; no raw HealthKit samples in Firestore | Required before mobile beta |
+| Mobile calendar awareness | Today decisions consume existing calendar availability/freshness and lower confidence on stale/missing calendar data | Required before mobile beta |
+| Mobile NLP intake | review-only drafts, strict-auth rejection when anonymous, deterministic confirm/apply, malformed/ambiguous fallback | Required before mobile beta |
+| Mobile admin/eval observability | `/qa/mobile` shows mobile-originated sync, recommendation, intake, validation, and check-in events from the shared privacy-safe event log | Shared event-log-to-QA contract passed 2026-07-13; native event transport remains required before mobile beta |
+| Mobile/web sync compatibility | web dashboard consumes mobile readiness without unsafe overwrite or confidence drift | Required before mobile beta |
+| Mobile delete/disconnect | synced summaries respect owner-only rules and deletion tombstones across devices | Required before mobile beta |
+| iOS scaffold compile | `cd ios/KineticCompanion && swift test` on macOS/Xcode toolchain | Required before mobile beta |
 
 ## Browser QA notes
 
@@ -37,7 +47,11 @@ local proof artifacts. The protected patterns are `.edge-qa*` and
 ## Release interpretation
 
 The demo is shippable and the Firebase persistence foundation is beta-ready.
-Beta hardening is complete for a small controlled beta. Apple Health CSV import
-is an implemented web-beta bridge for readiness metrics; native/background
-HealthKit sync, Garmin, and Oura remain intentionally out of scope until
-selected as a new product phase.
+Beta hardening is complete for a small controlled web beta. Apple Health CSV
+import is an implemented web-beta bridge for readiness metrics.
+
+As of 2026-07-10, native/background HealthKit sync and native mobile are
+selected as the next phase, scoped to Mobile Companion Proof. Mobile beta must
+preserve calendar-aware decisions, bounded NLP intake, deterministic
+confirm/apply, and shared QA/eval observability. Garmin, Oura, hosted AI, coach
+sharing, broad notifications, and autonomous AI mutation remain out of scope.

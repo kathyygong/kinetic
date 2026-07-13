@@ -36,7 +36,7 @@ const NAV_ITEMS: {
 ];
 
 // Routes where the global nav should not render.
-const NAV_HIDDEN_ROUTES = ["/login", "/onboarding"];
+const NAV_HIDDEN_ROUTES = ["/login", "/onboarding", "/mobile-companion"];
 
 export default function TopNav() {
   const pathname = usePathname();

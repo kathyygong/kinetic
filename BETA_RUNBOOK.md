@@ -12,10 +12,15 @@ review. The current foundation is beta-ready for a small controlled audience,
 not a broad production launch.
 
 The web beta includes Apple Health CSV import as a bounded readiness-input
-bridge. Do not expand into hosted AI, native/background HealthKit sync,
-Garmin/Oura ingestion, native mobile, push notifications, coach sharing, or
-autonomous AI plan mutation until a separate product decision selects that
-scope.
+bridge. As of 2026-07-10, the selected next phase is Mobile Companion Proof:
+a thin native iOS companion for HealthKit daily readiness summaries,
+calendar-aware Today decisions, bounded natural-language intake, Firebase sync,
+and a recovery/check-in loop. Do not expand into a full native app,
+Garmin/Oura ingestion, hosted AI, broad push notifications, coach sharing, or
+autonomous AI plan mutation without another explicit product decision.
+
+The mobile phase plan lives in
+[MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md).
 
 ## Environment posture
 
@@ -105,6 +110,35 @@ Before sending a hosted beta link:
 8. Sign in from the hosted frontend and verify `/decision` returns 200.
 9. Run the live persistence QA again if repository, auth, rules, or deletion
    behavior changed after the last proof.
+
+## Mobile companion preflight
+
+Before inviting mobile beta users:
+
+1. Confirm the iOS app uses the same Firebase project and UID ownership model.
+2. Confirm HealthKit permission copy names the specific read types and explains
+   that raw samples stay on device.
+3. Confirm Firestore contains bounded daily readiness summaries only, not raw
+   HealthKit samples. Use
+   [MOBILE_READINESS_SCHEMA.md](./MOBILE_READINESS_SCHEMA.md) as the contract.
+4. Confirm the web dashboard can consume mobile readiness summaries and still
+   shows freshness/confidence accurately.
+5. Confirm mobile Today consumes existing calendar availability/freshness and
+   lowers confidence when calendar data is stale, missing, or unavailable.
+6. Confirm bounded mobile natural-language intake uses review-only drafts,
+   rejects anonymous requests under strict auth, and cannot apply without
+   deterministic validation.
+7. Confirm existing web admin/QA/eval review surfaces can inspect
+   mobile-originated decisions, intake drafts, validation outcomes, check-ins,
+   and privacy-safe telemetry. Use `/qa/mobile` for the local web audit view.
+8. Confirm denied, partial, stale, offline, signed-out, and delete-pending
+   states have visible fallbacks.
+9. Confirm owner-only Firestore rules and emulator tests cover any new mobile
+   sync domain.
+10. Confirm delete/disconnect stops future mobile sync and respects tombstones
+   across web and iOS.
+11. Confirm existing deterministic backend gates still pass after any mobile
+   schema or decision-input changes.
 
 ## Live Firebase persistence QA
 

@@ -54,6 +54,7 @@ const DOMAIN_KEYS: Array<{
     storageKey: "kinetic_calendar_last_failure",
     rawString: true,
   },
+  { domain: "health_sync", storageKey: "kinetic_health_sync" },
 ];
 
 const firestoreStore: RemoteDocumentStore = {

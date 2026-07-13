@@ -17,7 +17,8 @@ export type PersistenceDomain =
   | "today"
   | "schedule"
   | "calendar_sync"
-  | "calendar_failure";
+  | "calendar_failure"
+  | "health_sync";
 
 export type PersistedEnvelope<T> = {
   schemaVersion: 1;

@@ -76,7 +76,9 @@ The shippable demo will not include:
   documented without broadening product scope.
 - Current readiness input supports both manual entry and a privacy-minimized
   Apple Health CSV import for bounded metrics. Browser-native HealthKit
-  background sync, Garmin, and Oura remain future integrations.
+  background sync is not possible in the web build; native iOS HealthKit sync
+  is now selected as the next phase. Garmin and Oura remain future
+  integrations.
 - Hardening now includes a behavior-prompt privacy gate that proves raw
   athlete notes are excluded before optional AI narration, plus frontend smoke
   coverage for plan safety invariants across race distance, experience level,
@@ -88,6 +90,12 @@ The shippable demo will not include:
 - Read-only weekly/monthly training reviews are implemented from bounded
   outcome aggregates. Deterministic code owns every metric and trend; optional
   AI may only narrate validated facts, and raw workout notes are excluded.
+- The selected next product phase is **Mobile Companion Proof**: a thin native
+  iOS companion for HealthKit readiness summaries, calendar-aware Today
+  decisions, bounded natural-language intake, Firebase sync, and a
+  recovery/check-in loop. The web app remains the architecture proof,
+  admin/demo/eval review surface, and deeper planning surface. See
+  [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md).
 
 ## 2. Problem Statement
 
@@ -317,15 +325,29 @@ Requirements:
   deterministic reviews with optional grounded local-AI narration.
 - AI-assisted eval/judge reports for explanation quality.
 
-#### Native Mobile App
+#### Mobile Companion Proof
 
-- Mobile-first training, notifications, and wearable integration.
-- Native background sync for health and calendar data.
+- Build a thin native iOS companion before a full mobile app.
+- Start with HealthKit daily readiness summaries and Firebase sync.
+- Add a native Today surface that preserves calendar-aware recommendations,
+  user history/preferences, bounded explanations, and deterministic
+  validation.
+- Add bounded mobile natural-language intake for explicit schedule,
+  availability, goal, and preference updates. It must use review-only drafts
+  and deterministic confirm/apply, matching the web safety boundary.
+- Add a recovery/check-in loop.
+- Keep full plan generation, What-if exploration, training reviews, demo
+  tooling, and admin/QA/eval dashboards on web until the mobile loop proves
+  daily value. Mobile actions must still feed those shared safety and audit
+  surfaces.
 
 #### Native Apple HealthKit, Garmin, And Oura Integrations
 
-- Replace manual/CSV recovery input with automatic biometric retrieval.
-- Support source freshness, source confidence, and conflict resolution across providers.
+- HealthKit is selected first because true automatic Apple Health sync requires
+  native iOS.
+- Sync bounded daily summaries, not raw HealthKit samples.
+- Garmin and Oura remain deferred until the iOS HealthKit path proves the
+  privacy, freshness, and decision-value model.
 
 #### Hosted AI Provider Option
 
@@ -339,7 +361,10 @@ Requirements:
 
 #### Push Notifications
 
-- Notify users about recalibrations, stale data, recovery risk, and upcoming workouts.
+- Defer until the native Today and check-in loop prove they create retention
+  value.
+- Candidate notification types are limited to Today-ready, stale-readiness, and
+  evening check-in prompts. Avoid medical or injury-risk framing.
 
 #### Advanced Periodization
 
@@ -432,6 +457,27 @@ Any AI-generated suggestion that could affect training must pass deterministic v
 - Mature export/reset controls for beta users.
 - Decide whether to support BYO AI key or hosted provider later.
 
+### Phase 8: Mobile Companion Proof
+
+- Treat [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md) as the source of
+  truth for the selected mobile-first phase.
+- Phase 1: HealthKit/Firebase sync spike.
+- Phase 2: Native calendar-aware Today surface.
+- Phase 2.5: Bounded mobile natural-language intake and deterministic
+  confirm/apply.
+- Phase 3: Recovery/check-in loop.
+- Phase 4: Notifications only if justified by the Today/check-in loop.
+- Preserve the deterministic safety core: mobile can summarize signals and
+  call the existing decision endpoint, but cannot bypass deterministic
+  validation or allow AI to mutate plans.
+- Preserve privacy boundaries: do not upload raw HealthKit samples, raw notes,
+  raw biometrics in telemetry, or unnecessary identity data.
+- Preserve calendar-aware planning in mobile beta. Missing or stale calendar
+  data must lower confidence rather than cause invented availability.
+- Preserve shared QA/eval coverage. The iOS app does not duplicate web admin
+  screens, but mobile-originated decisions, intake drafts, validation results,
+  and check-ins must be inspectable through the existing web safety surfaces.
+
 ## 6. Technical Constraints
 
 - No paid AI dependency is required for the shippable demo.
@@ -447,6 +493,8 @@ Any AI-generated suggestion that could affect training must pass deterministic v
 - Google Calendar integration must degrade gracefully when credentials, tokens, or user OAuth are unavailable.
 - Firebase persistence must include user-scoped security rules before it is treated as beta-ready.
 - Product analytics must avoid raw health notes, full calendar text, and unnecessary personally identifiable information.
+- iOS HealthKit sync must summarize locally into bounded daily readiness
+  records before Firebase writes; raw HealthKit samples must remain on device.
 - Beta checkpoints must run the local readiness check and, from a connected
   shell, the npm advisory audit before broader beta exposure. Direct
   frontend/backend dependencies should stay exact-pinned unless a package

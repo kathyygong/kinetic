@@ -11,6 +11,11 @@ import {
   type DayAvailability,
 } from "../lib/planRefresh";
 import type { Goal } from "../lib/types";
+import { prsFromMinutes } from "./fixtureHelpers";
+
+function assert(condition: boolean, message: string): void {
+  if (!condition) throw new Error(message);
+}
 
 function dump(label: string, result: ReturnType<typeof refreshWeekWithCalendar>) {
   console.log("=== " + label + " ===");
@@ -49,7 +54,12 @@ const goal: Goal = {
   race_distance: "marathon",
   target_date: "2026-11-01",
   experience_level: "intermediate",
-  current_prs: { "5k": 22, "10k": 46, half: 100, marathon: 215 },
+  current_prs: prsFromMinutes({
+    "5k": 22,
+    "10k": 46,
+    half: 100,
+    marathon: 215,
+  }),
   weekly_mileage: 25,
 };
 
@@ -72,15 +82,12 @@ const fullAvail: DayAvailability[] = [
 ];
 
 // 1) Wide-open week, no travel — should be no-op.
-dump(
-  "Open week, no travel",
-  refreshWeekWithCalendar(week, fullAvail, [], weekStart)
-);
+const open = refreshWeekWithCalendar(week, fullAvail, [], weekStart);
+dump("Open week, no travel", open);
+assert(open.adjusted.adjustments.length === 0, "open calendar should be a no-op");
 
 // 2) Tight Wednesday → swap intervals to a free day.
-dump(
-  "Wed slammed → swap intervals",
-  refreshWeekWithCalendar(
+const slammed = refreshWeekWithCalendar(
     week,
     [
       ...fullAvail.slice(0, 2),
@@ -88,35 +95,45 @@ dump(
       ...fullAvail.slice(3),
     ],
     [],
-    weekStart
-  )
+    weekStart,
+  );
+dump("Wed slammed → swap intervals", slammed);
+assert(
+  slammed.adjusted.adjustments.some((item) => item.action === "swapped"),
+  "slammed quality day should produce a calendar-aware swap",
 );
 
-// 3) Travel: business trip Wed-Fri, returns Fri morning.
-//    → Wed/Thu = travel days, Fri/Sat/Sun = post-travel 48h easy-only.
+// 3) Travel: business trip Wed-Fri, returns Sat morning.
+//    → Wed/Thu/Fri = travel days, Sat/Sun = post-travel 48h easy-only.
 //    Expectation: Wed intervals → easy, Sun long run → dropped.
-dump(
-  "Business trip Wed-Fri",
-  refreshWeekWithCalendar(
+const travel = refreshWeekWithCalendar(
     week,
     fullAvail,
     [
       {
         start: "2026-05-06",
-        end: "2026-05-08", // exclusive: returns Fri morning
+        end: "2026-05-09", // exclusive: returns Sat morning
         title: "Business trip to NYC",
         all_day: true,
       },
     ],
-    weekStart
-  )
+    weekStart,
+  );
+dump("Business trip Wed-Fri", travel);
+assert(
+  travel.adjusted.adjustments.some((item) => item.action === "downgraded"),
+  "travel should downgrade quality work",
+);
+assert(
+  travel.adjusted.adjustments.some(
+    (item) => item.action === "dropped" && item.type === "long run",
+  ),
+  "travel recovery window should drop the long run",
 );
 
 // 4) Very busy + travel: easy runs dropped, long run kept-with-warning,
 //    travel windows downgrade quality work.
-dump(
-  "Very busy + travel",
-  refreshWeekWithCalendar(
+const busyTravel = refreshWeekWithCalendar(
     week,
     [
       { date: "2026-05-04", day: "Mon", minutes: 10 },
@@ -135,6 +152,12 @@ dump(
         all_day: false,
       },
     ],
-    weekStart
-  )
+    weekStart,
+  );
+dump("Very busy + travel", busyTravel);
+assert(
+  busyTravel.adjusted.adjustments.length > 0,
+  "busy travel week should produce visible adjustments",
 );
+
+console.log("OK - calendar refresh asserts no-op, conflict, and travel safety paths");

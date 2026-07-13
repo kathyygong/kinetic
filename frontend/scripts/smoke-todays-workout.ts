@@ -6,6 +6,7 @@ import {
   type RecommendationAction,
 } from "../lib/todaysWorkout";
 import type { Goal } from "../lib/types";
+import { prsFromMinutes } from "./fixtureHelpers";
 
 const day = todayDayLabel();
 console.log("Today is " + day);
@@ -23,6 +24,9 @@ function dump(label: string, goal: Goal, action?: RecommendationAction) {
     "  total: " + tw.totalDistance.toFixed(1) + " mi, " + tw.totalDuration + " min"
   );
   for (const seg of tw.segments) {
+    if (seg.pace < 3 || seg.pace > 20) {
+      throw new Error(`${label} generated implausible pace ${formatPace(seg.pace)}`);
+    }
     console.log(
       "  " +
         seg.label.padEnd(11) +
@@ -44,7 +48,12 @@ const marathon: Goal = {
   race_distance: "marathon",
   target_date: "2026-11-01",
   experience_level: "intermediate",
-  current_prs: { "5k": 22, "10k": 46, half: 100, marathon: 215 },
+  current_prs: prsFromMinutes({
+    "5k": 22,
+    "10k": 46,
+    half: 100,
+    marathon: 215,
+  }),
   weekly_mileage: 25,
 };
 
@@ -53,7 +62,7 @@ const fiveK: Goal = {
   race_distance: "5k",
   target_date: "2026-06-17",
   experience_level: "beginner",
-  current_prs: { "5k": 30, "10k": 0, half: 0, marathon: 0 },
+  current_prs: prsFromMinutes({ "5k": 30 }),
 };
 
 dump("Marathon block, week 1", marathon);
@@ -63,8 +72,11 @@ dump(
   marathon,
   { name: "modify", intensity_modifier: 0.7, duration_modifier: 0.6 }
 );
+
 dump(
   "Marathon, rest",
   marathon,
   { name: "rest", intensity_modifier: 0, duration_modifier: 0 }
 );
+
+console.log("OK - today's workout fixtures use canonical PR seconds and plausible paces");

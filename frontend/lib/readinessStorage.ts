@@ -33,6 +33,8 @@ export type ManualReadiness = {
   resting_hr?: number;
   fatigue_level?: FatigueLevel;
   soreness_level?: SorenessLevel;
+  /** Advisory provenance for cross-device conflict handling. */
+  source?: "manual" | "apple_health_csv" | "healthkit" | "demo" | "mixed";
   /** ISO timestamp of the most recent edit. */
   updated_at: string;
 };
@@ -249,6 +251,7 @@ function isManualReadiness(value: unknown): value is ManualReadiness {
   if (v.resting_hr !== undefined && !isNonNegFinite(v.resting_hr)) return false;
   if (v.fatigue_level !== undefined && !isLevel1to5(v.fatigue_level)) return false;
   if (v.soreness_level !== undefined && !isLevel1to5(v.soreness_level)) return false;
+  if (v.source !== undefined && !isReadinessSource(v.source)) return false;
   return true;
 }
 
@@ -262,5 +265,17 @@ function isLevel1to5(n: unknown): n is FatigueLevel {
     Number.isInteger(n) &&
     n >= 1 &&
     n <= 5
+  );
+}
+
+function isReadinessSource(
+  value: unknown,
+): value is NonNullable<ManualReadiness["source"]> {
+  return (
+    value === "manual" ||
+    value === "apple_health_csv" ||
+    value === "healthkit" ||
+    value === "demo" ||
+    value === "mixed"
   );
 }

@@ -700,8 +700,9 @@ Package the product so it is easy to show, explain, and extend.
 - Decide later whether to add:
   - BYO AI key mode
   - hosted AI provider
-  - native mobile
-  - native/background HealthKit, Garmin, and Oura integrations
+  - full native mobile beyond the companion proof
+  - native calendar integration
+  - Garmin and Oura integrations
 
 ### Acceptance Criteria
 
@@ -717,8 +718,10 @@ Demo packaging is complete.
 - README links directly to the proof artifacts and separates demo-complete from beta work.
 - Added a user-facing training-data deletion control.
 - Deployment/monitoring guidance can expand when a hosted beta target is
-  selected; hosted AI, native/background HealthKit sync, Garmin/Oura ingestion,
-  native mobile, and autonomous AI mutation remain out of scope.
+  selected. This checkpoint did not include hosted AI, native/background
+  HealthKit sync, Garmin/Oura ingestion, native mobile, or autonomous AI
+  mutation; native iOS is now selected later as the scoped Mobile Companion
+  Proof phase.
 - Added [BETA_RUNBOOK.md](./BETA_RUNBOOK.md), [QA_MATRIX.md](./QA_MATRIX.md),
   and `npm run beta:readiness` as the first beta-hardening checkpoint. The
   connected `npm run beta:audit` advisory gate is documented separately and
@@ -736,10 +739,16 @@ Demo packaging is complete.
 6. Live two-session Firebase persistence and privacy-conscious observability
    are closed; dependency posture, final QA matrix, hosted preflight, and
    rollback guidance are complete.
-7. Apple Health CSV readiness import is implemented as a web-beta bridge; do
-   not begin native/background HealthKit sync, Garmin/Oura ingestion, hosted AI,
-   native mobile, or autonomous plan mutation without selecting that as a new
-   product phase.
+7. Apple Health CSV readiness import is implemented as a web-beta bridge.
+   Native/background HealthKit sync and native mobile are now selected as the
+   next product phase, scoped specifically as Mobile Companion Proof in
+   [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md). Garmin/Oura, hosted
+   AI, broad notifications, coach sharing, and autonomous plan mutation remain
+   out of scope.
+8. Execute the mobile phase in this order: docs-only phase selection, iOS
+   readiness schema, HealthKit/Firebase sync spike, web readback proof, native
+   calendar-aware Today surface, bounded mobile intake review, recovery/check-in
+   loop, then notification evaluation only if justified.
 
 ## Worktree Checkpoint - Updated 2026-06-29
 
@@ -794,8 +803,9 @@ Completed.
 - Apple Health CSV import is implemented from Profile as a privacy-minimized
   readiness input path. It accepts bounded sleep, HRV, resting-heart-rate,
   fatigue, and soreness fields, drops unsupported columns/notes, and writes
-  through the existing readiness store. Native/background HealthKit sync,
-  Garmin, and Oura remain later integrations.
+  through the existing readiness store. Native/background HealthKit sync is the
+  selected next phase, but only as a thin iOS companion that summarizes locally
+  and syncs bounded daily readiness records. Garmin and Oura remain deferred.
 - Final operational polish is complete: [BETA_RUNBOOK.md](./BETA_RUNBOOK.md),
   [QA_MATRIX.md](./QA_MATRIX.md), and [DEPLOY.md](./DEPLOY.md) document hosted
   preflight, strict-auth posture, rollback, triage, protected artifact handling,
@@ -812,3 +822,58 @@ Completed.
   sign-in. Signed-in delete failure now fails visibly instead of silently
   clearing local state.
 - `.edge-qa*` profiles and temporary screenshots remain intentionally untracked and must not be included in product commits.
+
+## Mobile Companion Proof - Selected 2026-07-10
+
+The next strategic product phase is Mobile Companion Proof, documented in
+[MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md).
+
+Build sequence:
+
+1. HealthKit/Firebase sync spike: minimal SwiftUI shell, Firebase Auth,
+   HealthKit read permissions, local daily readiness summarization, and
+   bounded Firestore sync.
+2. Native Today surface: show today's workout, recovery/readiness, calendar
+   availability/freshness, selected action, confidence, and deterministic or
+   bounded-AI explanation.
+3. Bounded mobile intake: keep NLP for explicit schedule, availability, goal,
+   and preference changes, but require review-only drafts and deterministic
+   confirm/apply before plan mutation.
+4. Recovery/check-in loop: capture completion/skipped/effort and manual
+   readiness corrections for stale or missing HealthKit data.
+5. Notifications only if justified: Today-ready, stale-readiness, and
+   check-in reminders only after the core loop proves value.
+
+Acceptance gates:
+
+- No raw HealthKit samples are uploaded.
+- Owner-only Firestore rules and deletion tombstones remain authoritative.
+- Web and iOS do not overwrite each other's user-scoped state incorrectly.
+- Existing deterministic eval gates remain green.
+- Calendar-aware adaptations and mobile NLP drafts cannot apply without
+  deterministic validation.
+- Mobile-originated decisions, intake drafts, validation outcomes, and
+  check-ins are visible through the existing web QA/eval/admin review surfaces.
+- Mobile failures degrade through freshness/confidence rather than invented
+  certainty.
+
+Status: initial isolated iOS source scaffold created under
+`ios/KineticCompanion`; native compile/test still requires macOS/Xcode.
+
+### Validation-Hardening Checkpoint - Updated 2026-07-13
+
+- Reconciled smoke fixtures with the canonical `CurrentPRs` integer-seconds
+  contract through an explicit human-readable minutes conversion helper.
+- Added generated-pace sanity assertions so minute/second regressions fail the
+  suite instead of printing implausible but technically ordered results.
+- Converted calendar-adjuster and calendar-refresh diagnostics into assertions
+  for no-op, swap, shorten, low-priority drop, protected-workout warning,
+  travel downgrade, and travel-recovery removal paths.
+- Extracted the mobile QA event selector and summary contract into shared code,
+  then added a repeatable smoke proving sync, decision, intake, and check-in
+  events flow from the privacy-safe local event log into the web QA model.
+- Full frontend lint, production build, and smoke gates pass. The local preview
+  remains available at `/mobile-companion`, with audit readback at `/qa/mobile`.
+- Native HealthKit/Firebase execution, connected calendar OAuth, live
+  cross-device deletion/readback, and on-device check-in flows remain release
+  gates assigned to the phases documented in `MOBILE_COMPANION_PLAN.md`.

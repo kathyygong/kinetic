@@ -9,7 +9,13 @@ Product requirements live in [PRD.md](./PRD.md), and the execution plan lives in
 For a fast technical review, see [ARCHITECTURE.md](./ARCHITECTURE.md), the
 [five-minute demo script](./DEMO_SCRIPT.md), and the generated
 [deterministic AI eval report](./EVAL_REPORT.md). For beta handoff, see the
-[beta runbook](./BETA_RUNBOOK.md) and [QA matrix](./QA_MATRIX.md).
+[beta runbook](./BETA_RUNBOOK.md) and [QA matrix](./QA_MATRIX.md). The selected
+next product phase is the iOS [Mobile Companion Plan](./MOBILE_COMPANION_PLAN.md),
+with the sync contract in [Mobile Readiness Schema](./MOBILE_READINESS_SCHEMA.md).
+The browser-viewable prototype lives at `/mobile-companion` when the frontend is
+running locally. The first native scaffold lives in
+[`ios/KineticCompanion`](./ios/KineticCompanion/README.md). The mobile audit
+surface lives at `/qa/mobile`.
 
 ## 🏃 The Problem
 Most running apps provide static plans that exist in a vacuum. When life happens (e.g. a late-night meeting, poor sleep, or an unexpected trip) the plan breaks. Users are left to manually adjust their training or, more often, lose consistency and abandon the plan entirely.
@@ -65,7 +71,8 @@ Runtime modes are explicit:
   posture, telemetry privacy coverage, behavior-prompt privacy gates, plan
   safety smoke coverage, final runbook review, and operational rollback
   guidance are complete.
-- [ ] **Later Integrations:** Native mobile app, native/background HealthKit sync, Garmin/Oura ingestion, hosted AI provider option, coach sharing, and push notifications.
+- [ ] **Mobile Companion Proof:** Thin native iOS companion for HealthKit daily readiness summaries, Firebase sync, calendar-aware Today, bounded NLP intake, shared web QA/eval observability, and recovery/check-in loop.
+- [ ] **Later Integrations:** Garmin/Oura ingestion, hosted AI provider option, coach sharing, broad push notifications, and full native plan editing.
 
 Optional live-model verification (requires Ollama and the configured intake
 model) runs two repeatability passes across eight exact-value, no-fallback
