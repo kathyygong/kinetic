@@ -33,7 +33,8 @@ let package = Package(
         .testTarget(
             name: "KineticCompanionTests",
             dependencies: ["KineticCompanion"],
-            path: "Tests"
+            path: "Tests",
+            resources: [.copy("Fixtures")]
         )
     ]
 )

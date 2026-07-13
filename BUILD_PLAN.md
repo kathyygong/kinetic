@@ -877,3 +877,24 @@ Status: initial isolated iOS source scaffold created under
 - Native HealthKit/Firebase execution, connected calendar OAuth, live
   cross-device deletion/readback, and on-device check-in flows remain release
   gates assigned to the phases documented in `MOBILE_COMPANION_PLAN.md`.
+
+### Mobile Contract Preflight - Updated 2026-07-13
+
+- Added one canonical JSON fixture for readiness, health-sync metadata,
+  deletion tombstones, and deterministic conflict outcomes. TypeScript smoke
+  tests and Swift package tests consume the same file.
+- Added strict mobile-boundary validation for physiological bounds, allowed
+  sync enums, envelope semantics, and forbidden raw sample fields without
+  changing the legacy local-storage migration path.
+- Added TypeScript parity for native conflict handling: manual and CSV entries
+  win, fresher HealthKit summaries merge only present biometric fields, and
+  stale HealthKit summaries are rejected.
+- Extended the Firebase emulator gate to write realistic mobile envelopes,
+  deny cross-user readiness and health-sync access, and verify explicit
+  readiness/health-sync tombstones.
+- Frontend lint, production build, full smoke, TypeScript compilation, and the
+  Firebase emulator gate pass on Windows.
+- Native fixture tests are ready but cannot run on this machine because Swift
+  and Xcode are unavailable. The next Mac checkpoint begins with `swift test`,
+  then Firebase package wiring, HealthKit capability/permission proof, and
+  on-device web readback.

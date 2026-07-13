@@ -18,12 +18,20 @@ import {
   getFirestore,
   setDoc,
 } from "firebase/firestore";
+import { loadMobileContractFixtures } from "./smoke-mobile-readiness-contract";
 
 const projectId = "kinetic-rules-test";
 const config = { apiKey: "demo-key", authDomain: "localhost", projectId };
 
 function expect(condition: unknown, message: string) {
   if (!condition) throw new Error(message);
+}
+
+function asDocument(value: unknown, label: string): Record<string, unknown> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new Error(`${label} must be a document object`);
+  }
+  return value as Record<string, unknown>;
 }
 
 async function expectDenied(action: () => Promise<unknown>, label: string) {
@@ -41,6 +49,7 @@ async function expectDenied(action: () => Promise<unknown>, label: string) {
 }
 
 async function main() {
+  const fixtures = loadMobileContractFixtures();
   const appA = initializeApp(config, "rules-a");
   const appB = initializeApp(config, "rules-b");
   const appGuest = initializeApp(config, "rules-guest");
@@ -81,6 +90,27 @@ async function main() {
       "kinetic",
       "health_sync",
     );
+    const ownReadiness = doc(
+      dbA,
+      "users",
+      userA.uid,
+      "kinetic",
+      "readiness",
+    );
+    const foreignReadinessFromB = doc(
+      dbB,
+      "users",
+      userA.uid,
+      "kinetic",
+      "readiness",
+    );
+    const foreignHealthSyncFromB = doc(
+      dbB,
+      "users",
+      userA.uid,
+      "kinetic",
+      "health_sync",
+    );
     const unknownDomainA = doc(
       dbA,
       "users",
@@ -91,21 +121,55 @@ async function main() {
 
     await setDoc(ownA, { schemaVersion: 1, payload: { name: "A" } });
     await setDoc(ownB, { schemaVersion: 1, payload: { name: "B" } });
-    await setDoc(ownHealthSync, {
-      schemaVersion: 1,
-      deleted: false,
-      payload: { provider: "apple_health", schema: "health-sync.v1" },
-    });
+    await setDoc(
+      ownReadiness,
+      asDocument(fixtures.readiness_envelope, "readiness envelope"),
+    );
+    await setDoc(
+      ownHealthSync,
+      asDocument(fixtures.health_sync_envelope, "health sync envelope"),
+    );
     expect((await getDoc(ownA)).exists(), "owner A should read their document");
     expect((await getDoc(ownB)).exists(), "owner B should read their document");
     expect(
       (await getDoc(ownHealthSync)).exists(),
       "owner A should read their mobile health sync document",
     );
+    const readinessSnapshot = await getDoc(ownReadiness);
+    expect(readinessSnapshot.exists(), "owner A should read mobile readiness");
+    expect(
+      readinessSnapshot.data()?.payload?.entries?.["2026-07-12"]?.source ===
+        "healthkit",
+      "mobile readiness should preserve bounded HealthKit provenance",
+    );
     await expectDenied(() => getDoc(foreignAFromB), "cross-user read");
     await expectDenied(
       () => setDoc(foreignAFromB, { payload: { name: "overwrite" } }),
       "cross-user write",
+    );
+    await expectDenied(
+      () => getDoc(foreignReadinessFromB),
+      "cross-user readiness read",
+    );
+    await expectDenied(
+      () =>
+        setDoc(
+          foreignReadinessFromB,
+          asDocument(fixtures.readiness_envelope, "foreign readiness envelope"),
+        ),
+      "cross-user readiness write",
+    );
+    await expectDenied(
+      () => getDoc(foreignHealthSyncFromB),
+      "cross-user health sync read",
+    );
+    await expectDenied(
+      () =>
+        setDoc(
+          foreignHealthSyncFromB,
+          asDocument(fixtures.health_sync_envelope, "foreign health sync envelope"),
+        ),
+      "cross-user health sync write",
     );
     await expectDenied(() => getDoc(guestA), "unauthenticated read");
     await expectDenied(
@@ -113,8 +177,27 @@ async function main() {
       "unknown domain write",
     );
 
+    await setDoc(
+      ownReadiness,
+      asDocument(fixtures.readiness_tombstone, "readiness tombstone"),
+    );
+    await setDoc(
+      ownHealthSync,
+      asDocument(fixtures.health_sync_tombstone, "health sync tombstone"),
+    );
+    const readinessTombstone = (await getDoc(ownReadiness)).data();
+    const healthSyncTombstone = (await getDoc(ownHealthSync)).data();
+    expect(
+      readinessTombstone?.deleted === true && readinessTombstone.payload === null,
+      "owner readiness delete should persist an explicit tombstone",
+    );
+    expect(
+      healthSyncTombstone?.deleted === true && healthSyncTombstone.payload === null,
+      "owner health disconnect should persist an explicit tombstone",
+    );
+
     console.log(
-      "OK - Firestore rules deny unauthenticated, cross-user, and unknown-domain access",
+      "OK - Firestore rules preserve owner-only mobile readiness/health sync data and tombstones",
     );
   } finally {
     await Promise.all([deleteApp(appA), deleteApp(appB), deleteApp(appGuest)]);

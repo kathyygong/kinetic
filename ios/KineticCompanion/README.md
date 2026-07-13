@@ -79,13 +79,21 @@ On macOS with Xcode:
 ## Verification Notes
 
 This scaffold was created on Windows, so native compilation must happen later
-on macOS/Xcode. Keep web validation green while the native spike evolves:
+on macOS/Xcode. `Tests/Fixtures/mobile-readiness-contract.json` is the shared
+wire-contract fixture used by both the frontend smoke suite and Swift tests.
+Keep web validation green while the native spike evolves:
 
 ```powershell
 cd frontend
 npm run lint
 npm run build
 npm run smoke
+```
+
+The Windows Firebase proof can be rerun from the repository root:
+
+```powershell
+npx firebase-tools emulators:exec --only auth,firestore "cd frontend && npm run test:firestore-rules"
 ```
 
 Use the browser prototype at `/mobile-companion` to compare UI intent while
@@ -97,3 +105,7 @@ On macOS, the core package should be testable with:
 cd ios/KineticCompanion
 swift test
 ```
+
+Run `swift test` before creating the Xcode app target. This verifies that the
+native decoder and readiness conflict resolver still match the exact fixtures
+already exercised on Windows.

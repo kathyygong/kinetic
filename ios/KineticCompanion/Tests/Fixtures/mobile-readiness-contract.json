@@ -1,0 +1,185 @@
+{
+  "readiness_envelope": {
+    "schemaVersion": 1,
+    "payload": {
+      "entries": {
+        "2026-07-12": {
+          "date": "2026-07-12",
+          "sleep_hours": 7.4,
+          "hrv": 56,
+          "resting_hr": 49,
+          "source": "healthkit",
+          "updated_at": "2026-07-13T11:05:00Z"
+        }
+      }
+    },
+    "deleted": false,
+    "clientUpdatedAt": "2026-07-13T11:05:02Z"
+  },
+  "health_sync_envelope": {
+    "schemaVersion": 1,
+    "payload": {
+      "provider": "apple_health",
+      "schema": "health-sync.v1",
+      "permission_state": "partial",
+      "metric_permissions": {
+        "sleep": "granted",
+        "hrv": "granted",
+        "resting_hr": "denied"
+      },
+      "last_attempted_sync_at": "2026-07-13T11:05:00Z",
+      "last_successful_sync_at": "2026-07-13T11:05:00Z",
+      "latest_readiness_date": "2026-07-12",
+      "background_delivery": "enabled",
+      "daily_status": {
+        "2026-07-12": {
+          "status": "partial",
+          "confidence": "moderate",
+          "coverage": {
+            "sleep": "complete",
+            "hrv": "complete",
+            "resting_hr": "not_permitted"
+          },
+          "conflict": "none"
+        }
+      },
+      "last_error_code": null
+    },
+    "deleted": false,
+    "clientUpdatedAt": "2026-07-13T11:05:02Z"
+  },
+  "readiness_tombstone": {
+    "schemaVersion": 1,
+    "payload": null,
+    "deleted": true,
+    "clientUpdatedAt": "2026-07-13T12:00:00Z"
+  },
+  "health_sync_tombstone": {
+    "schemaVersion": 1,
+    "payload": null,
+    "deleted": true,
+    "clientUpdatedAt": "2026-07-13T12:00:00Z"
+  },
+  "conflict_cases": [
+    {
+      "name": "first_healthkit_sync",
+      "existing": null,
+      "incoming": {
+        "date": "2026-07-12",
+        "sleep_hours": 7.4,
+        "hrv": 56,
+        "resting_hr": 49,
+        "source": "healthkit",
+        "updated_at": "2026-07-13T11:05:00Z"
+      },
+      "expected": {
+        "conflict": "none",
+        "status": "synced",
+        "entry_to_write": {
+          "date": "2026-07-12",
+          "sleep_hours": 7.4,
+          "hrv": 56,
+          "resting_hr": 49,
+          "source": "healthkit",
+          "updated_at": "2026-07-13T11:05:00Z"
+        }
+      }
+    },
+    {
+      "name": "manual_entry_wins",
+      "existing": {
+        "date": "2026-07-12",
+        "sleep_hours": 6.8,
+        "fatigue_level": 3,
+        "source": "manual",
+        "updated_at": "2026-07-13T10:00:00Z"
+      },
+      "incoming": {
+        "date": "2026-07-12",
+        "sleep_hours": 7.4,
+        "hrv": 56,
+        "source": "healthkit",
+        "updated_at": "2026-07-13T11:05:00Z"
+      },
+      "expected": {
+        "conflict": "manual_wins",
+        "status": "skipped_existing_user_entry",
+        "entry_to_write": null
+      }
+    },
+    {
+      "name": "csv_entry_wins",
+      "existing": {
+        "date": "2026-07-12",
+        "sleep_hours": 7.1,
+        "hrv": 54,
+        "source": "apple_health_csv",
+        "updated_at": "2026-07-13T10:00:00Z"
+      },
+      "incoming": {
+        "date": "2026-07-12",
+        "sleep_hours": 7.4,
+        "hrv": 56,
+        "source": "healthkit",
+        "updated_at": "2026-07-13T11:05:00Z"
+      },
+      "expected": {
+        "conflict": "csv_wins",
+        "status": "skipped_existing_user_entry",
+        "entry_to_write": null
+      }
+    },
+    {
+      "name": "newer_healthkit_merges_only_present_metrics",
+      "existing": {
+        "date": "2026-07-12",
+        "sleep_hours": 6.8,
+        "hrv": 51,
+        "resting_hr": 50,
+        "source": "healthkit",
+        "updated_at": "2026-07-13T10:00:00Z"
+      },
+      "incoming": {
+        "date": "2026-07-12",
+        "sleep_hours": 7.4,
+        "hrv": 56,
+        "source": "healthkit",
+        "updated_at": "2026-07-13T11:05:00Z"
+      },
+      "expected": {
+        "conflict": "healthkit_update",
+        "status": "synced",
+        "entry_to_write": {
+          "date": "2026-07-12",
+          "sleep_hours": 7.4,
+          "hrv": 56,
+          "resting_hr": 50,
+          "source": "healthkit",
+          "updated_at": "2026-07-13T11:05:00Z"
+        }
+      }
+    },
+    {
+      "name": "stale_healthkit_is_rejected",
+      "existing": {
+        "date": "2026-07-12",
+        "sleep_hours": 7.4,
+        "hrv": 56,
+        "source": "healthkit",
+        "updated_at": "2026-07-13T11:05:00Z"
+      },
+      "incoming": {
+        "date": "2026-07-12",
+        "sleep_hours": 6.8,
+        "hrv": 51,
+        "source": "healthkit",
+        "updated_at": "2026-07-13T10:00:00Z"
+      },
+      "expected": {
+        "conflict": "stale_healthkit",
+        "status": "skipped_existing_user_entry",
+        "entry_to_write": null
+      }
+    }
+  ]
+}

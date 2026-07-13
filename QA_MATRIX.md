@@ -14,7 +14,7 @@ the next beta checkpoint.
 | Backend compile | `cd backend && .\.venv\Scripts\python.exe -m compileall app evals` | Required before checkpoint |
 | Backend deterministic gates | `cd backend && .\.venv\Scripts\python.exe -m evals._gates` | Required before checkpoint |
 | Backend smoke | `cd backend && .\.venv\Scripts\python.exe -m evals._smoke` | Required before checkpoint |
-| Firebase rules | `npx firebase-tools emulators:exec --only auth,firestore "cd frontend && npm run test:firestore-rules"` | Required after rules/repository changes |
+| Firebase rules | `npx firebase-tools emulators:exec --only auth,firestore "cd frontend && npm run test:firestore-rules"` | Passed 2026-07-13; owner-only mobile readiness/health-sync access and tombstones asserted |
 | Strict backend auth | signed-in token accepted and anonymous protected requests rejected | Passed in prior release gate; rerun after auth changes |
 | Signed-in responsive UI | desktop and mobile browser QA | Passed in prior release gate; rerun after layout changes |
 | Live Firebase hydration | same signed-in account hydrates across independent sessions | Passed 2026-07-09 |
@@ -30,13 +30,13 @@ the next beta checkpoint.
 | Final runbook review | hosted preflight, rollback, triage, and protected-artifact handling documented | Passed 2026-07-09 |
 | Mobile phase scope | [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md) defines iOS MVP, privacy boundary, phases, and gates | Selected 2026-07-10 |
 | iOS HealthKit permissions | denied, partial, granted, and stale background delivery states handled | Required before mobile beta |
-| iOS readiness sync | [MOBILE_READINESS_SCHEMA.md](./MOBILE_READINESS_SCHEMA.md) contract followed; bounded daily summaries only; no raw HealthKit samples in Firestore | Required before mobile beta |
+| iOS readiness sync | [MOBILE_READINESS_SCHEMA.md](./MOBILE_READINESS_SCHEMA.md) contract followed; bounded daily summaries only; no raw HealthKit samples in Firestore | Shared fixture and Windows validator passed 2026-07-13; native HealthKit execution required before mobile beta |
 | Mobile calendar awareness | Today decisions consume existing calendar availability/freshness and lower confidence on stale/missing calendar data | Required before mobile beta |
 | Mobile NLP intake | review-only drafts, strict-auth rejection when anonymous, deterministic confirm/apply, malformed/ambiguous fallback | Required before mobile beta |
 | Mobile admin/eval observability | `/qa/mobile` shows mobile-originated sync, recommendation, intake, validation, and check-in events from the shared privacy-safe event log | Shared event-log-to-QA contract passed 2026-07-13; native event transport remains required before mobile beta |
-| Mobile/web sync compatibility | web dashboard consumes mobile readiness without unsafe overwrite or confidence drift | Required before mobile beta |
-| Mobile delete/disconnect | synced summaries respect owner-only rules and deletion tombstones across devices | Required before mobile beta |
-| iOS scaffold compile | `cd ios/KineticCompanion && swift test` on macOS/Xcode toolchain | Required before mobile beta |
+| Mobile/web sync compatibility | web dashboard consumes mobile readiness without unsafe overwrite or confidence drift | Shared envelope and five-case conflict parity passed in TypeScript 2026-07-13; live cross-device readback required before mobile beta |
+| Mobile delete/disconnect | synced summaries respect owner-only rules and deletion tombstones across devices | Emulator owner scope and both mobile tombstones passed 2026-07-13; on-device disconnect/full-delete QA remains required |
+| iOS scaffold compile | `cd ios/KineticCompanion && swift test` on macOS/Xcode toolchain | Shared fixture tests authored; Swift unavailable on Windows, so execution remains required before mobile beta |
 
 ## Browser QA notes
 

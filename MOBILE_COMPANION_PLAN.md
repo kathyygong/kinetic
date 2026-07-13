@@ -87,8 +87,25 @@ native SwiftUI shell.
 The first iOS source scaffold lives in `ios/KineticCompanion`. It contains the
 SwiftUI Today surface, schema-aligned Codable models, deterministic readiness
 conflict rules, HealthKit summarization boundary, Firestore sync boundary, and
-a Swift Package manifest for core tests. It still requires macOS/Xcode to
-compile and attach Firebase/HealthKit capabilities.
+a Swift Package manifest for core tests. A canonical JSON fixture is consumed
+by both TypeScript smoke coverage and Swift package tests so the web and native
+contracts cannot drift silently. It still requires macOS/Xcode to compile and
+attach Firebase/HealthKit capabilities.
+
+Windows preflight status, 2026-07-13:
+
+- Shared readiness, health-sync, and tombstone envelopes validate against the
+  bounded mobile contract.
+- TypeScript and Swift tests consume the same five conflict cases: first sync,
+  manual precedence, CSV precedence, fresh HealthKit merge, and stale
+  HealthKit rejection.
+- The Windows TypeScript proof passes, including explicit rejection of a raw
+  HealthKit sample field.
+- Firebase Auth/Firestore emulator coverage passes for owner reads/writes,
+  cross-user denial, unknown-domain denial, and readiness/health-sync
+  tombstones.
+- Swift package tests are authored but remain unexecuted until a macOS/Xcode
+  toolchain is available.
 
 ## Phase 1: HealthKit/Firebase Sync Spike
 
@@ -333,6 +350,11 @@ Safety proof:
 - Freshness/confidence semantics are visible in the UI.
 
 ## Execution Sequence
+
+Current checkpoint: steps 1 and 2 are complete, and the platform-independent
+contract/rules portion of step 3 is complete. The next Mac session starts by
+running the shared Swift tests before adding Firebase packages or HealthKit
+capabilities.
 
 1. Docs-only phase selection: update PRD, build plan, architecture, runbook,
    QA matrix, README, and demo script to name Mobile Companion Proof as the
