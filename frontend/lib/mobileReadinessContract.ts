@@ -104,6 +104,7 @@ const forbiddenKeys = new Set([
 
 export function assertReadinessEnvelope(value: unknown): asserts value is MobileEnvelope<ReadinessLog> {
   const envelope = assertEnvelope(value, "readiness");
+  assertNoForbiddenKeys(value);
   if (envelope.deleted) return;
   assertObject(envelope.payload, "readiness payload");
   assertObject(envelope.payload.entries, "readiness entries");
@@ -111,13 +112,13 @@ export function assertReadinessEnvelope(value: unknown): asserts value is Mobile
     assertReadinessEntry(entry, `readiness entry ${date}`);
     if (entry.date !== date) throw new Error(`readiness entry ${date} has a mismatched date`);
   }
-  assertNoForbiddenKeys(value);
 }
 
 export function assertHealthSyncEnvelope(
   value: unknown,
 ): asserts value is MobileEnvelope<HealthSyncPayload> {
   const envelope = assertEnvelope(value, "health sync");
+  assertNoForbiddenKeys(value);
   if (envelope.deleted) return;
   const payload = envelope.payload;
   assertObject(payload, "health sync payload");
@@ -144,7 +145,6 @@ export function assertHealthSyncEnvelope(
   if (payload.last_error_code !== null && typeof payload.last_error_code !== "string") {
     throw new Error("last_error_code must be a string or null");
   }
-  assertNoForbiddenKeys(value);
 }
 
 export function assertTombstone(value: unknown, label: string): asserts value is MobileEnvelope<never> {

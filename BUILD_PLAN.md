@@ -886,6 +886,9 @@ Status: initial isolated iOS source scaffold created under
 - Added strict mobile-boundary validation for physiological bounds, allowed
   sync enums, envelope semantics, and forbidden raw sample fields without
   changing the legacy local-storage migration path.
+- Added web Firebase hydration validation so mobile-originated `readiness` and
+  `health_sync` envelopes must match the bounded contract before they can
+  update dashboard state.
 - Added TypeScript parity for native conflict handling: manual and CSV entries
   win, fresher HealthKit summaries merge only present biometric fields, and
   stale HealthKit summaries are rejected.

@@ -9,6 +9,7 @@ import {
   type DailySyncStatus,
   type SyncConflict,
 } from "../lib/mobileReadinessContract";
+import { coerceRemoteEnvelope } from "../lib/persistence/remoteDocumentValidation";
 import type { ManualReadiness } from "../lib/readinessStorage";
 
 type ConflictFixture = {
@@ -52,6 +53,14 @@ function main() {
   assertHealthSyncEnvelope(fixtures.health_sync_envelope);
   assertTombstone(fixtures.readiness_tombstone, "readiness tombstone");
   assertTombstone(fixtures.health_sync_tombstone, "health sync tombstone");
+  expect(
+    coerceRemoteEnvelope("readiness", fixtures.readiness_envelope) !== null,
+    "web persistence must accept the canonical mobile readiness envelope",
+  );
+  expect(
+    coerceRemoteEnvelope("health_sync", fixtures.health_sync_envelope) !== null,
+    "web persistence must accept the canonical mobile health sync envelope",
+  );
 
   for (const fixture of fixtures.conflict_cases) {
     if (fixture.existing) assertReadinessEntry(fixture.existing, `${fixture.name}.existing`);
@@ -73,6 +82,10 @@ function main() {
     rejected = true;
   }
   expect(rejected, "raw HealthKit samples must fail contract validation");
+  expect(
+    coerceRemoteEnvelope("readiness", unsafeEnvelope) === null,
+    "web persistence must reject readiness envelopes containing raw samples",
+  );
 
   const outOfBoundsEnvelope = structuredClone(fixtures.readiness_envelope) as {
     payload: { entries: Record<string, Record<string, unknown>> };
@@ -85,6 +98,20 @@ function main() {
     rejected = true;
   }
   expect(rejected, "out-of-range readiness metrics must fail contract validation");
+  expect(
+    coerceRemoteEnvelope("readiness", outOfBoundsEnvelope) === null,
+    "web persistence must reject impossible readiness metrics",
+  );
+
+  expect(
+    coerceRemoteEnvelope("profile", {
+      schemaVersion: 1,
+      payload: { name: "Remote runner" },
+      deleted: false,
+      clientUpdatedAt: new Date().toISOString(),
+    }) !== null,
+    "non-mobile persistence domains should keep generic envelope behavior",
+  );
 
   console.log(
     `OK - mobile readiness contract validated across ${fixtures.conflict_cases.length} deterministic conflict cases`,

@@ -101,6 +101,8 @@ Windows preflight status, 2026-07-13:
   HealthKit rejection.
 - The Windows TypeScript proof passes, including explicit rejection of a raw
   HealthKit sample field.
+- The web Firebase hydration boundary validates mobile-originated `readiness`
+  and `health_sync` envelopes before they can update local dashboard state.
 - Firebase Auth/Firestore emulator coverage passes for owner reads/writes,
   cross-user denial, unknown-domain denial, and readiness/health-sync
   tombstones.
@@ -352,9 +354,9 @@ Safety proof:
 ## Execution Sequence
 
 Current checkpoint: steps 1 and 2 are complete, and the platform-independent
-contract/rules portion of step 3 is complete. The next Mac session starts by
-running the shared Swift tests before adding Firebase packages or HealthKit
-capabilities.
+contract/rules/readback portion of steps 3 and 4 is complete. The next Mac
+session starts by running the shared Swift tests before adding Firebase
+packages or HealthKit capabilities.
 
 1. Docs-only phase selection: update PRD, build plan, architecture, runbook,
    QA matrix, README, and demo script to name Mobile Companion Proof as the
@@ -365,7 +367,9 @@ capabilities.
 3. HealthKit spike: build a minimal SwiftUI app with Firebase sign-in,
    HealthKit permission, local daily summarization, and Firestore write.
 4. Web readback: prove the existing web dashboard consumes mobile readiness
-   summaries and preserves freshness/confidence behavior.
+   summaries and preserves freshness/confidence behavior. The Windows fixture
+   proof now covers hydration acceptance/rejection; live cross-device readback
+   still requires the native HealthKit/Firebase spike.
 5. Native Today: render the deterministic, calendar-aware recommendation from
    shared state and backend `/decision`.
 6. Mobile intake: expose bounded NLP review and deterministic confirm/apply.

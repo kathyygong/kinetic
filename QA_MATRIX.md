@@ -34,7 +34,7 @@ the next beta checkpoint.
 | Mobile calendar awareness | Today decisions consume existing calendar availability/freshness and lower confidence on stale/missing calendar data | Required before mobile beta |
 | Mobile NLP intake | review-only drafts, strict-auth rejection when anonymous, deterministic confirm/apply, malformed/ambiguous fallback | Required before mobile beta |
 | Mobile admin/eval observability | `/qa/mobile` shows mobile-originated sync, recommendation, intake, validation, and check-in events from the shared privacy-safe event log | Shared event-log-to-QA contract passed 2026-07-13; native event transport remains required before mobile beta |
-| Mobile/web sync compatibility | web dashboard consumes mobile readiness without unsafe overwrite or confidence drift | Shared envelope and five-case conflict parity passed in TypeScript 2026-07-13; live cross-device readback required before mobile beta |
+| Mobile/web sync compatibility | web dashboard consumes mobile readiness without unsafe overwrite or confidence drift | Shared envelope, five-case conflict parity, and web hydration acceptance/rejection passed in TypeScript 2026-07-13; live cross-device readback required before mobile beta |
 | Mobile delete/disconnect | synced summaries respect owner-only rules and deletion tombstones across devices | Emulator owner scope and both mobile tombstones passed 2026-07-13; on-device disconnect/full-delete QA remains required |
 | iOS scaffold compile | `cd ios/KineticCompanion && swift test` on macOS/Xcode toolchain | Shared fixture tests authored; Swift unavailable on Windows, so execution remains required before mobile beta |
 

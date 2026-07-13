@@ -15,6 +15,7 @@ import {
   type RemoteDocumentStore,
   type StorageRepository,
 } from "@/lib/persistence/storageRepository";
+import { coerceRemoteEnvelope } from "@/lib/persistence/remoteDocumentValidation";
 import {
   captureLocalCacheSnapshot,
   claimLocalCacheForUser,
@@ -61,17 +62,7 @@ const firestoreStore: RemoteDocumentStore = {
   async read<T>(userId: string, domain: PersistenceDomain) {
     const snapshot = await getDoc(doc(db, "users", userId, "kinetic", domain));
     if (!snapshot.exists()) return null;
-    const data = snapshot.data();
-    if (data.schemaVersion !== 1 || typeof data.deleted !== "boolean") {
-      return null;
-    }
-    return {
-      schemaVersion: 1,
-      payload: (data.payload ?? null) as T | null,
-      deleted: data.deleted,
-      clientUpdatedAt:
-        typeof data.clientUpdatedAt === "string" ? data.clientUpdatedAt : "",
-    };
+    return coerceRemoteEnvelope(domain, snapshot.data()) as PersistedEnvelope<T> | null;
   },
 
   async write<T>(
