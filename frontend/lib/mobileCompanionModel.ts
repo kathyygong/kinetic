@@ -1,3 +1,10 @@
+import type { LearnedPreference } from "./behaviorTypes";
+import type { HealthSyncPayload } from "./mobileReadinessContract";
+import type { ReadinessLog, ManualReadiness } from "./readinessStorage";
+import type { SavedPlan } from "./storage";
+import type { Goal, UserProfile } from "./types";
+import type { WorkoutLogEntry } from "./workoutLog";
+
 export type SyncState = "synced" | "stale" | "denied";
 export type CalendarState = "clear" | "conflict" | "stale";
 export type WorkoutStatus = "pending" | "accepted" | "checked_in" | "completed" | "skipped";
@@ -36,6 +43,38 @@ export type MobileDecision = {
   meta: string;
   primary: string;
   reasons: string[];
+};
+
+export type MobileTodayDomainContext = {
+  profile?: UserProfile | null;
+  goal?: Goal | null;
+  savedPlan?: SavedPlan | null;
+  readinessLog?: ReadinessLog | null;
+  healthSync?: HealthSyncPayload | null;
+  calendar?: {
+    ageHours: number | null;
+    availableMinutesToday?: number | null;
+    unhealthy?: boolean;
+  };
+  learnedPreferences?: LearnedPreference[];
+  workoutLog?: WorkoutLogEntry[];
+  now?: Date | string;
+};
+
+export type MobileTodayDataSnapshot = {
+  syncState: SyncState;
+  calendarState: CalendarState;
+  decision: MobileDecision;
+  sourceSummary: {
+    hasProfile: boolean;
+    hasGoal: boolean;
+    hasSavedPlan: boolean;
+    healthPermissionState: HealthSyncPayload["permission_state"] | "missing";
+    latestReadinessDate: string | null;
+    readinessSource: ManualReadiness["source"] | "missing";
+    learnedPreferenceCount: number;
+    workoutHistoryCount: number;
+  };
 };
 
 export const SCENARIOS: Record<SyncState, Scenario> = {
@@ -188,6 +227,81 @@ export function buildMobileDecision(
   };
 }
 
+export function buildMobileTodayDataSnapshot(
+  context: MobileTodayDomainContext,
+): MobileTodayDataSnapshot {
+  const syncState = resolveSyncState(context);
+  const calendarState = resolveCalendarState(context);
+  const latestReadiness = latestReadinessEntry(context.readinessLog);
+
+  return {
+    syncState,
+    calendarState,
+    decision: buildMobileDecision(syncState, calendarState),
+    sourceSummary: {
+      hasProfile: Boolean(context.profile),
+      hasGoal: Boolean(context.goal),
+      hasSavedPlan: Boolean(context.savedPlan?.weeks?.length),
+      healthPermissionState: context.healthSync?.permission_state ?? "missing",
+      latestReadinessDate: latestReadiness?.date ?? null,
+      readinessSource: latestReadiness?.source ?? "missing",
+      learnedPreferenceCount: context.learnedPreferences?.length ?? 0,
+      workoutHistoryCount: context.workoutLog?.length ?? 0,
+    },
+  };
+}
+
+export function resolveSyncState(context: MobileTodayDomainContext): SyncState {
+  const healthSync = context.healthSync;
+  if (
+    !healthSync ||
+    healthSync.permission_state === "denied" ||
+    healthSync.permission_state === "not_determined"
+  ) {
+    return "denied";
+  }
+
+  const latestDate = healthSync.latest_readiness_date;
+  const status = latestDate ? healthSync.daily_status[latestDate] : undefined;
+  const successAge = hoursSince(healthSync.last_successful_sync_at, context.now);
+  const latestReadiness = latestReadinessEntry(context.readinessLog);
+  const latestReadinessAge = hoursSince(latestReadiness?.updated_at, context.now);
+  const hasFreshHealthKitReadiness =
+    latestReadiness?.source === "healthkit" &&
+    latestReadinessAge !== null &&
+    latestReadinessAge <= 24;
+
+  if (
+    hasFreshHealthKitReadiness &&
+    successAge !== null &&
+    successAge <= 24 &&
+    status &&
+    (status.status === "synced" || status.status === "partial")
+  ) {
+    return "synced";
+  }
+
+  return "stale";
+}
+
+export function resolveCalendarState(
+  context: MobileTodayDomainContext,
+): CalendarState {
+  const calendar = context.calendar;
+  if (!calendar || calendar.unhealthy || calendar.ageHours === null || calendar.ageHours > 24) {
+    return "stale";
+  }
+
+  if (
+    typeof calendar.availableMinutesToday === "number" &&
+    calendar.availableMinutesToday <= 30
+  ) {
+    return "conflict";
+  }
+
+  return "clear";
+}
+
 export function confidenceBucketFor(state: SyncState): "low" | "moderate" | "high" {
   if (state === "synced") return "high";
   if (state === "stale") return "moderate";
@@ -209,4 +323,24 @@ export function selectedActionFor(
   if (syncState === "denied") return "unknown";
   if (calendarState !== "clear" || syncState === "stale") return "modify";
   return "proceed";
+}
+
+function latestReadinessEntry(log: ReadinessLog | null | undefined): ManualReadiness | null {
+  if (!log) return null;
+  let latest: ManualReadiness | null = null;
+  for (const entry of Object.values(log.entries)) {
+    if (!latest || entry.updated_at > latest.updated_at) latest = entry;
+  }
+  return latest;
+}
+
+function hoursSince(
+  iso: string | null | undefined,
+  now: Date | string | undefined,
+): number | null {
+  if (!iso) return null;
+  const thenMs = Date.parse(iso);
+  const nowMs = now ? new Date(now).getTime() : Date.now();
+  if (!Number.isFinite(thenMs) || !Number.isFinite(nowMs)) return null;
+  return Math.max(0, (nowMs - thenMs) / (1000 * 60 * 60));
 }

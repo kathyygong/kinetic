@@ -81,8 +81,10 @@ review the mobile-first Today hierarchy, HealthKit sync states, calendar
 freshness/conflict states, bounded AI intake review, deterministic validation
 language, check-in actions, and notification candidate before building the
 native SwiftUI shell. The Today decision model is covered by the default
-frontend smoke suite, and the prototype also exposes stable test hooks plus an
-optional `npm run smoke:mobile-browser` gate for visual/e2e browser coverage.
+frontend smoke suite, including profile, goal, saved plan, readiness,
+health-sync freshness, calendar freshness, preferences, and workout-history
+inputs. The prototype also exposes stable test hooks plus an optional
+`npm run smoke:mobile-browser` gate for visual/e2e browser coverage.
 
 ## Native Scaffold
 

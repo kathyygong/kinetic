@@ -896,6 +896,11 @@ Status: initial isolated iOS source scaffold created under
 - Extracted the mobile companion Today decision model into shared frontend code
   and added it to the default smoke suite so P0 readiness/calendar/intake
   behavior is covered without requiring browser binaries.
+- Extended that model around the actual authenticated web domains the native
+  app will inherit: profile, goal, saved plan, readiness, health-sync metadata,
+  calendar freshness, learned preferences, and workout history. This keeps
+  Windows-side work useful without pretending native HealthKit execution has
+  happened.
 - Added TypeScript parity for native conflict handling: manual and CSV entries
   win, fresher HealthKit summaries merge only present biometric fields, and
   stale HealthKit summaries are rejected.
