@@ -348,7 +348,10 @@ export default function MobileCompanionPrototype() {
   };
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#dbeafe,transparent_32%),linear-gradient(135deg,#f8fafc,#eef6ff_46%,#f8fafc)] text-neutral-950">
+    <main
+      data-testid="mobile-companion-root"
+      className="min-h-screen bg-[radial-gradient(circle_at_top_left,#dbeafe,transparent_32%),linear-gradient(135deg,#f8fafc,#eef6ff_46%,#f8fafc)] text-neutral-950"
+    >
       <div className="mx-auto grid min-h-screen w-full max-w-7xl gap-8 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(18rem,0.85fr)_minmax(24rem,1.15fr)] lg:items-center lg:py-10">
         <section className="order-2 lg:order-1">
           <div className="mb-8 flex items-center gap-3">
@@ -369,6 +372,7 @@ export default function MobileCompanionPrototype() {
                 <button
                   key={state}
                   type="button"
+                  data-testid={`mobile-health-${state}`}
                   onClick={() => handleSyncStateChange(state)}
                   className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left text-sm transition ${
                     syncState === state
@@ -387,6 +391,7 @@ export default function MobileCompanionPrototype() {
                 <button
                   key={state}
                   type="button"
+                  data-testid={`mobile-calendar-${state}`}
                   onClick={() => handleCalendarStateChange(state)}
                   className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left text-sm transition ${
                     calendarState === state
@@ -404,6 +409,7 @@ export default function MobileCompanionPrototype() {
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
+                  data-testid="mobile-intake-preview"
                   onClick={handlePreviewIntake}
                   className="rounded-lg border border-white/80 bg-white/75 px-3 py-3 text-sm font-medium text-neutral-800 transition hover:border-blue-200 hover:bg-blue-50"
                 >
@@ -411,6 +417,7 @@ export default function MobileCompanionPrototype() {
                 </button>
                 <button
                   type="button"
+                  data-testid="mobile-intake-validate"
                   onClick={handleValidateIntake}
                   className="rounded-lg border border-white/80 bg-white/75 px-3 py-3 text-sm font-medium text-neutral-800 transition hover:border-emerald-200 hover:bg-emerald-50"
                 >
@@ -419,7 +426,10 @@ export default function MobileCompanionPrototype() {
               </div>
             </ControlGroup>
 
-            <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-900">
+            <div
+              data-testid="mobile-intake-status"
+              className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-900"
+            >
               {INTAKE_COPY[intakeStatus]}
             </div>
 
@@ -427,6 +437,7 @@ export default function MobileCompanionPrototype() {
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
+                  data-testid="mobile-checkin-accept"
                   onClick={handleAccept}
                   className="rounded-lg border border-white/80 bg-white/75 px-3 py-3 text-sm font-medium text-neutral-800 transition hover:border-blue-200 hover:bg-blue-50"
                 >
@@ -434,6 +445,7 @@ export default function MobileCompanionPrototype() {
                 </button>
                 <button
                   type="button"
+                  data-testid="mobile-checkin-complete"
                   onClick={handleComplete}
                   className="rounded-lg border border-white/80 bg-white/75 px-3 py-3 text-sm font-medium text-neutral-800 transition hover:border-emerald-200 hover:bg-emerald-50"
                 >
@@ -441,6 +453,7 @@ export default function MobileCompanionPrototype() {
                 </button>
                 <button
                   type="button"
+                  data-testid="mobile-checkin-skip"
                   onClick={handleSkip}
                   className="rounded-lg border border-white/80 bg-white/75 px-3 py-3 text-sm font-medium text-neutral-800 transition hover:border-amber-200 hover:bg-amber-50"
                 >
@@ -448,6 +461,7 @@ export default function MobileCompanionPrototype() {
                 </button>
                 <button
                   type="button"
+                  data-testid="mobile-checkin-reset"
                   onClick={() => setStatus("pending")}
                   className="rounded-lg border border-white/80 bg-white/75 px-3 py-3 text-sm font-medium text-neutral-800 transition hover:border-neutral-300 hover:bg-white"
                 >
@@ -456,13 +470,17 @@ export default function MobileCompanionPrototype() {
               </div>
             </ControlGroup>
 
-            <div className={`rounded-lg border px-4 py-3 text-sm font-medium ${statusTone}`}>
+            <div
+              data-testid="mobile-checkin-status"
+              className={`rounded-lg border px-4 py-3 text-sm font-medium ${statusTone}`}
+            >
               {STATUS_COPY[status]}
             </div>
 
             <ControlGroup title="Notification candidate">
               <button
                 type="button"
+                data-testid="mobile-notification-toggle"
                 onClick={() => setNotificationOn((value) => !value)}
                 className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 text-sm transition ${
                   notificationOn
@@ -582,7 +600,7 @@ function TodayScreen({
               Morning check
             </p>
             <h2 className="mt-2 text-3xl font-semibold tracking-normal text-neutral-950">
-              {scenario.readinessLabel}
+              <span data-testid="mobile-readiness-label">{scenario.readinessLabel}</span>
             </h2>
           </div>
           <div className="rounded-full border border-white bg-white/85 px-3 py-2 text-right shadow-sm">
@@ -618,9 +636,11 @@ function TodayScreen({
               Recommendation
             </p>
             <h3 className="mt-2 text-2xl font-semibold tracking-normal text-neutral-950">
-              {decision.title}
+              <span data-testid="mobile-decision-title">{decision.title}</span>
             </h3>
-            <p className="mt-1 text-sm text-neutral-600">{decision.meta}</p>
+            <p data-testid="mobile-decision-meta" className="mt-1 text-sm text-neutral-600">
+              {decision.meta}
+            </p>
           </div>
           <Dumbbell className="mt-1 text-blue-600" size={24} />
         </div>
@@ -633,17 +653,22 @@ function TodayScreen({
 
         <div className="mt-4 flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-3 text-sm text-blue-950">
           <SyncIcon size={17} className="shrink-0 text-blue-700" />
-          <span className="font-medium">{scenario.syncPill}</span>
+          <span data-testid="mobile-health-pill" className="font-medium">
+            {scenario.syncPill}
+          </span>
         </div>
         <div className="mt-2 flex items-center gap-2 rounded-xl bg-white px-3 py-3 text-sm text-neutral-800">
           <CalendarDays size={17} className="shrink-0 text-blue-700" />
-          <span className="font-medium">{calendar.pill}</span>
+          <span data-testid="mobile-calendar-pill" className="font-medium">
+            {calendar.pill}
+          </span>
         </div>
 
         <div className="mt-4 grid grid-cols-[1fr_auto] gap-2">
           <button
             type="button"
             onClick={syncState === "denied" ? onCheckIn : onAccept}
+            data-testid="mobile-primary-action"
             className="rounded-xl bg-neutral-950 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-neutral-950/12 transition hover:bg-blue-950"
           >
             {decision.primary}

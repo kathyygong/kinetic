@@ -889,6 +889,10 @@ Status: initial isolated iOS source scaffold created under
 - Added web Firebase hydration validation so mobile-originated `readiness` and
   `health_sync` envelopes must match the bounded contract before they can
   update dashboard state.
+- Added stable `/mobile-companion` browser test hooks plus an optional
+  `smoke:mobile-browser` script for the readiness, calendar, intake, check-in,
+  and notification state matrix. The command requires Playwright in the
+  frontend environment.
 - Added TypeScript parity for native conflict handling: manual and CSV entries
   win, fresher HealthKit summaries merge only present biometric fields, and
   stale HealthKit summaries are rejected.

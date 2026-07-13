@@ -16,6 +16,11 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+For the mobile companion prototype, start the frontend and open
+`/mobile-companion`. When Playwright is installed in the frontend environment,
+run `npm run smoke:mobile-browser` to exercise the readiness, calendar, intake,
+check-in, and notification state matrix against the running page.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

@@ -80,7 +80,9 @@ not a production training surface and does not touch user state. Use it to
 review the mobile-first Today hierarchy, HealthKit sync states, calendar
 freshness/conflict states, bounded AI intake review, deterministic validation
 language, check-in actions, and notification candidate before building the
-native SwiftUI shell.
+native SwiftUI shell. The prototype exposes stable test hooks and an optional
+`npm run smoke:mobile-browser` gate for the readiness, calendar, intake,
+check-in, and notification state matrix.
 
 ## Native Scaffold
 
