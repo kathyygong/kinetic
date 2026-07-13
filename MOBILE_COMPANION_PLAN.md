@@ -94,7 +94,8 @@ conflict rules, HealthKit summarization boundary, Firestore sync boundary, and
 a Swift Package manifest for core tests. A canonical JSON fixture is consumed
 by both TypeScript smoke coverage and Swift package tests so the web and native
 contracts cannot drift silently. It still requires macOS/Xcode to compile and
-attach Firebase/HealthKit capabilities.
+attach Firebase/HealthKit capabilities. The first Mac execution checklist lives
+in [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md).
 
 Windows preflight status, 2026-07-13:
 
@@ -358,9 +359,10 @@ Safety proof:
 ## Execution Sequence
 
 Current checkpoint: steps 1 and 2 are complete, and the platform-independent
-contract/rules/readback portion of steps 3 and 4 is complete. The next Mac
-session starts by running the shared Swift tests before adding Firebase
-packages or HealthKit capabilities.
+contract/rules/readback portion of steps 3 and 4 is complete. The Mac handoff
+checklist is complete in [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md). The
+next Mac session starts by running the shared Swift tests before adding
+Firebase packages or HealthKit capabilities.
 
 1. Docs-only phase selection: update PRD, build plan, architecture, runbook,
    QA matrix, README, and demo script to name Mobile Companion Proof as the

@@ -29,6 +29,7 @@ the next beta checkpoint.
 | Behavior prompt privacy | raw workout notes excluded before AI narration | Covered by backend deterministic gates |
 | Final runbook review | hosted preflight, rollback, triage, and protected-artifact handling documented | Passed 2026-07-09 |
 | Mobile phase scope | [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md) defines iOS MVP, privacy boundary, phases, and gates | Selected 2026-07-10 |
+| Mobile Mac handoff | [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md) defines the first macOS/Xcode execution checklist and stop-line for Windows-only work | Authored 2026-07-13 |
 | iOS HealthKit permissions | denied, partial, granted, and stale background delivery states handled | Required before mobile beta |
 | iOS readiness sync | [MOBILE_READINESS_SCHEMA.md](./MOBILE_READINESS_SCHEMA.md) contract followed; bounded daily summaries only; no raw HealthKit samples in Firestore | Shared fixture and Windows validator passed 2026-07-13; native HealthKit execution required before mobile beta |
 | Mobile calendar awareness | Today decisions consume existing calendar availability/freshness and lower confidence on stale/missing calendar data | Required before mobile beta |

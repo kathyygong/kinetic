@@ -6,6 +6,11 @@ scaffold proves the mobile-only loop around HealthKit readiness,
 calendar-aware Today decisions, bounded intake review, Firebase sync, and
 check-in.
 
+Use the repository-level `MOBILE_MAC_HANDOFF.md` before starting the first
+macOS/Xcode session. It contains the exact stop-line, setup gates, and manual
+QA matrix for turning this scaffold into the Phase 1 HealthKit/Firebase sync
+spike.
+
 ## What This Is
 
 - SwiftUI source for the Today surface.

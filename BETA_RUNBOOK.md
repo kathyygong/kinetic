@@ -20,7 +20,8 @@ Garmin/Oura ingestion, hosted AI, broad push notifications, coach sharing, or
 autonomous AI plan mutation without another explicit product decision.
 
 The mobile phase plan lives in
-[MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md).
+[MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md). The first native
+execution checklist lives in [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md).
 
 ## Environment posture
 
@@ -115,29 +116,31 @@ Before sending a hosted beta link:
 
 Before inviting mobile beta users:
 
-1. Confirm the iOS app uses the same Firebase project and UID ownership model.
-2. Confirm HealthKit permission copy names the specific read types and explains
+1. Complete the Mac handoff gates in
+   [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md).
+2. Confirm the iOS app uses the same Firebase project and UID ownership model.
+3. Confirm HealthKit permission copy names the specific read types and explains
    that raw samples stay on device.
-3. Confirm Firestore contains bounded daily readiness summaries only, not raw
+4. Confirm Firestore contains bounded daily readiness summaries only, not raw
    HealthKit samples. Use
    [MOBILE_READINESS_SCHEMA.md](./MOBILE_READINESS_SCHEMA.md) as the contract.
-4. Confirm the web dashboard can consume mobile readiness summaries and still
+5. Confirm the web dashboard can consume mobile readiness summaries and still
    shows freshness/confidence accurately.
-5. Confirm mobile Today consumes existing calendar availability/freshness and
+6. Confirm mobile Today consumes existing calendar availability/freshness and
    lowers confidence when calendar data is stale, missing, or unavailable.
-6. Confirm bounded mobile natural-language intake uses review-only drafts,
+7. Confirm bounded mobile natural-language intake uses review-only drafts,
    rejects anonymous requests under strict auth, and cannot apply without
    deterministic validation.
-7. Confirm existing web admin/QA/eval review surfaces can inspect
+8. Confirm existing web admin/QA/eval review surfaces can inspect
    mobile-originated decisions, intake drafts, validation outcomes, check-ins,
    and privacy-safe telemetry. Use `/qa/mobile` for the local web audit view.
-8. Confirm denied, partial, stale, offline, signed-out, and delete-pending
+9. Confirm denied, partial, stale, offline, signed-out, and delete-pending
    states have visible fallbacks.
-9. Confirm owner-only Firestore rules and emulator tests cover any new mobile
+10. Confirm owner-only Firestore rules and emulator tests cover any new mobile
    sync domain.
-10. Confirm delete/disconnect stops future mobile sync and respects tombstones
+11. Confirm delete/disconnect stops future mobile sync and respects tombstones
    across web and iOS.
-11. Confirm existing deterministic backend gates still pass after any mobile
+12. Confirm existing deterministic backend gates still pass after any mobile
    schema or decision-input changes.
 
 ## Live Firebase persistence QA
