@@ -80,9 +80,9 @@ not a production training surface and does not touch user state. Use it to
 review the mobile-first Today hierarchy, HealthKit sync states, calendar
 freshness/conflict states, bounded AI intake review, deterministic validation
 language, check-in actions, and notification candidate before building the
-native SwiftUI shell. The prototype exposes stable test hooks and an optional
-`npm run smoke:mobile-browser` gate for the readiness, calendar, intake,
-check-in, and notification state matrix.
+native SwiftUI shell. The Today decision model is covered by the default
+frontend smoke suite, and the prototype also exposes stable test hooks plus an
+optional `npm run smoke:mobile-browser` gate for visual/e2e browser coverage.
 
 ## Native Scaffold
 

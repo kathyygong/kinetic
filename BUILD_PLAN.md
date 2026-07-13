@@ -893,6 +893,9 @@ Status: initial isolated iOS source scaffold created under
   `smoke:mobile-browser` script for the readiness, calendar, intake, check-in,
   and notification state matrix. The command requires Playwright in the
   frontend environment.
+- Extracted the mobile companion Today decision model into shared frontend code
+  and added it to the default smoke suite so P0 readiness/calendar/intake
+  behavior is covered without requiring browser binaries.
 - Added TypeScript parity for native conflict handling: manual and CSV entries
   win, fresher HealthKit summaries merge only present biometric fields, and
   stale HealthKit summaries are rejected.

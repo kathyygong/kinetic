@@ -24,149 +24,23 @@ import KineticLogo from "@/components/KineticLogo";
 import MetricArc from "@/components/MetricArc";
 import PhoneFrame from "@/components/PhoneFrame";
 import { trackProductEvent } from "@/lib/instrumentation";
-
-type SyncState = "synced" | "stale" | "denied";
-type CalendarState = "clear" | "conflict" | "stale";
-type WorkoutStatus = "pending" | "accepted" | "checked_in" | "completed" | "skipped";
-type IntakeStatus = "idle" | "drafted" | "applied";
-
-type Scenario = {
-  label: string;
-  syncPill: string;
-  readinessLabel: string;
-  confidenceLabel: string;
-  confidenceValue: number;
-  recoveryValue: number;
-  recoveryTone: "emerald" | "amber" | "rose";
-  workoutTitle: string;
-  workoutMeta: string;
-  primaryCopy: string;
-  reasoning: string[];
-  metrics: Array<{
-    label: string;
-    value: string;
-    state: "good" | "warn" | "muted";
-  }>;
-  privacy: string;
-};
-
-type CalendarContext = {
-  label: string;
-  pill: string;
-  title: string;
-  detail: string;
-  state: "good" | "warn" | "muted";
-};
-
-const SCENARIOS: Record<SyncState, Scenario> = {
-  synced: {
-    label: "Synced",
-    syncPill: "Health synced 8:12 AM",
-    readinessLabel: "Ready",
-    confidenceLabel: "High confidence",
-    confidenceValue: 0.78,
-    recoveryValue: 0.84,
-    recoveryTone: "emerald",
-    workoutTitle: "Tempo intervals",
-    workoutMeta: "42 min · 5.1 mi · quality day",
-    primaryCopy: "Run the planned session",
-    reasoning: [
-      "Sleep and HRV are inside your recent baseline.",
-      "No stale data warnings are active.",
-      "The quality session still fits the block.",
-    ],
-    metrics: [
-      { label: "Sleep", value: "7h 28m", state: "good" },
-      { label: "HRV", value: "54 ms", state: "good" },
-      { label: "Resting HR", value: "49 bpm", state: "good" },
-    ],
-    privacy: "Daily summary only. Raw HealthKit samples stay on device.",
-  },
-  stale: {
-    label: "Stale",
-    syncPill: "Health last synced yesterday",
-    readinessLabel: "Caution",
-    confidenceLabel: "Moderate confidence",
-    confidenceValue: 0.54,
-    recoveryValue: 0.66,
-    recoveryTone: "amber",
-    workoutTitle: "Short aerobic run",
-    workoutMeta: "30 min · easy effort",
-    primaryCopy: "Use the scaled option",
-    reasoning: [
-      "Readiness is more than a day old.",
-      "Kinetic reduces certainty instead of guessing.",
-      "The aerobic option protects the training rhythm.",
-    ],
-    metrics: [
-      { label: "Sleep", value: "stale", state: "warn" },
-      { label: "HRV", value: "stale", state: "warn" },
-      { label: "Resting HR", value: "51 bpm", state: "muted" },
-    ],
-    privacy: "Open the app to refresh HealthKit before trusting harder work.",
-  },
-  denied: {
-    label: "Denied",
-    syncPill: "Health permission needed",
-    readinessLabel: "Unknown",
-    confidenceLabel: "Low confidence",
-    confidenceValue: 0.38,
-    recoveryValue: 0.5,
-    recoveryTone: "rose",
-    workoutTitle: "Manual check-in first",
-    workoutMeta: "2 min · sleep, fatigue, soreness",
-    primaryCopy: "Log readiness",
-    reasoning: [
-      "Kinetic has no fresh HealthKit signal.",
-      "Manual readiness is the safest next input.",
-      "The plan will not change until deterministic validation runs.",
-    ],
-    metrics: [
-      { label: "Sleep", value: "not shared", state: "muted" },
-      { label: "HRV", value: "not shared", state: "muted" },
-      { label: "Resting HR", value: "not shared", state: "muted" },
-    ],
-    privacy: "Granting access reads summaries locally; raw samples are not uploaded.",
-  },
-};
-
-const CALENDAR_CONTEXTS: Record<CalendarState, CalendarContext> = {
-  clear: {
-    label: "Clear",
-    pill: "Calendar clear until 11:30 AM",
-    title: "Planned slot available",
-    detail: "Tempo still fits before the first meeting.",
-    state: "good",
-  },
-  conflict: {
-    label: "Conflict",
-    pill: "Calendar conflict at 8:45 AM",
-    title: "30 min window today",
-    detail: "Kinetic should scale the session before it asks for effort.",
-    state: "warn",
-  },
-  stale: {
-    label: "Stale",
-    pill: "Calendar not refreshed",
-    title: "Schedule confidence low",
-    detail: "Review the schedule before accepting a harder workout.",
-    state: "muted",
-  },
-};
-
-const STATUS_COPY: Record<WorkoutStatus, string> = {
-  pending: "No action saved yet",
-  accepted: "Workout accepted for today",
-  checked_in: "Manual readiness captured for today",
-  completed: "Completed and ready for review",
-  skipped: "Skipped without changing the plan",
-};
-
-const INTAKE_COPY: Record<IntakeStatus, string> = {
-  idle: "No schedule update drafted",
-  drafted: "AI parsed a review-only schedule draft",
-  applied: "Draft applied after deterministic validation",
-};
+import {
+  buildMobileDecision,
+  CALENDAR_CONTEXTS,
+  confidenceBucketFor,
+  INTAKE_COPY,
+  readinessStateFor,
+  SCENARIOS,
+  selectedActionFor,
+  STATUS_COPY,
+  type CalendarContext,
+  type CalendarState,
+  type IntakeStatus,
+  type MobileDecision,
+  type Scenario,
+  type SyncState,
+  type WorkoutStatus,
+} from "@/lib/mobileCompanionModel";
 
 export default function MobileCompanionPrototype() {
   const [syncState, setSyncState] = useState<SyncState>("synced");
@@ -177,40 +51,10 @@ export default function MobileCompanionPrototype() {
   const scenario = SCENARIOS[syncState];
   const calendar = CALENDAR_CONTEXTS[calendarState];
 
-  const decision = useMemo(() => {
-    if (calendarState === "conflict") {
-      return {
-        title: syncState === "denied" ? "Manual check-in first" : "Scale to 30 min easy",
-        meta: syncState === "denied" ? "2 min · then adapt safely" : "30 min · aerobic · preserves load cap",
-        primary: syncState === "denied" ? "Log readiness" : "Apply safe adjustment",
-        reasons: [
-          "Calendar leaves only a 30 min training window.",
-          "The deterministic engine keeps weekly load inside bounds.",
-          ...scenario.reasoning,
-        ],
-      };
-    }
-
-    if (calendarState === "stale") {
-      return {
-        title: syncState === "denied" ? "Manual check-in first" : "Confirm schedule first",
-        meta: syncState === "denied" ? "2 min · readiness fallback" : "Calendar stale · no unsafe mutation",
-        primary: syncState === "denied" ? "Log readiness" : "Review schedule",
-        reasons: [
-          "Calendar freshness is low, so Kinetic does not invent availability.",
-          "The current plan stays unchanged until the schedule is confirmed.",
-          ...scenario.reasoning,
-        ],
-      };
-    }
-
-    return {
-      title: scenario.workoutTitle,
-      meta: scenario.workoutMeta,
-      primary: scenario.primaryCopy,
-      reasons: scenario.reasoning,
-    };
-  }, [calendarState, scenario, syncState]);
+  const decision = useMemo(
+    () => buildMobileDecision(syncState, calendarState),
+    [calendarState, syncState],
+  );
 
   const statusTone = useMemo(() => {
     if (status === "completed") return "text-emerald-700 bg-emerald-50 border-emerald-200";
@@ -552,12 +396,7 @@ function TodayScreen({
 }: {
   scenario: Scenario;
   calendar: CalendarContext;
-  decision: {
-    title: string;
-    meta: string;
-    primary: string;
-    reasons: string[];
-  };
+  decision: MobileDecision;
   syncState: SyncState;
   status: WorkoutStatus;
   intakeStatus: IntakeStatus;
@@ -811,27 +650,4 @@ function ControlGroup({
       <div className="space-y-2">{children}</div>
     </div>
   );
-}
-
-function confidenceBucketFor(state: SyncState): "low" | "moderate" | "high" {
-  if (state === "synced") return "high";
-  if (state === "stale") return "moderate";
-  return "low";
-}
-
-function readinessStateFor(
-  state: SyncState,
-): "ready" | "caution" | "unknown" | "stale" {
-  if (state === "synced") return "ready";
-  if (state === "stale") return "stale";
-  return "unknown";
-}
-
-function selectedActionFor(
-  syncState: SyncState,
-  calendarState: CalendarState,
-): "proceed" | "modify" | "rest" | "unknown" {
-  if (syncState === "denied") return "unknown";
-  if (calendarState !== "clear" || syncState === "stale") return "modify";
-  return "proceed";
 }
