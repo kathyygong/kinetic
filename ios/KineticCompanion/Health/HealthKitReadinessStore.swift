@@ -4,14 +4,17 @@ import Foundation
 import HealthKit
 #endif
 
-struct HealthKitReadinessSummary {
-    var entry: ReadinessEntry
+struct HealthKitReadinessSummary: Equatable {
+    var date: String
+    var entry: ReadinessEntry?
+    var permissionState: PermissionState
+    var metricPermissions: [String: MetricPermission]
     var dailyStatus: DailyHealthSyncStatus
+    var lastErrorCode: String?
 }
 
 enum HealthKitReadinessError: Error {
     case unavailable
-    case permissionDenied
     case noSupportedMetrics
 }
 
@@ -23,6 +26,7 @@ protocol ReadinessProviding {
 final class HealthKitReadinessStore: ReadinessProviding {
     #if canImport(HealthKit)
     private let store = HKHealthStore()
+    private var authorizationRequestState = PermissionState.notDetermined
     #endif
 
     func requestAuthorization() async throws -> PermissionState {
@@ -32,15 +36,24 @@ final class HealthKitReadinessStore: ReadinessProviding {
         }
 
         let types = supportedReadTypes()
-        try await withCheckedThrowingContinuation { continuation in
+        guard !types.isEmpty else {
+            throw HealthKitReadinessError.noSupportedMetrics
+        }
+
+        let state = try await withCheckedThrowingContinuation {
+            (continuation: CheckedContinuation<PermissionState, Error>) in
             store.requestAuthorization(toShare: [], read: types) { success, error in
                 if let error {
                     continuation.resume(throwing: error)
                 } else {
-                    continuation.resume(returning: success ? .granted : .denied)
+                    // HealthKit intentionally does not disclose read authorization.
+                    // Data coverage below promotes this provisional state when proven.
+                    continuation.resume(returning: success ? .partial : .denied)
                 }
             }
         }
+        authorizationRequestState = state
+        return state
         #else
         throw HealthKitReadinessError.unavailable
         #endif
@@ -58,58 +71,82 @@ final class HealthKitReadinessStore: ReadinessProviding {
             throw HealthKitReadinessError.noSupportedMetrics
         }
 
-        async let sleep = sleepHours(start: start, end: end)
-        async let hrv = averageQuantity(
-            identifier: .heartRateVariabilitySDNN,
-            unit: HKUnit.secondUnit(with: .milli),
-            start: start,
-            end: end
-        )
-        async let resting = averageQuantity(
-            identifier: .restingHeartRate,
-            unit: HKUnit.count().unitDivided(by: .minute()),
-            start: start,
-            end: end
-        )
-
-        let sleepValue = try await sleep
-        let hrvValue = try await hrv
-        let restingValue = try await resting
-
-        let coverage: [String: CoverageState] = [
-            HealthMetric.sleep.rawValue: sleepValue == nil ? .missing : .complete,
-            HealthMetric.hrv.rawValue: hrvValue == nil ? .missing : .complete,
-            HealthMetric.restingHeartRate.rawValue: restingValue == nil ? .missing : .complete
-        ]
-
-        let completeCount = coverage.values.filter { $0 == .complete }.count
-        guard completeCount > 0 else {
-            throw HealthKitReadinessError.noSupportedMetrics
+        async let sleep = readMetric(validRange: 0...24) {
+            try await self.sleepHours(start: start, end: end)
+        }
+        async let hrv = readMetric(validRange: 1...300) {
+            try await self.averageQuantity(
+                identifier: .heartRateVariabilitySDNN,
+                unit: HKUnit.secondUnit(with: .milli),
+                start: start,
+                end: end
+            )
+        }
+        async let resting = readMetric(validRange: 20...220) {
+            try await self.averageQuantity(
+                identifier: .restingHeartRate,
+                unit: HKUnit.count().unitDivided(by: .minute()),
+                start: start,
+                end: end
+            )
         }
 
+        let results: [HealthMetric: MetricRead] = [
+            .sleep: await sleep,
+            .hrv: await hrv,
+            .restingHeartRate: await resting
+        ]
+        let coverage = Dictionary(
+            uniqueKeysWithValues: results.map { ($0.key.rawValue, $0.value.coverage) }
+        )
+        let metricPermissions = Dictionary(
+            uniqueKeysWithValues: results.map { ($0.key.rawValue, $0.value.permission) }
+        )
+        let completeCount = coverage.values.filter { $0 == .complete }.count
+        let deniedCount = coverage.values.filter { $0 == .notPermitted }.count
+
+        let permissionState: PermissionState
+        if authorizationRequestState == .denied || deniedCount == HealthMetric.allCases.count {
+            permissionState = .denied
+        } else if completeCount == HealthMetric.allCases.count {
+            permissionState = .granted
+        } else {
+            permissionState = .partial
+        }
+
+        let dateKey = Self.localDateKey(start)
         let now = Date()
-        let entry = ReadinessEntry(
-            date: Self.localDateKey(start),
-            sleepHours: sleepValue.map { Self.round($0, places: 2) },
-            hrv: hrvValue.map { Self.round($0, places: 2) },
-            restingHeartRate: restingValue.map { Self.round($0, places: 0) },
+        let entry: ReadinessEntry? = completeCount == 0 ? nil : ReadinessEntry(
+            date: dateKey,
+            sleepHours: results[.sleep]?.value.map { Self.round($0, places: 2) },
+            hrv: results[.hrv]?.value.map { Self.round($0, places: 2) },
+            restingHeartRate: results[.restingHeartRate]?.value.map { Self.round($0, places: 0) },
             fatigueLevel: nil,
             sorenessLevel: nil,
             source: .healthkit,
             updatedAt: now
         )
 
-        let confidence: ConfidenceBucket = completeCount >= 2 ? .moderate : .low
-        let status: DailySyncStatus = completeCount == HealthMetric.allCases.count ? .synced : .partial
+        let confidence: ConfidenceBucket = switch completeCount {
+        case 3: .high
+        case 2: .moderate
+        default: .low
+        }
 
         return HealthKitReadinessSummary(
+            date: dateKey,
             entry: entry,
+            permissionState: permissionState,
+            metricPermissions: metricPermissions,
             dailyStatus: DailyHealthSyncStatus(
-                status: status,
+                status: completeCount == HealthMetric.allCases.count ? .synced : .partial,
                 confidence: confidence,
                 coverage: coverage,
                 conflict: .none
-            )
+            ),
+            lastErrorCode: results.values.contains(where: { $0.queryFailed })
+                ? "healthkit_query_failed"
+                : nil
         )
         #else
         throw HealthKitReadinessError.unavailable
@@ -117,6 +154,53 @@ final class HealthKitReadinessStore: ReadinessProviding {
     }
 
     #if canImport(HealthKit)
+    private struct MetricRead {
+        var value: Double?
+        var coverage: CoverageState
+        var permission: MetricPermission
+        var queryFailed: Bool
+    }
+
+    private func readMetric(
+        validRange: ClosedRange<Double>,
+        operation: () async throws -> Double?
+    ) async -> MetricRead {
+        do {
+            guard let value = try await operation() else {
+                return MetricRead(
+                    value: nil,
+                    coverage: .missing,
+                    permission: .notDetermined,
+                    queryFailed: false
+                )
+            }
+            guard validRange.contains(value) else {
+                return MetricRead(
+                    value: nil,
+                    coverage: .missing,
+                    permission: .granted,
+                    queryFailed: false
+                )
+            }
+            return MetricRead(
+                value: value,
+                coverage: .complete,
+                permission: .granted,
+                queryFailed: false
+            )
+        } catch {
+            let nsError = error as NSError
+            let denied = nsError.domain == HKErrorDomain &&
+                nsError.code == HKError.Code.errorAuthorizationDenied.rawValue
+            return MetricRead(
+                value: nil,
+                coverage: denied ? .notPermitted : .missing,
+                permission: denied ? .denied : .notDetermined,
+                queryFailed: !denied
+            )
+        }
+    }
+
     private func supportedReadTypes() -> Set<HKObjectType> {
         var types = Set<HKObjectType>()
         if let sleep = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) {
@@ -136,7 +220,7 @@ final class HealthKitReadinessStore: ReadinessProviding {
             return nil
         }
 
-        let predicate = HKQuery.predicateForSamples(withStart: start, end: end, options: .strictStartDate)
+        let predicate = HKQuery.predicateForSamples(withStart: start, end: end)
         return try await withCheckedThrowingContinuation { continuation in
             let query = HKSampleQuery(
                 sampleType: type,
@@ -149,21 +233,22 @@ final class HealthKitReadinessStore: ReadinessProviding {
                     return
                 }
 
-                let total = (samples as? [HKCategorySample] ?? [])
+                let intervals = (samples as? [HKCategorySample] ?? [])
                     .filter { sample in
-                        if #available(iOS 16.0, *) {
-                            return sample.value == HKCategoryValueSleepAnalysis.asleepCore.rawValue ||
-                                sample.value == HKCategoryValueSleepAnalysis.asleepDeep.rawValue ||
-                                sample.value == HKCategoryValueSleepAnalysis.asleepREM.rawValue ||
-                                sample.value == HKCategoryValueSleepAnalysis.asleepUnspecified.rawValue
-                        }
-                        return sample.value == HKCategoryValueSleepAnalysis.asleep.rawValue
+                        sample.value == HKCategoryValueSleepAnalysis.asleepCore.rawValue ||
+                            sample.value == HKCategoryValueSleepAnalysis.asleepDeep.rawValue ||
+                            sample.value == HKCategoryValueSleepAnalysis.asleepREM.rawValue ||
+                            sample.value == HKCategoryValueSleepAnalysis.asleepUnspecified.rawValue
                     }
-                    .reduce(0.0) { partial, sample in
-                        partial + sample.endDate.timeIntervalSince(sample.startDate)
+                    .compactMap { sample -> DateInterval? in
+                        let intervalStart = max(sample.startDate, start)
+                        let intervalEnd = min(sample.endDate, end)
+                        guard intervalEnd > intervalStart else { return nil }
+                        return DateInterval(start: intervalStart, end: intervalEnd)
                     }
 
-                continuation.resume(returning: total > 0 ? total / 3600.0 : nil)
+                let seconds = Self.unionDuration(intervals)
+                continuation.resume(returning: seconds > 0 ? seconds / 3600.0 : nil)
             }
             store.execute(query)
         }
@@ -195,6 +280,22 @@ final class HealthKitReadinessStore: ReadinessProviding {
             }
             store.execute(query)
         }
+    }
+
+    private static func unionDuration(_ intervals: [DateInterval]) -> TimeInterval {
+        let sorted = intervals.sorted { $0.start < $1.start }
+        guard var current = sorted.first else { return 0 }
+
+        var total: TimeInterval = 0
+        for interval in sorted.dropFirst() {
+            if interval.start <= current.end {
+                current = DateInterval(start: current.start, end: max(current.end, interval.end))
+            } else {
+                total += current.duration
+                current = interval
+            }
+        }
+        return total + current.duration
     }
     #endif
 

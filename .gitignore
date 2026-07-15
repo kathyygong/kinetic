@@ -22,6 +22,7 @@ ios/**/GoogleService-Info.plist
 ios/**/*.xcuserstate
 ios/**/*.xcuserdata/
 ios/**/DerivedData/
+ios/**/.build/
 
 # Local runtime logs
 backend/.uvicorn.*.log

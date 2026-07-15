@@ -41,7 +41,7 @@ final class MobileAuditModelsTests: XCTestCase {
                 backgroundDelivery: .enabled,
                 coverageBucket: .partial,
                 confidenceBucket: .moderate,
-                conflict: .none,
+                conflict: SyncConflict.none,
                 latencyMs: 420
             )
         )

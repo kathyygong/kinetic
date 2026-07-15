@@ -1,604 +1,393 @@
+import FirebaseAuth
 import SwiftUI
 
-enum TodaySyncState: String {
-    case synced
-    case stale
+enum CompanionAuthState: Equatable {
+    case missingConfiguration
+    case signedOut
+    case working
+    case signedIn
+    case failed
+}
+
+enum HealthAccessState: Equatable {
+    case notRequested
+    case requesting
+    case unavailable
     case denied
+    case partial
+    case granted
+    case failed
+
+    var label: String {
+        switch self {
+        case .notRequested: "Not requested"
+        case .requesting: "Requesting"
+        case .unavailable: "Unavailable"
+        case .denied: "Denied"
+        case .partial: "Partial"
+        case .granted: "Granted"
+        case .failed: "Failed"
+        }
+    }
 }
 
-enum TodayCalendarState: String {
-    case clear
-    case conflict
-    case stale
-}
-
-enum TodayWorkoutStatus: String {
-    case pending
-    case accepted
-    case checkedIn
-    case completed
-    case skipped
-}
-
-enum TodayIntakeStatus: String {
+enum CloudSyncState: Equatable {
     case idle
-    case drafted
-    case applied
+    case syncing
+    case synced
+    case failed
+
+    var label: String {
+        switch self {
+        case .idle: "Not attempted"
+        case .syncing: "Syncing"
+        case .synced: "Synced"
+        case .failed: "Retry available"
+        }
+    }
 }
 
 @MainActor
 final class TodayViewModel: ObservableObject {
-    @Published var syncState: TodaySyncState
-    @Published var calendarState: TodayCalendarState
-    @Published var status: TodayWorkoutStatus = .pending
-    @Published var intakeStatus: TodayIntakeStatus = .idle
-    @Published var notificationEnabled = false
+    @Published private(set) var authState: CompanionAuthState
+    @Published private(set) var idTokenVerified = false
+    @Published private(set) var healthState = HealthAccessState.notRequested
+    @Published private(set) var cloudState = CloudSyncState.idle
+    @Published private(set) var dailySummary: HealthKitReadinessSummary?
 
-    init(syncState: TodaySyncState, calendarState: TodayCalendarState = .clear) {
-        self.syncState = syncState
-        self.calendarState = calendarState
+    private let firebaseConfigured: Bool
+    private let healthStore: ReadinessProviding
+    private let syncClient: ReadinessSyncing
+
+    init(
+        firebaseConfigured: Bool,
+        healthStore: ReadinessProviding = HealthKitReadinessStore(),
+        syncClient: ReadinessSyncing = FirestoreReadinessSyncClient()
+    ) {
+        self.firebaseConfigured = firebaseConfigured
+        self.healthStore = healthStore
+        self.syncClient = syncClient
+        authState = firebaseConfigured ? .signedOut : .missingConfiguration
     }
 
-    var content: TodayContent {
-        TodayContent.content(for: syncState)
+    var isSignedIn: Bool {
+        authState == .signedIn
     }
 
-    var calendar: TodayCalendarContext {
-        TodayCalendarContext.context(for: calendarState)
+    func restoreSession() async {
+        guard firebaseConfigured, let user = Auth.auth().currentUser else { return }
+        await verifyToken(for: user)
     }
 
-    var decision: TodayDecision {
-        TodayDecision.build(readiness: content, calendarState: calendarState, syncState: syncState)
-    }
-
-    func accept() {
-        status = .accepted
-    }
-
-    func checkIn() {
-        status = .checkedIn
-    }
-
-    func complete() {
-        status = .completed
-    }
-
-    func skip() {
-        status = .skipped
-    }
-
-    static func previewSynced() -> TodayViewModel {
-        TodayViewModel(syncState: .synced)
-    }
-}
-
-struct TodayCalendarContext {
-    let pill: String
-    let title: String
-    let detail: String
-
-    static func context(for state: TodayCalendarState) -> TodayCalendarContext {
-        switch state {
-        case .clear:
-            TodayCalendarContext(
-                pill: "Calendar clear until 11:30 AM",
-                title: "Planned slot available",
-                detail: "Tempo still fits before the first meeting."
-            )
-        case .conflict:
-            TodayCalendarContext(
-                pill: "Calendar conflict at 8:45 AM",
-                title: "30 min window today",
-                detail: "Kinetic scales the session before it asks for effort."
-            )
-        case .stale:
-            TodayCalendarContext(
-                pill: "Calendar not refreshed",
-                title: "Schedule confidence low",
-                detail: "Review the schedule before accepting harder work."
-            )
+    func signIn(email: String, password: String) async {
+        guard firebaseConfigured else { return }
+        authState = .working
+        idTokenVerified = false
+        do {
+            let result = try await Auth.auth().signIn(withEmail: email, password: password)
+            await verifyToken(for: result.user)
+        } catch {
+            authState = .failed
         }
     }
-}
 
-struct TodayDecision {
-    let workoutTitle: String
-    let workoutMeta: String
-    let primaryAction: String
-    let reasoning: [String]
+    func signOut() {
+        try? Auth.auth().signOut()
+        authState = firebaseConfigured ? .signedOut : .missingConfiguration
+        idTokenVerified = false
+        healthState = .notRequested
+        cloudState = .idle
+        dailySummary = nil
+    }
 
-    static func build(
-        readiness: TodayContent,
-        calendarState: TodayCalendarState,
-        syncState: TodaySyncState
-    ) -> TodayDecision {
-        switch calendarState {
-        case .clear:
-            return TodayDecision(
-                workoutTitle: readiness.workoutTitle,
-                workoutMeta: readiness.workoutMeta,
-                primaryAction: readiness.primaryAction,
-                reasoning: readiness.reasoning
-            )
-        case .conflict:
-            return TodayDecision(
-                workoutTitle: syncState == .denied ? "Manual check-in first" : "Scale to 30 min easy",
-                workoutMeta: syncState == .denied ? "2 min - then adapt safely" : "30 min - aerobic - preserves load cap",
-                primaryAction: syncState == .denied ? "Log readiness" : "Apply safe adjustment",
-                reasoning: [
-                    "Calendar leaves only a 30 min training window.",
-                    "The deterministic engine keeps weekly load inside bounds."
-                ] + readiness.reasoning
-            )
-        case .stale:
-            return TodayDecision(
-                workoutTitle: syncState == .denied ? "Manual check-in first" : "Confirm schedule first",
-                workoutMeta: syncState == .denied ? "2 min - readiness fallback" : "Calendar stale - no unsafe mutation",
-                primaryAction: syncState == .denied ? "Log readiness" : "Review schedule",
-                reasoning: [
-                    "Calendar freshness is low, so Kinetic does not invent availability.",
-                    "The current plan stays unchanged until the schedule is confirmed."
-                ] + readiness.reasoning
-            )
+    func readAndSyncToday() async {
+        guard isSignedIn else { return }
+        healthState = .requesting
+        cloudState = .idle
+
+        do {
+            _ = try await healthStore.requestAuthorization()
+            let summary = try await healthStore.summarizeLocalDay(Date())
+            dailySummary = summary
+            healthState = switch summary.permissionState {
+            case .denied: .denied
+            case .partial, .notDetermined: .partial
+            case .granted: .granted
+            }
+
+            cloudState = .syncing
+            do {
+                try await syncClient.syncHealthKitSummary(summary)
+                cloudState = .synced
+            } catch {
+                // The local summary remains visible and can be retried later.
+                cloudState = .failed
+            }
+        } catch HealthKitReadinessError.unavailable {
+            healthState = .unavailable
+        } catch {
+            healthState = .failed
         }
     }
-}
 
-struct TodayContent {
-    let readinessLabel: String
-    let confidenceLabel: String
-    let confidence: Int
-    let readinessScore: Int
-    let tone: Color
-    let workoutTitle: String
-    let workoutMeta: String
-    let syncCopy: String
-    let primaryAction: String
-    let reasoning: [String]
-    let metrics: [TodayMetric]
-    let privacyCopy: String
-
-    static func content(for state: TodaySyncState) -> TodayContent {
-        switch state {
-        case .synced:
-            TodayContent(
-                readinessLabel: "Ready",
-                confidenceLabel: "High confidence",
-                confidence: 78,
-                readinessScore: 84,
-                tone: KineticColor.emerald,
-                workoutTitle: "Tempo intervals",
-                workoutMeta: "42 min - 5.1 mi - quality day",
-                syncCopy: "Health synced 8:12 AM",
-                primaryAction: "Run the planned session",
-                reasoning: [
-                    "Sleep and HRV are inside your recent baseline.",
-                    "No stale data warnings are active.",
-                    "The quality session still fits the block."
-                ],
-                metrics: [
-                    TodayMetric(label: "Sleep", value: "7h 28m", state: .good),
-                    TodayMetric(label: "HRV", value: "54 ms", state: .good),
-                    TodayMetric(label: "Resting HR", value: "49 bpm", state: .good)
-                ],
-                privacyCopy: "Daily summary only. Raw HealthKit samples stay on device."
-            )
-        case .stale:
-            TodayContent(
-                readinessLabel: "Caution",
-                confidenceLabel: "Moderate confidence",
-                confidence: 54,
-                readinessScore: 66,
-                tone: KineticColor.amber,
-                workoutTitle: "Short aerobic run",
-                workoutMeta: "30 min - easy effort",
-                syncCopy: "Health last synced yesterday",
-                primaryAction: "Use the scaled option",
-                reasoning: [
-                    "Readiness is more than a day old.",
-                    "Kinetic reduces certainty instead of guessing.",
-                    "The aerobic option protects the training rhythm."
-                ],
-                metrics: [
-                    TodayMetric(label: "Sleep", value: "stale", state: .warn),
-                    TodayMetric(label: "HRV", value: "stale", state: .warn),
-                    TodayMetric(label: "Resting HR", value: "51 bpm", state: .muted)
-                ],
-                privacyCopy: "Open the app to refresh HealthKit before trusting harder work."
-            )
-        case .denied:
-            TodayContent(
-                readinessLabel: "Unknown",
-                confidenceLabel: "Low confidence",
-                confidence: 38,
-                readinessScore: 50,
-                tone: KineticColor.rose,
-                workoutTitle: "Manual check-in first",
-                workoutMeta: "2 min - sleep, fatigue, soreness",
-                syncCopy: "Health permission needed",
-                primaryAction: "Log readiness",
-                reasoning: [
-                    "Kinetic has no fresh HealthKit signal.",
-                    "Manual readiness is the safest next input.",
-                    "The plan will not change until deterministic validation runs."
-                ],
-                metrics: [
-                    TodayMetric(label: "Sleep", value: "not shared", state: .muted),
-                    TodayMetric(label: "HRV", value: "not shared", state: .muted),
-                    TodayMetric(label: "Resting HR", value: "not shared", state: .muted)
-                ],
-                privacyCopy: "Granting access reads summaries locally; raw samples are not uploaded."
-            )
+    private func verifyToken(for user: User) async {
+        do {
+            let token = try await user.getIDToken()
+            idTokenVerified = !token.isEmpty
+            authState = idTokenVerified ? .signedIn : .failed
+        } catch {
+            idTokenVerified = false
+            authState = .failed
         }
     }
-}
-
-struct TodayMetric: Identifiable {
-    enum State {
-        case good
-        case warn
-        case muted
-    }
-
-    let id = UUID()
-    let label: String
-    let value: String
-    let state: State
 }
 
 struct TodayView: View {
-    @StateObject var viewModel: TodayViewModel
+    @ObservedObject var viewModel: TodayViewModel
+    @State private var email = ""
+    @State private var password = ""
 
     var body: some View {
-        let content = viewModel.content
-        let calendar = viewModel.calendar
-        let decision = viewModel.decision
-
-        ScrollView {
-            VStack(spacing: 18) {
-                header
-
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("MORNING CHECK")
-                            .font(.caption.weight(.semibold))
-                            .tracking(2.8)
-                            .foregroundStyle(KineticColor.blue)
-                        Text(content.readinessLabel)
-                            .font(.largeTitle.weight(.semibold))
-                    }
-                    Spacer()
-                    confidencePill(content)
+        NavigationStack {
+            Group {
+                if viewModel.isSignedIn {
+                    signedInContent
+                } else {
+                    signedOutContent
                 }
-
-                readinessArc(content)
-
-                recommendationCard(content, decision: decision, calendar: calendar)
-                reasoningCard(content, decision: decision)
-                intakeCard
-                checkInActions
-                privacyCard(content)
             }
-            .padding(20)
-        }
-        .background(KineticColor.canvas.ignoresSafeArea())
-    }
-
-    private var header: some View {
-        HStack {
-            CircleButton(systemName: "chevron.left")
-            Spacer()
-            HStack(spacing: 8) {
-                KineticMark()
-                Text("Today")
-                    .font(.subheadline.weight(.semibold))
+            .navigationTitle("Health sync")
+            .toolbar {
+                if viewModel.isSignedIn {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            viewModel.signOut()
+                        } label: {
+                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                        }
+                        .accessibilityLabel("Sign out")
+                    }
+                }
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-            .background(Color.white.opacity(0.88))
-            .clipShape(Capsule())
-            .shadow(color: .black.opacity(0.07), radius: 12, y: 5)
-            Spacer()
-            CircleButton(systemName: "lock")
         }
     }
 
-    private func confidencePill(_ content: TodayContent) -> some View {
-        VStack(spacing: 2) {
-            Text("Confidence")
-                .font(.caption)
-                .foregroundStyle(KineticColor.muted)
-            Text("\(content.confidence)%")
-                .font(.headline.weight(.semibold))
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(Color.white.opacity(0.9))
-        .clipShape(Capsule())
-        .shadow(color: .black.opacity(0.08), radius: 12, y: 5)
-    }
-
-    private func readinessArc(_ content: TodayContent) -> some View {
-        VStack(spacing: 2) {
-            Gauge(value: Double(content.readinessScore), in: 0...100) {
-                EmptyView()
-            }
-            .gaugeStyle(.accessoryCircularCapacity)
-            .tint(content.tone)
-            .scaleEffect(2.1)
-            .frame(height: 160)
-
-            Text("\(content.readinessScore)")
-                .font(.system(size: 56, weight: .semibold, design: .rounded))
-            Text("READINESS")
-                .font(.caption.weight(.semibold))
-                .tracking(3)
-                .foregroundStyle(KineticColor.muted)
-        }
-    }
-
-    private func recommendationCard(
-        _ content: TodayContent,
-        decision: TodayDecision,
-        calendar: TodayCalendarContext
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("RECOMMENDATION")
-                        .font(.caption.weight(.semibold))
-                        .tracking(2.4)
-                        .foregroundStyle(KineticColor.muted)
-                    Text(decision.workoutTitle)
-                        .font(.title2.weight(.semibold))
-                    Text(decision.workoutMeta)
-                        .font(.subheadline)
+    private var signedOutContent: some View {
+        Form {
+            Section("Firebase") {
+                if viewModel.authState == .missingConfiguration {
+                    Label("Configuration missing", systemImage: "exclamationmark.triangle")
+                        .foregroundStyle(KineticColor.amber)
+                    Text("Add the untracked GoogleService-Info.plist to this app target.")
+                        .font(.footnote)
                         .foregroundStyle(.secondary)
-                }
-                Spacer()
-                Image(systemName: "dumbbell")
-                    .foregroundStyle(KineticColor.blue)
-                    .font(.title3.weight(.semibold))
-            }
+                } else {
+                    TextField("Email", text: $email)
+                        .textContentType(.username)
+                        .textInputAutocapitalization(.never)
+                        .keyboardType(.emailAddress)
+                    SecureField("Password", text: $password)
+                        .textContentType(.password)
 
-            HStack(spacing: 8) {
-                ForEach(content.metrics) { metric in
-                    MetricTile(metric: metric)
-                }
-            }
+                    Button {
+                        Task {
+                            await viewModel.signIn(email: email, password: password)
+                            password = ""
+                        }
+                    } label: {
+                        Label("Sign in", systemImage: "person.crop.circle.badge.checkmark")
+                    }
+                    .disabled(
+                        email.isEmpty ||
+                            password.isEmpty ||
+                            viewModel.authState == .working
+                    )
 
-            Label(content.syncCopy, systemImage: "applewatch")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(KineticColor.blue)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding()
-                .background(Color.blue.opacity(0.08))
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-
-            Label(calendar.pill, systemImage: "calendar")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(KineticColor.ink)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding()
-                .background(Color.white.opacity(0.92))
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-
-            HStack(spacing: 10) {
-                Button(decision.primaryAction) {
-                    if viewModel.syncState == .denied {
-                        viewModel.checkIn()
-                    } else {
-                        viewModel.accept()
+                    if viewModel.authState == .working {
+                        ProgressView("Verifying Firebase session")
+                    } else if viewModel.authState == .failed {
+                        Label("Sign-in failed", systemImage: "xmark.circle")
+                            .foregroundStyle(KineticColor.rose)
+                        Text("Check the disposable test account and network, then retry.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                     }
                 }
-                .buttonStyle(PrimaryButtonStyle())
+            }
+
+            Section("Protected data") {
+                Text("Health data is hidden until Firebase authentication succeeds.")
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var signedInContent: some View {
+        List {
+            Section("Auth gate") {
+                statusRow(
+                    title: "Firebase user",
+                    value: "Authenticated",
+                    systemImage: "person.crop.circle.badge.checkmark",
+                    color: KineticColor.emerald
+                )
+                statusRow(
+                    title: "ID token",
+                    value: viewModel.idTokenVerified ? "Verified" : "Unavailable",
+                    systemImage: "key",
+                    color: viewModel.idTokenVerified ? KineticColor.emerald : KineticColor.rose
+                )
+                Text("Firestore writes use the current Firebase UID owner boundary.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("Apple Health") {
+                statusRow(
+                    title: "Read access",
+                    value: viewModel.healthState.label,
+                    systemImage: "heart.text.square",
+                    color: healthColor
+                )
+                Text(healthDetail)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
 
                 Button {
-                    viewModel.skip()
+                    Task { await viewModel.readAndSyncToday() }
                 } label: {
-                    Image(systemName: "timer")
-                        .frame(width: 48, height: 48)
+                    Label(
+                        viewModel.cloudState == .failed ? "Retry today's sync" : "Read and sync today",
+                        systemImage: "arrow.triangle.2.circlepath"
+                    )
                 }
-                .buttonStyle(SecondaryIconButtonStyle())
-            }
-        }
-        .padding(18)
-        .kineticCard()
-    }
-
-    private func reasoningCard(_ content: TodayContent, decision: TodayDecision) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Label("Why this call", systemImage: "checkmark.shield")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(KineticColor.ink)
-                Spacer()
-                Text(content.confidenceLabel)
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(KineticColor.muted)
+                .disabled(viewModel.healthState == .requesting || viewModel.cloudState == .syncing)
             }
 
-            ForEach(decision.reasoning, id: \.self) { reason in
-                Label(reason, systemImage: "checkmark.circle")
-                    .font(.subheadline)
-                    .foregroundStyle(KineticColor.ink)
+            if let summary = viewModel.dailySummary {
+                Section("Local daily summary") {
+                    LabeledContent("Date", value: summary.date)
+                    metricRow(
+                        "Sleep",
+                        value: summary.entry?.sleepHours,
+                        unit: "h",
+                        coverage: summary.dailyStatus.coverage[HealthMetric.sleep.rawValue]
+                    )
+                    metricRow(
+                        "HRV",
+                        value: summary.entry?.hrv,
+                        unit: "ms",
+                        coverage: summary.dailyStatus.coverage[HealthMetric.hrv.rawValue]
+                    )
+                    metricRow(
+                        "Resting HR",
+                        value: summary.entry?.restingHeartRate,
+                        unit: "bpm",
+                        coverage: summary.dailyStatus.coverage[HealthMetric.restingHeartRate.rawValue]
+                    )
+                    LabeledContent("Confidence", value: summary.dailyStatus.confidence.rawValue.capitalized)
+                }
             }
-        }
-        .padding(18)
-        .kineticCard()
-    }
 
-    private var intakeCard: some View {
-        HStack(spacing: 14) {
-            Image(systemName: viewModel.intakeStatus == .idle ? "text.bubble" : "sparkles")
-                .foregroundStyle(KineticColor.blue)
-                .frame(width: 42, height: 42)
-                .background(Color.blue.opacity(0.1))
-                .clipShape(Circle())
-            VStack(alignment: .leading, spacing: 5) {
-                Text(viewModel.intakeStatus == .idle ? "Tell Kinetic what changed" : "Review-only AI draft")
-                    .font(.headline.weight(.semibold))
-                Text(viewModel.intakeStatus == .idle
-                    ? "Example: I only have 30 minutes today."
-                    : "Parsed intent still needs deterministic validation before applying.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+            Section("Cloud gate") {
+                statusRow(
+                    title: "Firestore",
+                    value: viewModel.cloudState.label,
+                    systemImage: "icloud.and.arrow.up",
+                    color: cloudColor
+                )
+                if viewModel.cloudState == .failed {
+                    Text("The local summary remains usable. No plan or manual readiness data was changed.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
             }
-            Spacer()
-        }
-        .padding(18)
-        .kineticCard()
-    }
 
-    private var checkInActions: some View {
-        HStack(spacing: 12) {
-            Button("Complete") {
-                viewModel.complete()
+            Section("Privacy boundary") {
+                Label("Sleep, HRV, and resting heart rate are read locally.", systemImage: "iphone")
+                Label("Only one bounded daily summary is sent to Firebase.", systemImage: "checkmark.shield")
+                Label("Raw samples and per-sample timestamps stay on device.", systemImage: "lock")
             }
-            .buttonStyle(CheckInButtonStyle(active: viewModel.status == .completed))
-
-            Button("Skip") {
-                viewModel.skip()
-            }
-            .buttonStyle(CheckInButtonStyle(active: viewModel.status == .skipped))
+            .font(.footnote)
         }
     }
 
-    private func privacyCard(_ content: TodayContent) -> some View {
-        HStack(spacing: 14) {
-            Image(systemName: viewModel.notificationEnabled ? "bell" : "moon")
-                .foregroundStyle(KineticColor.emerald)
-                .frame(width: 42, height: 42)
-                .background(KineticColor.emerald.opacity(0.11))
-                .clipShape(Circle())
-            VStack(alignment: .leading, spacing: 5) {
-                Text(viewModel.notificationEnabled ? "Quiet check-in enabled" : "No nudges by default")
-                    .font(.headline.weight(.semibold))
-                Text(content.privacyCopy)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                Text("Web QA can audit mobile-originated decisions.")
-                    .font(.caption)
-                    .foregroundStyle(KineticColor.muted)
-            }
-            Spacer()
+    private var healthColor: Color {
+        switch viewModel.healthState {
+        case .granted: KineticColor.emerald
+        case .partial: KineticColor.amber
+        case .denied, .failed: KineticColor.rose
+        default: KineticColor.muted
         }
-        .padding(18)
-        .kineticCard()
     }
-}
 
-private struct CircleButton: View {
-    let systemName: String
+    private var cloudColor: Color {
+        switch viewModel.cloudState {
+        case .synced: KineticColor.emerald
+        case .failed: KineticColor.rose
+        default: KineticColor.muted
+        }
+    }
 
-    var body: some View {
-        Button {
+    private var healthDetail: String {
+        switch viewModel.healthState {
+        case .notRequested:
+            "Kinetic has not requested read-only HealthKit access."
+        case .requesting:
+            "Waiting for HealthKit and local daily queries."
+        case .unavailable:
+            "HealthKit is unavailable on this simulator or device."
+        case .denied:
+            "No read access was granted. Use the existing manual readiness fallback."
+        case .partial:
+            "Some metrics are missing, not shared, or not present for today."
+        case .granted:
+            "All three bounded daily metrics were available locally."
+        case .failed:
+            "The local HealthKit request failed and can be retried."
+        }
+    }
+
+    @ViewBuilder
+    private func statusRow(
+        title: String,
+        value: String,
+        systemImage: String,
+        color: Color
+    ) -> some View {
+        LabeledContent {
+            Text(value)
+                .foregroundStyle(color)
         } label: {
-            Image(systemName: systemName)
-                .font(.headline.weight(.semibold))
-                .frame(width: 44, height: 44)
-                .background(Color.white.opacity(0.88))
-                .clipShape(Circle())
-                .shadow(color: .black.opacity(0.07), radius: 10, y: 5)
-        }
-        .foregroundStyle(KineticColor.ink)
-    }
-}
-
-private struct KineticMark: View {
-    var body: some View {
-        Text("K")
-            .font(.headline.weight(.bold))
-            .foregroundStyle(.white)
-            .frame(width: 26, height: 26)
-            .background(KineticColor.blue)
-            .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
-    }
-}
-
-private struct MetricTile: View {
-    let metric: TodayMetric
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Image(systemName: iconName)
-                .font(.subheadline.weight(.semibold))
-            Text(metric.label)
-                .font(.caption)
-            Text(metric.value)
-                .font(.subheadline.weight(.semibold))
-                .lineLimit(2)
-                .minimumScaleFactor(0.8)
-        }
-        .frame(maxWidth: .infinity, minHeight: 84, alignment: .leading)
-        .padding(10)
-        .background(background)
-        .foregroundStyle(foreground)
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-    }
-
-    private var iconName: String {
-        switch metric.label {
-        case "Sleep": return "moon"
-        case "HRV": return "waveform.path.ecg"
-        default: return "heart"
+            Label(title, systemImage: systemImage)
         }
     }
 
-    private var background: Color {
-        switch metric.state {
-        case .good: return KineticColor.emerald.opacity(0.12)
-        case .warn: return KineticColor.amber.opacity(0.12)
-        case .muted: return Color.gray.opacity(0.12)
+    private func metricRow(
+        _ label: String,
+        value: Double?,
+        unit: String,
+        coverage: CoverageState?
+    ) -> some View {
+        let displayValue = value.map { "\(Self.metricFormatter.string(from: NSNumber(value: $0)) ?? "-") \(unit)" }
+            ?? coverageLabel(coverage)
+        return LabeledContent(label, value: displayValue)
+    }
+
+    private func coverageLabel(_ coverage: CoverageState?) -> String {
+        switch coverage {
+        case .notPermitted: "Not permitted"
+        case .missing: "Missing"
+        case .partial: "Partial"
+        case .complete: "Complete"
+        case .none: "Unavailable"
         }
     }
 
-    private var foreground: Color {
-        switch metric.state {
-        case .good: return Color(red: 0.0, green: 0.43, blue: 0.32)
-        case .warn: return Color(red: 0.66, green: 0.29, blue: 0.05)
-        case .muted: return KineticColor.muted
-        }
-    }
-}
-
-private struct PrimaryButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(.white)
-            .frame(maxWidth: .infinity, minHeight: 50)
-            .background(KineticColor.ink.opacity(configuration.isPressed ? 0.82 : 1.0))
-            .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
-    }
-}
-
-private struct SecondaryIconButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .foregroundStyle(KineticColor.ink)
-            .background(Color.white.opacity(configuration.isPressed ? 0.7 : 0.95))
-            .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 15, style: .continuous)
-                    .stroke(Color.black.opacity(0.08))
-            )
-    }
-}
-
-private struct CheckInButtonStyle: ButtonStyle {
-    let active: Bool
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(active ? KineticColor.blue : KineticColor.ink)
-            .frame(maxWidth: .infinity, minHeight: 50)
-            .background(active ? Color.blue.opacity(0.1) : Color.white.opacity(0.82))
-            .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
-    }
-}
-
-#Preview {
-    TodayView(viewModel: TodayViewModel.previewSynced())
+    private static let metricFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 2
+        return formatter
+    }()
 }
