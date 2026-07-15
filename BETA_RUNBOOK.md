@@ -128,19 +128,29 @@ Before inviting mobile beta users:
    shows freshness/confidence accurately.
 6. Confirm mobile Today consumes existing calendar availability/freshness and
    lowers confidence when calendar data is stale, missing, or unavailable.
-7. Confirm bounded mobile natural-language intake uses review-only drafts,
-   rejects anonymous requests under strict auth, and cannot apply without
-   deterministic validation.
-8. Confirm existing web admin/QA/eval review surfaces can inspect
+7. Confirm bounded mobile natural-language intake routes every supported note
+   to a concrete flow: reviewable draft, guided check-in, read-only
+   explanation, clarifying prompt, or safe refusal/routing.
+8. Confirm recovery and pain language opens explicit perceived-recovery or
+   caution capture. AI must not fabricate readiness, biometric, pain, or injury
+   values from free text.
+9. Confirm schedule/availability/travel/goal/preference NLP uses review-only
+   drafts, rejects anonymous requests under strict auth, and cannot apply
+   without deterministic validation.
+10. Confirm behavior patterns have bounded outcomes: confirmed schedule-style
+   patterns can update preferred-day inputs for deterministic plan generation;
+   scoring patterns remain capped nudges; stale-data patterns prompt sync or
+   check-in; pain patterns route to caution only.
+11. Confirm existing web admin/QA/eval review surfaces can inspect
    mobile-originated decisions, intake drafts, validation outcomes, check-ins,
    and privacy-safe telemetry. Use `/qa/mobile` for the local web audit view.
-9. Confirm denied, partial, stale, offline, signed-out, and delete-pending
+12. Confirm denied, partial, stale, offline, signed-out, and delete-pending
    states have visible fallbacks.
-10. Confirm owner-only Firestore rules and emulator tests cover any new mobile
+13. Confirm owner-only Firestore rules and emulator tests cover any new mobile
    sync domain.
-11. Confirm delete/disconnect stops future mobile sync and respects tombstones
+14. Confirm delete/disconnect stops future mobile sync and respects tombstones
    across web and iOS.
-12. Confirm existing deterministic backend gates still pass after any mobile
+15. Confirm existing deterministic backend gates still pass after any mobile
    schema or decision-input changes.
 
 ## Live Firebase persistence QA

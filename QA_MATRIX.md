@@ -20,7 +20,7 @@ the next beta checkpoint.
 | Live Firebase hydration | same signed-in account hydrates across independent sessions | Passed 2026-07-09 |
 | Live account isolation | Account B cannot hydrate Account A local or remote data | Passed 2026-07-09 |
 | Live deletion tombstones | signed-in delete remains deleted after reload and second-origin sign-in | Passed 2026-07-09 |
-| Natural-language intake | review-only draft, confirmation required, anonymous blocked under strict auth | Passed in prior release gate |
+| Natural-language intake | supported notes route to a reviewable draft, guided check-in, read-only explanation, clarifying prompt, or safe refusal; confirmation required for state changes; anonymous blocked under strict auth | Passed for current review-only draft scope in prior release gate; expanded routing required before mobile beta |
 | Training review | grounded live local AI and deterministic fallback for unsafe output | Passed in prior release gate |
 | Observability privacy | every event family sanitized, capped, typed, and failure-isolated | Covered by `smoke-instrumentation.ts` |
 | Apple Health CSV import | bounded readiness metrics imported, unsupported note columns dropped | Covered by `smoke-apple-health.ts` |
@@ -33,7 +33,9 @@ the next beta checkpoint.
 | iOS HealthKit permissions | denied, partial, granted, and stale background delivery states handled | Required before mobile beta |
 | iOS readiness sync | [MOBILE_READINESS_SCHEMA.md](./MOBILE_READINESS_SCHEMA.md) contract followed; bounded daily summaries only; no raw HealthKit samples in Firestore | Shared fixture and Windows validator passed 2026-07-13; native HealthKit execution required before mobile beta |
 | Mobile calendar awareness | Today decisions consume existing calendar availability/freshness and lower confidence on stale/missing calendar data | Required before mobile beta |
-| Mobile NLP intake | review-only drafts, strict-auth rejection when anonymous, deterministic confirm/apply, malformed/ambiguous fallback | Required before mobile beta |
+| Mobile NLP intake | schedule/availability/travel/goal/preference notes create review-only drafts; recovery, pain, missed-workout, and reflection notes open bounded flows; strict-auth rejection when anonymous; deterministic confirm/apply; malformed/ambiguous fallback | Required before mobile beta |
+| Mobile perceived-recovery flow | NLP recovery notes open explicit perceived-recovery capture; captured fields coexist with HealthKit summaries; AI never fabricates readiness values from text | Required before mobile beta |
+| Behavior pattern result contract | every surfaced pattern has a bounded response; confirmed schedule patterns can update preferred-day inputs for deterministic plan generation; pain patterns route to caution only | Required before mobile beta |
 | Mobile admin/eval observability | `/qa/mobile` shows mobile-originated sync, recommendation, intake, validation, and check-in events from the shared privacy-safe event log | Shared event-log-to-QA contract passed 2026-07-13; native event transport remains required before mobile beta |
 | Mobile/web sync compatibility | web dashboard consumes mobile readiness without unsafe overwrite or confidence drift | Shared envelope, five-case conflict parity, and web hydration acceptance/rejection passed in TypeScript 2026-07-13; live cross-device readback required before mobile beta |
 | Mobile companion state matrix | `cd frontend && npm run smoke` | Default smoke covers readiness, health-sync freshness, calendar, profile, goal, saved plan, preferences, workout history, intake, and check-in decision states without browser dependencies |
@@ -56,5 +58,6 @@ import is an implemented web-beta bridge for readiness metrics.
 As of 2026-07-10, native/background HealthKit sync and native mobile are
 selected as the next phase, scoped to Mobile Companion Proof. Mobile beta must
 preserve calendar-aware decisions, bounded NLP intake, deterministic
-confirm/apply, and shared QA/eval observability. Garmin, Oura, hosted AI, coach
-sharing, broad notifications, and autonomous AI mutation remain out of scope.
+confirm/apply, perceived-recovery routing, pattern-to-action behavior memory,
+and shared QA/eval observability. Garmin, Oura, hosted AI, coach sharing,
+broad notifications, and autonomous AI mutation remain out of scope.

@@ -838,9 +838,13 @@ Build sequence:
    bounded-AI explanation.
 3. Bounded mobile intake: keep NLP for explicit schedule, availability, goal,
    and preference changes, but require review-only drafts and deterministic
-   confirm/apply before plan mutation.
+   confirm/apply before plan mutation. Recovery, pain, missed-workout, and
+   reflection notes must route into guided bounded flows rather than dead-end
+   warnings.
 4. Recovery/check-in loop: capture completion/skipped/effort and manual
-   readiness corrections for stale or missing HealthKit data.
+   perceived-recovery corrections for stale, missing, partial, or contradicted
+   HealthKit data. AI may route to this flow but must not infer hidden
+   readiness values from text.
 5. Notifications only if justified: Today-ready, stale-readiness, and
    check-in reminders only after the core loop proves value.
 
@@ -854,6 +858,11 @@ Acceptance gates:
   deterministic validation.
 - Mobile-originated decisions, intake drafts, validation outcomes, and
   check-ins are visible through the existing web QA/eval/admin review surfaces.
+- Behavior learning has a result contract: every surfaced pattern must lead to
+  a bounded action, clarification, check-in prompt, or read-only explanation.
+  Confirmed schedule-style patterns may feed deterministic plan generation as
+  preferred-day inputs; safety, mileage, taper, and workout validity remain
+  deterministic.
 - Mobile failures degrade through freshness/confidence rather than invented
   certainty.
 

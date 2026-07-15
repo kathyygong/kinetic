@@ -27,3 +27,8 @@ ios/**/DerivedData/
 backend/.uvicorn.*.log
 firebase-debug.log
 firestore-debug.log
+
+# Local browser QA profiles and temporary captures
+.edge-qa/
+.edge-qa-mobile/
+tmp-*.png

@@ -33,6 +33,27 @@ Natural-language intake follows a separate review boundary:
 5. Only **Confirm changes** reaches the existing deterministic plan generator
    and availability adjuster; sparse or ambiguous drafts cannot be confirmed.
 
+Natural-language intake is not limited to plan-changing drafts. It is an
+intent router with bounded destinations:
+
+1. Explicit goal, schedule, availability, travel, and preference changes
+   become review-only drafts.
+2. Recovery or readiness language opens a perceived-recovery flow instead of
+   inferring biometrics. The runner supplies bounded self-report fields such
+   as fatigue, soreness, perceived recovery, and optional sleep correction.
+3. Pain or injury language opens a conservative caution check-in. Kinetic does
+   not diagnose or clear the runner to train; any training effect must come
+   from deterministic safety rules over explicit bounded fields.
+4. Post-workout reflection opens the check-in flow for completed/skipped,
+   perceived effort, and bounded reason fields.
+5. Explanation requests read from existing decision traces and cannot mutate
+   state.
+
+Every supported NLP path must end in a meaningful product flow: a reviewable
+draft, guided check-in, read-only explanation, clarifying prompt, or safe
+refusal/routing. NLP must never synthesize hidden readiness values such as
+"recovery seems low" from free text.
+
 Training reviews use a read-only aggregate boundary:
 
 1. The Plan page maps logged outcomes into a bounded 7/30-day request. Workout
@@ -53,6 +74,29 @@ plan, mileage cap, recovery threshold, or persisted training state.
 
 Confirmed preferences are bounded scoring inputs. Tentative patterns never
 affect decisions, and no preference can override a safety constraint.
+
+Behavior detection also has a result contract. Kinetic should not surface
+decorative patterns that cannot lead to a clear bounded action. Supported
+pattern families are mapped to deterministic responses:
+
+- heavy-calendar misses -> ask to favor shorter/easier candidates on heavy
+  days;
+- specific-day skips -> ask to update preferred training days or avoid a day
+  when generating future plans;
+- long-run day preference -> ask to move long runs to the confirmed day when
+  deterministic spacing allows;
+- rest overrides -> ask whether to offer a recovery-run style modify option
+  before full rest, skipped when state is at risk;
+- too-hard or too-easy adjustment feedback -> small confirmed scoring nudges;
+- stale-data or missed-check-in patterns -> UX/check-in prompts, not training
+  mutations;
+- recurring pain/discomfort -> deterministic caution routing only, no AI
+  diagnosis.
+
+Confirmed schedule-style patterns may influence plan generation only as soft
+preferred-day inputs, after user review. The deterministic plan generator and
+validator still own mileage, phase structure, workout spacing, taper, and
+load safety.
 
 ## Runtime modes
 
@@ -96,8 +140,10 @@ iOS app should call the same authenticated deterministic decision endpoint with
 readiness, calendar availability/freshness, plan, profile, history, and
 confirmed preference inputs. Calendar data remains derived availability and
 freshness metadata, not raw event text. Mobile natural-language updates should
-use the same review-only `POST /ai/parse-intake` contract as web; AI can parse
-explicit intent, but only deterministic validation can apply plan changes.
+use the same bounded intent-routing contract as web; AI can parse explicit
+intent and choose the correct flow, but only deterministic validation can apply
+plan changes. Recovery language should open perceived-recovery capture that
+coexists with HealthKit summaries instead of overriding them invisibly.
 Mobile-originated decisions, intake drafts, validation outcomes, and check-ins
 must emit privacy-safe observability that the existing web admin/QA/eval
 surfaces can inspect.

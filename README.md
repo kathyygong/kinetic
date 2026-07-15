@@ -27,7 +27,7 @@ Most running apps provide static plans that exist in a vacuum. When life happens
 * **Calendar-Aware Adjustment:** Uses schedule constraints to adapt the upcoming week while keeping the plan explainable and user-controlled.
 * **Readiness Input:** Lets runners log sleep, soreness, stress, and recovery signals manually, or import bounded Apple Health CSV exports for sleep/HRV/resting-heart-rate readiness without requiring native wearable sync for the demo.
 * **Grounded AI Reasoning:** Uses bounded reasoning for decision explanations, recalibration summaries, behavior patterns, and evals. Deterministic validation remains the authority for plan changes.
-* **Training Memory:** Shows tentative patterns and confirmed preferences with confidence, supporting-history context, and explicit confirm/dismiss/remove controls. Only confirmed preferences can become bounded scoring nudges.
+* **Training Memory:** Shows tentative patterns and confirmed preferences with confidence, supporting-history context, and explicit confirm/dismiss/remove controls. Every surfaced pattern should have a bounded result; confirmed preferences can become scoring nudges, and schedule-style preferences can feed deterministic plan generation as preferred-day inputs.
 * **Read-Only What-if Planning:** Previews day, duration, and easy-only plan variants without mutating the saved plan.
 * **Bounded Natural-Language Intake:** Parses explicit goal, training-day, availability, and experience changes into a typed, source-grounded draft. The draft remains read-only until the runner confirms it, then the existing deterministic planner validates and applies it.
 * **Read-Only Training Reviews:** Summarizes 7- or 30-day consistency, completed volume, and recovery trends from deterministic aggregates. Optional local AI can narrate those facts but cannot invent metrics or change the plan.
@@ -71,7 +71,7 @@ Runtime modes are explicit:
   posture, telemetry privacy coverage, behavior-prompt privacy gates, plan
   safety smoke coverage, final runbook review, and operational rollback
   guidance are complete.
-- [ ] **Mobile Companion Proof:** Thin native iOS companion for HealthKit daily readiness summaries, Firebase sync, calendar-aware Today, bounded NLP intake, shared web QA/eval observability, and recovery/check-in loop.
+- [ ] **Mobile Companion Proof:** Thin native iOS companion for HealthKit daily readiness summaries, Firebase sync, calendar-aware Today, bounded NLP intent routing, perceived-recovery/check-in flows, shared web QA/eval observability, and deterministic plan validation.
 - [ ] **Later Integrations:** Garmin/Oura ingestion, hosted AI provider option, coach sharing, broad push notifications, and full native plan editing.
 
 Optional live-model verification (requires Ollama and the configured intake

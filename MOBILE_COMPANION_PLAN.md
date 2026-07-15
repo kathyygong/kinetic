@@ -27,7 +27,9 @@ Mobile-first:
   but beta decisions must respect schedule constraints.
 - Bounded natural-language intake for schedule, availability, goal, and
   preference updates, with review-only drafts and deterministic validation
-  before anything can apply.
+  before anything can apply. Recovery, pain, missed-workout, and reflection
+  language should route to guided bounded check-in flows instead of ending in
+  warnings.
 - Recovery and post-workout check-in loop.
 - Minimal account, sync, privacy, and delete/disconnect controls.
 
@@ -66,6 +68,9 @@ A signed-in runner opens Kinetic on iPhone and sees:
 - A natural-language update path for explicit changes such as "I only have 30
   minutes today"; AI can parse a review-only draft, but deterministic
   validation owns apply.
+- A natural-language readiness path for notes such as "I slept badly" or "my
+  legs feel heavy"; Kinetic opens perceived-recovery capture rather than
+  inferring hidden readiness values.
 - A privacy screen that explains what Kinetic reads and what it syncs.
 - A useful fallback when HealthKit permission is denied, partial, stale, or
   unavailable.
@@ -181,7 +186,8 @@ Acceptance:
 ## Phase 2.5: Mobile NLP Intake And Validation
 
 Goal: retain the web product's bounded AI usefulness on mobile without making
-mobile chat-first.
+mobile chat-first. NLP must choose a safe product flow, not merely warn the
+runner to visit another screen.
 
 Build:
 
@@ -190,6 +196,15 @@ Build:
   Firebase ID token and supplied only bounded profile/goal context.
 - Review-only draft UI for explicit schedule, availability, goal, and
   preference changes.
+- Intent routing for every supported note:
+  - schedule availability, travel, workout swaps, goal updates, and preferred
+    days -> reviewable drafts;
+  - recovery/readiness notes -> perceived-recovery check-in;
+  - pain or injury language -> conservative caution check-in;
+  - missed workout notes -> skipped/reschedule/rebalance flow;
+  - post-workout reflection -> effort and completion check-in;
+  - explanation questions -> read-only answer from deterministic traces;
+  - ambiguous notes -> clarifying prompt.
 - Confirm/apply flow that reruns deterministic validation before any plan
   mutation.
 - Privacy-safe mobile telemetry for reviewed, discarded, confirmed, and failed
@@ -198,6 +213,11 @@ Build:
 Acceptance:
 
 - Ambiguous, recovery/medical, or ungrounded notes cannot be confirmed.
+- Recovery and pain notes do not become hidden biometric, readiness, or injury
+  values. They must be captured through explicit user-authored fields before
+  the deterministic engine can use them.
+- Each supported NLP category opens a concrete flow: reviewable draft, guided
+  check-in, read-only explanation, clarifying prompt, or safe refusal/routing.
 - Anonymous mobile intake is rejected under strict auth.
 - AI parse failures fall back or stop safely without mutating state.
 - Existing web admin/QA surfaces can identify mobile-originated intake results.
@@ -208,20 +228,47 @@ Goal: close the daily habit loop.
 
 Build:
 
-- Manual readiness correction for days where HealthKit is missing or stale.
+- Manual perceived-recovery capture for days where HealthKit is missing,
+  stale, incomplete, or contradicted by how the runner feels. Fields should be
+  bounded and explicit: perceived recovery, fatigue, soreness, optional sleep
+  correction, and a conservative pain/discomfort flag if added.
 - Post-workout check-in: completed/skipped, effort, optional bounded notes
   policy.
 - Sync to the existing recommendation/workout history shape where possible.
 - Sync mobile outcomes in a way that web training review and behavior-memory
   surfaces can read without a duplicate mobile-only history model.
 - Preserve behavior-learning boundaries: tentative patterns remain advisory,
-  and only confirmed preferences can score as bounded nudges.
+  and only confirmed preferences can score as bounded nudges. Confirmed
+  schedule-style patterns may also propose preferred-day inputs for
+  deterministic plan generation.
 
 Acceptance:
 
 - A runner can complete the entire morning/evening loop on iOS.
+- A recovery NLP note opens perceived-recovery capture and the resulting
+  explicit fields coexist with HealthKit summaries.
 - Web training review and memory surfaces reflect mobile check-ins.
 - No raw workout notes or raw HealthKit samples enter telemetry or AI prompts.
+
+## Behavior Pattern Result Contract
+
+Pattern detection must produce a safe product result. Kinetic should not show
+patterns simply because they are interesting.
+
+| Pattern family | Example | Allowed response |
+| --- | --- | --- |
+| Heavy-calendar misses | Workouts are skipped on meeting-heavy days | Ask to favor shorter/easier candidates on heavy days |
+| Specific-day skips | Tuesday workouts are commonly missed | Ask to avoid or replace that day in future deterministic plans |
+| Long-run day preference | Long runs are completed more often on Saturday | Ask to prefer that long-run day when spacing allows |
+| Rest override | Runner often trains after full-rest recommendations | Offer a recovery alternative before full rest, skipped when at risk |
+| Adjustment too hard/easy | Modified sessions are rejected for difficulty mismatch | Apply small confirmed scoring nudges only |
+| Stale data/check-in gaps | Decisions often happen without fresh readiness | Prompt sync or check-in habit; no training mutation |
+| Pain/discomfort recurrence | Repeated pain flags appear in check-ins | Deterministic caution routing only; no AI diagnosis |
+
+Each pattern card should state what Kinetic noticed, why it matters, what will
+change if confirmed, and what will never change because of that preference.
+Confirmed schedule patterns can influence plan generation only through
+preferred-day inputs followed by deterministic validation.
 
 ## Phase 4: Notifications, Only If Justified
 
@@ -292,6 +339,9 @@ Sync freshness and confidence:
 - Missing HealthKit data is a confidence issue, not a license to infer.
 - Manual readiness can override or supplement HealthKit for the same local day,
   but conflict rules must be deterministic and visible.
+- Subjective recovery self-report is a legitimate readiness signal, but it is
+  user-authored data. AI may route to its capture flow; AI may not fabricate it
+  from text.
 
 Privacy boundaries:
 

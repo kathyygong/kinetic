@@ -152,13 +152,18 @@ A recreational runner training for a race while balancing work, travel, fatigue,
 7. Confirm or reject learned behavior patterns.
    - Kinetic surfaces advisory patterns from recommendation history.
    - User can confirm, dismiss, or remove learned preferences.
-   - Confirmed preferences may softly influence future scoring, but never override safety constraints.
+   - Confirmed preferences may softly influence future scoring or, for
+     schedule-style patterns, future deterministic plan generation as
+     preferred-day inputs. They never override safety constraints.
 
 8. Ask what changed or what if.
    - User can provide natural-language context, such as "I am traveling Wednesday through Friday and slept badly last night."
    - Supported goal, schedule, availability, and experience details become a
-     source-grounded draft; recovery or medical context is routed to the
-     Recovery flow rather than inferred.
+     source-grounded draft.
+   - Recovery, pain, missed-workout, and post-workout reflection context routes
+     into a guided bounded flow instead of a dead-end warning. The runner
+     supplies explicit fields before the deterministic engine can use the
+     information.
    - Deterministic logic validates the complete draft before an explicit
      confirmation can apply any resulting changes.
    - User can explore deterministic scenarios without committing them to the
@@ -193,6 +198,12 @@ Requirements:
 
 - Allow manual entry for HRV, HRV baseline, sleep hours, resting heart rate, fatigue, and soreness.
 - Allow Apple Health CSV import for bounded readiness metrics where supported.
+- Support a perceived-recovery check-in that can supplement HealthKit or manual
+  biometric data with explicit self-report fields such as fatigue, soreness,
+  perceived recovery, and optional sleep correction.
+- Natural-language recovery notes must route into that bounded check-in flow;
+  they must not be converted by AI into hidden readiness, HRV, sleep, resting
+  heart-rate, fatigue, soreness, pain, or injury values.
 - Drop unsupported columns and raw notes during import.
 - Store historical readiness values.
 - Use freshness metadata to lower confidence when recovery data is stale or missing.
@@ -238,6 +249,36 @@ Requirements:
 - Warn on sparse data.
 - Allow users to confirm or dismiss learned preferences.
 - Apply confirmed preferences only as bounded scoring nudges.
+- Every detected pattern must have an explicit product result. Kinetic should
+  avoid surfacing patterns that cannot lead to a safe action, clarifying
+  question, check-in prompt, or read-only explanation.
+- Heavy-calendar, rest-override, and intensity-tolerance patterns may become
+  small confirmed scoring nudges.
+- Schedule-style patterns, such as repeated skipped weekdays or preferred
+  long-run days, may propose preferred-day updates for deterministic plan
+  generation after explicit user review.
+- Stale-data and missed-check-in patterns may trigger sync/check-in UX
+  prompts, not training mutations.
+- Recurring pain or discomfort patterns must route to deterministic caution
+  flows and must not be framed as AI diagnosis.
+
+#### Natural-Language Intent Routing
+
+Requirements:
+
+- NLP must produce one of five bounded outcomes: reviewable draft, guided
+  check-in, read-only explanation, clarifying prompt, or safe refusal/routing.
+- Schedule availability, travel, workout swaps, goal updates, and training-day
+  preferences produce reviewable drafts and deterministic confirm/apply.
+- Recovery/readiness language opens perceived-recovery capture instead of
+  inferring biometric values.
+- Pain or injury language opens a caution check-in and conservative safety
+  copy; Kinetic does not diagnose or clear the runner to train.
+- Missed-workout and post-workout reflection language opens the appropriate
+  check-in/rebalance flow with bounded fields.
+- Explanation questions answer from decision traces or deterministic
+  simulations only and cannot mutate state.
+- Ambiguous input asks for clarification rather than guessing.
 
 #### Dashboard UI Vertical Slice
 
@@ -316,8 +357,9 @@ Requirements:
 #### Expanded AI Workflows
 
 - Natural-language intake is implemented for supported goal, schedule,
-  availability, and preference changes. Recovery/medical notes remain
-  explicitly routed to the Recovery flow rather than inferred or applied.
+  availability, and preference changes. Recovery, pain, missed-workout, and
+  reflection notes should route to guided bounded flows rather than warnings
+  alone. AI must not infer biometric or medical values from free text.
 - What-if planning for uncommitted scenario exploration. Implemented for day,
   duration, and easy-only previews; applying a preview remains an explicit,
   deterministically validated user action.
@@ -333,8 +375,10 @@ Requirements:
   user history/preferences, bounded explanations, and deterministic
   validation.
 - Add bounded mobile natural-language intake for explicit schedule,
-  availability, goal, and preference updates. It must use review-only drafts
-  and deterministic confirm/apply, matching the web safety boundary.
+  availability, goal, preference, recovery/check-in, missed-workout, and
+  reflection updates. It must route every supported note to a concrete bounded
+  flow, use review-only drafts where state may change, and require
+  deterministic confirm/apply for plan mutations.
 - Add a recovery/check-in loop.
 - Keep full plan generation, What-if exploration, training reviews, demo
   tooling, and admin/QA/eval dashboards on web until the mobile loop proves
@@ -377,6 +421,8 @@ Across the roadmap, AI may:
 - Explain decisions.
 - Summarize weekly or monthly training.
 - Parse natural-language notes into structured candidate constraints.
+- Route recovery, pain, missed-workout, and reflection language into bounded
+  check-in flows.
 - Suggest what-if scenarios.
 - Detect behavior patterns.
 - Evaluate output quality and safety in offline evals.
@@ -386,6 +432,8 @@ AI may not:
 - Directly mutate workouts, plans, mileage caps, safety thresholds, or persisted training state.
 - Override deterministic safety rules.
 - Invent biometrics, injuries, diagnoses, calendar events, or training history.
+- Convert vague recovery or pain language into hidden engine inputs.
+- Surface behavior patterns that have no clear bounded product response.
 - Make medical claims or injury diagnoses.
 - Hide uncertainty when data is sparse, stale, or conflicting.
 
