@@ -69,6 +69,11 @@ export default function MobileCompanionPrototype() {
     trackProductEvent("mobile_decision_validated", {
       platform: "ios",
       outcome: "success",
+      decision_source: "fallback",
+      failure_state: "none",
+      cache_state: "missing",
+      availability_source:
+        calendarState === "stale" ? "planned_workout_fallback" : "calendar",
       selected_action: selectedActionFor(syncState, calendarState),
       confidence_bucket: confidenceBucketFor(syncState),
       calendar_state: calendarState,

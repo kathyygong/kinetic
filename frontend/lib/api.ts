@@ -17,6 +17,13 @@
 
 import { auth } from "./firebase";
 import { getGoogleCalendarConnection } from "./integrations/googleCalendar";
+import {
+  classifyMobileTodayHttpFailure,
+  parseDecisionResponse,
+  type DecisionRequest,
+  type DecisionResponse,
+  type MobileTodayFailureCode,
+} from "./mobileTodayContract";
 
 const DEFAULT_BASE = "http://127.0.0.1:8000";
 
@@ -94,6 +101,77 @@ export async function apiFetch(
   }
 
   return fetch(resolveUrl(path), { ...init, headers });
+}
+
+export class MobileTodayRequestError extends Error {
+  constructor(
+    public readonly code: MobileTodayFailureCode,
+    message: string,
+    public readonly status?: number,
+  ) {
+    super(message);
+    this.name = "MobileTodayRequestError";
+  }
+}
+
+/**
+ * Authenticated, bounded client for the deterministic Native Today decision.
+ *
+ * Firebase auth is attached by `apiFetch`. The helper adds a finite timeout,
+ * validates the backend envelope, and classifies failures into the shared
+ * mobile contract so iOS can mirror the same cache/fallback behavior later.
+ */
+export async function fetchMobileTodayDecision(
+  request: DecisionRequest,
+  init: RequestInit = {},
+  timeoutMs = 8_000,
+): Promise<DecisionResponse> {
+  const controller = new AbortController();
+  const onCallerAbort = () => controller.abort(init.signal?.reason);
+  init.signal?.addEventListener("abort", onCallerAbort, { once: true });
+  const timeout = setTimeout(() => controller.abort("mobile Today timeout"), timeoutMs);
+
+  try {
+    const headers = new Headers(init.headers);
+    if (!headers.has("Content-Type")) {
+      headers.set("Content-Type", "application/json");
+    }
+    const response = await apiFetch("/decision", {
+      ...init,
+      method: "POST",
+      headers,
+      body: JSON.stringify(request),
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      const code = classifyMobileTodayHttpFailure(response.status);
+      throw new MobileTodayRequestError(
+        code,
+        `mobile Today decision failed: HTTP ${response.status}`,
+        response.status,
+      );
+    }
+    try {
+      return parseDecisionResponse(await response.json());
+    } catch (error) {
+      throw new MobileTodayRequestError(
+        "invalid_response",
+        error instanceof Error ? error.message : "invalid mobile Today response",
+      );
+    }
+  } catch (error) {
+    if (error instanceof MobileTodayRequestError) throw error;
+    if (controller.signal.aborted && !init.signal?.aborted) {
+      throw new MobileTodayRequestError("timeout", "mobile Today decision timed out");
+    }
+    throw new MobileTodayRequestError(
+      "offline",
+      error instanceof Error ? error.message : "mobile Today decision is offline",
+    );
+  } finally {
+    clearTimeout(timeout);
+    init.signal?.removeEventListener("abort", onCallerAbort);
+  }
 }
 
 // --- Weekly reasoning ------------------------------------------------------

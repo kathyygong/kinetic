@@ -1,0 +1,218 @@
+{
+  "request_contract": {
+    "schema": "mobile-today.v1",
+    "local_day": "2026-07-16",
+    "request": {
+      "biometrics": {
+        "hrv": 54,
+        "hrv_baseline": 52,
+        "sleep_hours": 7.5,
+        "resting_hr": 49,
+        "fatigue_level": 2,
+        "soreness_level": 1
+      },
+      "training_context": {
+        "planned_workout": "43 min tempo run",
+        "recent_workouts": [
+          "interval run",
+          "easy run"
+        ]
+      },
+      "constraints": {
+        "available_minutes": 30,
+        "calendar_authoritative": true
+      },
+      "data_freshness": {
+        "recovery_age_hours": 2,
+        "calendar_age_hours": 2
+      },
+      "bias_toward_original": 0.667,
+      "learned_preferences": [
+        {
+          "id": "pref-busy",
+          "type": "busy_day_preference",
+          "confidence": "high",
+          "userConfirmed": true,
+          "createdAt": "2026-07-01T10:00:00.000Z"
+        }
+      ]
+    },
+    "metadata": {
+      "profile_state": "present",
+      "goal_state": "present",
+      "plan_state": "scheduled",
+      "readiness_state": "complete",
+      "readiness_source": "mixed",
+      "readiness_age_hours": 2,
+      "baseline_source": "rolling_history",
+      "calendar_state": "conflict",
+      "calendar_age_hours": 2,
+      "availability_source": "calendar",
+      "confirmed_preference_count": 1,
+      "recent_workout_count": 2,
+      "health_permission_state": "granted"
+    }
+  },
+  "backend_response": {
+    "decision": {
+      "state": "fatigued",
+      "recovery_score": 0.62,
+      "selected_action": {
+        "name": "modify",
+        "description": "Reduce duration while preserving an aerobic stimulus.",
+        "intensity_modifier": 0.85,
+        "duration_modifier": 0.7
+      },
+      "final_workout": "40 min tempo run (intensity x0.85, duration x0.70) capped at 30 min",
+      "confidence": 0.66,
+      "available_minutes": 30,
+      "key_factors": [
+        "HRV is near the recent baseline",
+        "Calendar availability limits the session to 30 minutes"
+      ],
+      "alternatives": [
+        {
+          "name": "proceed",
+          "description": "Run the planned workout.",
+          "intensity_modifier": 1,
+          "duration_modifier": 1
+        },
+        {
+          "name": "rest",
+          "description": "Take a recovery day.",
+          "intensity_modifier": 0,
+          "duration_modifier": 0
+        }
+      ],
+      "scores": {
+        "proceed": 0.51,
+        "modify": 0.74,
+        "rest": 0.42
+      },
+      "decision_trace": [
+        "Calendar availability: caller-authoritative 30 min (server lookup skipped).",
+        "Selected modify after deterministic scoring."
+      ],
+      "staleness_warnings": []
+    },
+    "ai_reasoning": null,
+    "reasoning_available": false
+  },
+  "expected_snapshot": {
+    "schema": "mobile-today.v1",
+    "local_day": "2026-07-16",
+    "generated_at": "2026-07-16T12:00:00.000Z",
+    "decision": {
+      "state": "fatigued",
+      "recovery_score": 0.62,
+      "selected_action": {
+        "name": "modify",
+        "description": "Reduce duration while preserving an aerobic stimulus.",
+        "intensity_modifier": 0.85,
+        "duration_modifier": 0.7
+      },
+      "final_workout": "40 min tempo run (intensity x0.85, duration x0.70) capped at 30 min",
+      "confidence": 0.66,
+      "available_minutes": 30,
+      "key_factors": [
+        "HRV is near the recent baseline",
+        "Calendar availability limits the session to 30 minutes"
+      ],
+      "staleness_warnings": []
+    },
+    "explanation": {
+      "source": "deterministic",
+      "summary": "Kinetic safely adjusted today's plan: 40 min tempo run (intensity x0.85, duration x0.70) capped at 30 min",
+      "factors": [
+        {
+          "title": "Decision factor",
+          "explanation": "HRV is near the recent baseline",
+          "impact": "neutral"
+        },
+        {
+          "title": "Decision factor",
+          "explanation": "Calendar availability limits the session to 30 minutes",
+          "impact": "neutral"
+        }
+      ],
+      "tradeoff": "The safer option protects consistency while respecting current constraints.",
+      "confidence_note": "Readiness and calendar inputs are current enough for this recommendation."
+    },
+    "context": {
+      "profile_state": "present",
+      "goal_state": "present",
+      "plan_state": "scheduled",
+      "readiness_state": "complete",
+      "readiness_source": "mixed",
+      "readiness_age_hours": 2,
+      "baseline_source": "rolling_history",
+      "calendar_state": "conflict",
+      "calendar_age_hours": 2,
+      "availability_source": "calendar",
+      "confirmed_preference_count": 1,
+      "recent_workout_count": 2,
+      "health_permission_state": "granted"
+    }
+  },
+  "cache_envelope": {
+    "schema": "mobile-today-cache.v1",
+    "local_day": "2026-07-16",
+    "cached_at": "2026-07-16T12:00:00.000Z",
+    "snapshot": {
+      "schema": "mobile-today.v1",
+      "local_day": "2026-07-16",
+      "generated_at": "2026-07-16T12:00:00.000Z",
+      "decision": {
+        "state": "fatigued",
+        "recovery_score": 0.62,
+        "selected_action": {
+          "name": "modify",
+          "description": "Reduce duration while preserving an aerobic stimulus.",
+          "intensity_modifier": 0.85,
+          "duration_modifier": 0.7
+        },
+        "final_workout": "40 min tempo run (intensity x0.85, duration x0.70) capped at 30 min",
+        "confidence": 0.66,
+        "available_minutes": 30,
+        "key_factors": [
+          "HRV is near the recent baseline",
+          "Calendar availability limits the session to 30 minutes"
+        ],
+        "staleness_warnings": []
+      },
+      "explanation": {
+        "source": "deterministic",
+        "summary": "Kinetic safely adjusted today's plan: 40 min tempo run (intensity x0.85, duration x0.70) capped at 30 min",
+        "factors": [
+          {
+            "title": "Decision factor",
+            "explanation": "HRV is near the recent baseline",
+            "impact": "neutral"
+          },
+          {
+            "title": "Decision factor",
+            "explanation": "Calendar availability limits the session to 30 minutes",
+            "impact": "neutral"
+          }
+        ],
+        "tradeoff": "The safer option protects consistency while respecting current constraints.",
+        "confidence_note": "Readiness and calendar inputs are current enough for this recommendation."
+      },
+      "context": {
+        "profile_state": "present",
+        "goal_state": "present",
+        "plan_state": "scheduled",
+        "readiness_state": "complete",
+        "readiness_source": "mixed",
+        "readiness_age_hours": 2,
+        "baseline_source": "rolling_history",
+        "calendar_state": "conflict",
+        "calendar_age_hours": 2,
+        "availability_source": "calendar",
+        "confirmed_preference_count": 1,
+        "recent_workout_count": 2,
+        "health_permission_state": "granted"
+      }
+    }
+  }
+}

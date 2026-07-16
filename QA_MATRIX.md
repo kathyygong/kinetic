@@ -32,7 +32,8 @@ the next beta checkpoint.
 | Mobile Mac handoff | [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md) defines the macOS/Xcode execution checklist and records the physical-device proof | Completed 2026-07-16 |
 | iOS HealthKit permissions | denied, partial, granted, and unavailable states handled; stale background delivery remains later hardening | Read-only grant and bounded partial/unavailable code paths passed; background delivery not yet implemented |
 | iOS readiness sync | [MOBILE_READINESS_SCHEMA.md](./MOBILE_READINESS_SCHEMA.md) contract followed; bounded daily summaries only; no raw HealthKit samples in Firestore | Passed 2026-07-16 on physical iPhone with web readback |
-| Mobile calendar awareness | Today decisions consume existing calendar availability/freshness and lower confidence on stale/missing calendar data | Required before mobile beta |
+| Mobile Today shared contract | [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md), `smoke-mobile-today-contract.ts`, and the shared JSON fixture validate request, response, privacy, cache, and failure semantics | Passed 2026-07-16 on Windows; Swift parity remains |
+| Mobile calendar awareness | Today decisions consume existing calendar availability/freshness, preserve explicit zero-minute windows, use a labeled planned-duration fallback, and lower confidence on stale/missing calendar data | Shared frontend/backend contract passed 2026-07-16; native device proof remains |
 | Mobile NLP intake | schedule/availability/travel/goal/preference notes create review-only drafts; recovery, pain, missed-workout, and reflection notes open bounded flows; strict-auth rejection when anonymous; deterministic confirm/apply; malformed/ambiguous fallback | Required before mobile beta |
 | Mobile perceived-recovery flow | NLP recovery notes open explicit perceived-recovery capture; captured fields coexist with HealthKit summaries; AI never fabricates readiness values from text | Required before mobile beta |
 | Behavior pattern result contract | every surfaced pattern has a bounded response; confirmed schedule patterns can update preferred-day inputs for deterministic plan generation; pain patterns route to caution only | Required before mobile beta |
@@ -55,8 +56,9 @@ The demo is shippable and the Firebase persistence foundation is beta-ready.
 Beta hardening is complete for a small controlled web beta. Apple Health CSV
 import is an implemented web-beta bridge for readiness metrics.
 
-As of 2026-07-16, Mobile Companion Phase 1 native HealthKit/Firebase proof is
-complete and Phase 2 Native Today is active. Mobile beta must
+As of 2026-07-16, Mobile Companion Phase 1 native HealthKit/Firebase proof and
+the Phase 2A Windows Native Today contract are complete. SwiftUI/device
+implementation is active. Mobile beta must
 preserve calendar-aware decisions, bounded NLP intake, deterministic
 confirm/apply, perceived-recovery routing, pattern-to-action behavior memory,
 and shared QA/eval observability. Garmin, Oura, hosted AI, coach sharing,

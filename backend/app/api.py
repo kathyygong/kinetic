@@ -8,7 +8,7 @@ from typing import List
 
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from .auth import RequireAuth
 from .calendar import (
@@ -60,7 +60,12 @@ class TrainingContextIn(BaseModel):
 
 
 class ConstraintsIn(BaseModel):
-    available_minutes: int
+    available_minutes: int = Field(ge=0, le=240)
+    # Mobile and other cache-aware clients can explicitly declare that they
+    # already resolved availability. In that case the engine must not replace
+    # a valid zero-minute window or a plan-duration fallback with server-side
+    # calendar data/defaults.
+    calendar_authoritative: bool = False
 
 
 class DataFreshnessIn(BaseModel):
@@ -93,7 +98,10 @@ class LearnedPreferenceIn(BaseModel):
 
     id: str
     type: str
-    description: str
+    # The deterministic scorer uses the bounded type/confidence fields only.
+    # Keeping description optional lets privacy-minimized clients omit free
+    # text while preserving compatibility with older web requests.
+    description: str = ""
     confidence: str
     userConfirmed: bool
     createdAt: str

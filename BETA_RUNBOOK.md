@@ -15,15 +15,18 @@ The web beta includes Apple Health CSV import as a bounded readiness-input
 bridge. Mobile Companion Phase 1 completed on 2026-07-16: a physical iPhone
 proved Firebase sign-in, read-only HealthKit summarization, bounded Firestore
 sync, same-user web readback, retry behavior, and deletion tombstones. The
-active milestone is the shared authenticated contract for calendar-aware
-Native Today, followed by bounded natural-language intake and the
-recovery/check-in loop. Do not expand into a full native app,
+shared authenticated contract for calendar-aware Native Today completed on
+Windows on 2026-07-16; the active milestone is its bounded SwiftUI/device
+implementation, followed by natural-language intake and the recovery/check-in
+loop. Do not expand into a full native app,
 Garmin/Oura ingestion, hosted AI, broad push notifications, coach sharing, or
 autonomous AI plan mutation without another explicit product decision.
 
 The mobile phase plan lives in
 [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md). The first native
 execution checklist lives in [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md).
+The stable Today request/cache/failure boundary and next Mac steps live in
+[MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md).
 
 ## Environment posture
 
@@ -131,6 +134,9 @@ Before inviting mobile beta users:
    shows freshness/confidence accurately.
 6. Confirm mobile Today consumes existing calendar availability/freshness and
    lowers confidence when calendar data is stale, missing, or unavailable.
+   Validate against [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md) and
+   its shared JSON fixture; explicit zero-minute windows must remain zero and a
+   missing calendar must use the labeled planned-workout fallback.
 7. Confirm bounded mobile natural-language intake routes every supported note
    to a concrete flow: reviewable draft, guided check-in, read-only
    explanation, clarifying prompt, or safe refusal/routing.

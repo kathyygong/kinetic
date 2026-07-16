@@ -33,6 +33,9 @@ class TrainingContext:
 class Constraints:
     """User-imposed constraints on today's session."""
     available_minutes: int
+    # True when the client already resolved calendar availability (including
+    # an explicit zero-minute window or a plan-duration fallback).
+    calendar_authoritative: bool = False
 
 
 @dataclass

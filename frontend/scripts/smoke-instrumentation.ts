@@ -235,6 +235,10 @@ async function main(): Promise<void> {
       properties: {
         platform: "ios",
         outcome: "success",
+        decision_source: "live",
+        failure_state: "none",
+        cache_state: "fresh",
+        availability_source: "calendar",
         selected_action: "modify",
         confidence_bucket: "moderate",
         calendar_state: "conflict",
@@ -377,6 +381,10 @@ async function main(): Promise<void> {
   const mobileBounded = trackProductEvent("mobile_decision_validated", {
     platform: "ios",
     outcome: "success",
+    decision_source: "unexpected-source",
+    failure_state: "unexpected-failure",
+    cache_state: "unexpected-cache",
+    availability_source: "unexpected-availability",
     selected_action: "unexpected-action",
     confidence_bucket: "surprisingly-certain",
     calendar_state: "raw-calendar-state",
@@ -390,6 +398,13 @@ async function main(): Promise<void> {
   expect(
     mobileBounded?.properties.selected_action === "other",
     "mobile selected_action should be bucketed",
+  );
+  expect(
+    mobileBounded?.properties.decision_source === "other" &&
+      mobileBounded?.properties.failure_state === "other" &&
+      mobileBounded?.properties.cache_state === "other" &&
+      mobileBounded?.properties.availability_source === "other",
+    "mobile source, failure, cache, and availability states should be bucketed",
   );
   expect(
     mobileBounded?.properties.confidence_bucket === "other",

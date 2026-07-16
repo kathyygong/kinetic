@@ -619,10 +619,86 @@ def check_training_summary_failure_fallbacks() -> None:
             os.environ["OLLAMA_MODEL"] = original_model
 
 
+def check_mobile_today_contract() -> None:
+    base = {
+        "biometrics": {
+            "hrv": 54,
+            "hrv_baseline": 52,
+            "sleep_hours": 7.5,
+            "resting_hr": 49,
+            "fatigue_level": 2,
+            "soreness_level": 1,
+        },
+        "training_context": {
+            "planned_workout": "43 min tempo run",
+            "recent_workouts": ["interval run", "easy run"],
+        },
+        "constraints": {
+            "available_minutes": 0,
+            "calendar_authoritative": True,
+        },
+        "bias_toward_original": 0.67,
+        # Privacy-minimized clients omit preference descriptions. The scorer
+        # uses only these bounded fields.
+        "learned_preferences": [
+            {
+                "id": "pref-busy",
+                "type": "busy_day_preference",
+                "confidence": "high",
+                "userConfirmed": True,
+                "createdAt": "2026-07-01T10:00:00.000Z",
+            }
+        ],
+    }
+    fresh = client.post(
+        "/decision",
+        json={
+            **base,
+            "data_freshness": {
+                "recovery_age_hours": 2,
+                "calendar_age_hours": 2,
+            },
+        },
+    )
+    missing = client.post(
+        "/decision",
+        json={
+            **base,
+            "data_freshness": {
+                "recovery_age_hours": 2,
+                "calendar_age_hours": None,
+            },
+        },
+    )
+    _assert(fresh.status_code == 200, f"mobile fresh HTTP {fresh.status_code}")
+    _assert(missing.status_code == 200, f"mobile missing HTTP {missing.status_code}")
+
+    fresh_decision = fresh.json()["decision"]
+    missing_decision = missing.json()["decision"]
+    _assert(
+        fresh_decision["available_minutes"] == 0
+        and missing_decision["available_minutes"] == 0,
+        "caller-authoritative zero-minute window was replaced",
+    )
+    _assert(
+        any("caller-authoritative 0 min" in line for line in fresh_decision["decision_trace"]),
+        "mobile calendar-authoritative trace is missing",
+    )
+    _assert(
+        "Missing updated calendar data" in missing_decision["staleness_warnings"],
+        "missing calendar did not surface a warning",
+    )
+    _assert(
+        missing_decision["confidence"] < fresh_decision["confidence"],
+        "missing calendar did not lower confidence",
+    )
+
+
 def main() -> None:
     checks = [
         ("ai status", check_ai_status),
         ("daily reasoning", check_daily_reasoning),
+        ("mobile Today contract", check_mobile_today_contract),
         ("weekly reasoning", check_weekly_reasoning),
         ("what-if reasoning", check_what_if),
         ("what-if failure fallbacks", check_what_if_failure_fallbacks),

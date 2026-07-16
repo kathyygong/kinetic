@@ -10,6 +10,7 @@ import {
   API_BASE,
   apiFetch,
   fetchDailyReasoning,
+  fetchMobileTodayDecision,
   type DailyReasoning,
 } from "@/lib/api";
 import { formatPace } from "@/lib/paceCalculator";
@@ -118,6 +119,10 @@ import type {
 import { isoDateKey } from "@/lib/readinessStorage";
 import { applyManualReadiness } from "@/lib/decisionInputs";
 import { areDemoToolsEnabled } from "@/lib/demoTools";
+import type {
+  DecisionOutput,
+  DecisionRequest,
+} from "@/lib/mobileTodayContract";
 
 const DEMO_TOOLS_ENABLED = areDemoToolsEnabled();
 
@@ -169,33 +174,6 @@ const itemVariants: Variants = {
 const WEEKDAY_ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 type WeekdayLabel = (typeof WEEKDAY_ORDER)[number];
 
-// --- Types matching the backend DecisionOutput ------------------------------
-
-type CandidateAction = {
-  name: string;
-  description: string;
-  intensity_modifier: number;
-  duration_modifier: number;
-};
-
-type DecisionOutput = {
-  state: string;
-  recovery_score: number;
-  selected_action: CandidateAction;
-  final_workout: string;
-  confidence: number;
-  available_minutes: number;
-  key_factors: string[];
-  alternatives: CandidateAction[];
-  scores: Record<string, number>;
-  decision_trace: string[];
-  // Short, user-facing strings describing any data sources the engine
-  // judged stale for this decision (e.g. "Calendar data last synced
-  // 3 days ago"). Empty list when everything is current. Optional so
-  // older backends without this field still parse cleanly.
-  staleness_warnings?: string[];
-};
-
 function toRequestBody(
   s: Scenario,
   readiness?: ManualReadiness | null,
@@ -203,7 +181,7 @@ function toRequestBody(
   biasTowardOriginal: number = 0,
   learnedPreferences: LearnedPreference[] = [],
   plannedWorkoutOverride?: string | null,
-) {
+): DecisionRequest {
   return {
     biometrics: applyManualReadiness(
       s.biometrics,
@@ -219,7 +197,13 @@ function toRequestBody(
     training_context: plannedWorkoutOverride
       ? { ...s.training_context, planned_workout: plannedWorkoutOverride }
       : s.training_context,
-    constraints: s.constraints,
+    constraints: {
+      ...s.constraints,
+      // The current web dashboard still relies on the backend's calendar
+      // merge. Native Today sets this true after resolving its Firebase/local
+      // calendar context so zero-minute windows and safe fallbacks survive.
+      calendar_authoritative: false,
+    },
     // Snapshot how recent each input source is so the backend can
     // apply a confidence penalty + emit matching warnings. Computed
     // on the client because that's where the data actually lives
@@ -240,7 +224,15 @@ function toRequestBody(
     // also the case for older clients that don't send this field at
     // all. Newer servers should treat the empty list and a missing
     // field identically.
-    learned_preferences: learnedPreferences,
+    learned_preferences: learnedPreferences
+      .filter((preference) => preference.userConfirmed === true)
+      .map((preference) => ({
+        id: preference.id,
+        type: preference.type,
+        confidence: preference.confidence,
+        userConfirmed: true as const,
+        createdAt: preference.createdAt,
+      })),
   };
 }
 
@@ -459,43 +451,18 @@ export default function DashboardPage() {
             plannedWorkoutOverride = null;
           }
         }
-        const res = await apiFetch(`/decision`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(
-            toRequestBody(
-              activeScenario,
-              todayReadiness,
-              readinessBaselines,
-              biasTowardOriginal,
-              confirmedPreferences,
-              plannedWorkoutOverride,
-            ),
+        const response = await fetchMobileTodayDecision(
+          toRequestBody(
+            activeScenario,
+            todayReadiness,
+            readinessBaselines,
+            biasTowardOriginal,
+            confirmedPreferences,
+            plannedWorkoutOverride,
           ),
-        });
-        if (!res.ok) throw new Error(`Server returned ${res.status}`);
-        // The current backend wraps the engine output as
-        //   { decision, ai_reasoning, reasoning_available }
-        // so it can piggy-back a cached LLM explanation in the same
-        // round trip. Older backends (and the probe scripts) return
-        // the bare `DecisionOutput`. Accept both shapes so the page
-        // never crashes if the contract drifts again.
-        const raw = (await res.json()) as
-          | DecisionOutput
-          | { decision: DecisionOutput; ai_reasoning?: DailyReasoning | null };
-        const data: DecisionOutput =
-          "decision" in raw && raw.decision ? raw.decision : (raw as DecisionOutput);
-        const cachedReasoning =
-          "decision" in raw && raw.decision ? raw.ai_reasoning ?? null : null;
-        // Defensive validation: every downstream renderer assumes
-        // `selected_action` is present (HeroCard reads
-        // `decision.selected_action.name` directly). If the response
-        // doesn't carry it — error envelope, partial payload, future
-        // shape drift — surface a typed error instead of letting the
-        // page crash on the read.
-        if (!data || typeof data !== "object" || !data.selected_action) {
-          throw new Error("Decision response missing selected_action");
-        }
+        );
+        const data = response.decision;
+        const cachedReasoning = response.ai_reasoning;
         if (!cancelled) {
           setDecision(data);
           setAiReasoning(cachedReasoning);

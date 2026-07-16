@@ -11,13 +11,17 @@ For a fast technical review, see [ARCHITECTURE.md](./ARCHITECTURE.md), the
 [deterministic AI eval report](./EVAL_REPORT.md). For beta handoff, see the
 [beta runbook](./BETA_RUNBOOK.md) and [QA matrix](./QA_MATRIX.md). The selected
 next product phase is the iOS [Mobile Companion Plan](./MOBILE_COMPANION_PLAN.md),
-with the sync contract in [Mobile Readiness Schema](./MOBILE_READINESS_SCHEMA.md).
+with the sync contract in [Mobile Readiness Schema](./MOBILE_READINESS_SCHEMA.md)
+and the authenticated Today boundary in
+[Mobile Today Contract](./MOBILE_TODAY_CONTRACT.md).
 The browser-viewable prototype lives at `/mobile-companion` when the frontend is
 running locally. The Phase 1 native HealthKit/Firebase app and Xcode project
 live in [`ios/KineticCompanion`](./ios/KineticCompanion/README.md); physical
 iPhone sync, web readback, retry, and deletion-tombstone behavior were proven on
-2026-07-16. The mobile audit surface lives at `/qa/mobile`. The active milestone
-is the shared Windows-side contract for the authenticated Native Today surface.
+2026-07-16. The mobile audit surface lives at `/qa/mobile`. The shared
+Windows-side Native Today request, response, cache, failure, privacy, and
+observability contract completed on 2026-07-16; SwiftUI implementation is the
+next bounded macOS task.
 
 ## 🏃 The Problem
 Most running apps provide static plans that exist in a vacuum. When life happens (e.g. a late-night meeting, poor sleep, or an unexpected trip) the plan breaks. Users are left to manually adjust their training or, more often, lose consistency and abandon the plan entirely.
@@ -77,9 +81,10 @@ Runtime modes are explicit:
   read-only HealthKit permission, bounded local summarization, Firestore sync,
   same-user web readback, retry behavior, and deletion tombstones passed on a
   physical iPhone.
-- [ ] **Mobile Phase 2 — Native Today:** Define the shared authenticated data
-  and decision contract on Windows, then render the real calendar-aware
-  deterministic recommendation in SwiftUI with cached/offline/stale states.
+- [ ] **Mobile Phase 2 — Native Today:** The shared authenticated data,
+  decision, cache, failure, privacy, and observability contract is complete on
+  Windows. Next, render the real calendar-aware deterministic recommendation
+  in SwiftUI with cached/offline/stale states and physical-device proof.
 - [ ] **Mobile Phases 2.5–3:** Add bounded NLP intent routing,
   perceived-recovery capture, completion/skipped/effort check-ins, and shared
   web QA/eval observability.

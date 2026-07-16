@@ -128,6 +128,26 @@ original Windows environment. Return to macOS/Xcode only when a later task
 changes native Swift code, Xcode capabilities/signing, HealthKit behavior, or
 requires another physical-device proof.
 
+Phase 2A shared contract status, 2026-07-16:
+
+- The authenticated request derives the current plan slot, latest complete
+  readiness, rolling HRV baseline, bounded workout history, confirmed
+  preferences, and calendar availability/freshness without identity or raw
+  notes.
+- Missing calendar uses the planned workout duration as an explicit
+  caller-authoritative fallback; a real zero-minute window survives unchanged,
+  and missing calendar lowers backend confidence.
+- Strict response validation keeps the deterministic decision authoritative
+  and discards malformed optional AI reasoning.
+- The privacy-minimized same-day cache is fresh for six hours, visibly stale
+  after that, and unusable after 24 hours or a local-day change.
+- Auth, offline, timeout, backend, malformed-response, and missing-context
+  failures map to stable mobile states and privacy-safe observability fields.
+- TypeScript and the future Swift implementation share the canonical fixture
+  at `ios/KineticCompanion/Tests/Fixtures/mobile-today-contract.json`.
+- The detailed contract and Mac handoff are documented in
+  [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md).
+
 ## Phase 1: HealthKit/Firebase Sync Spike
 
 Goal: prove native HealthKit access and bounded Firebase sync without changing
@@ -417,11 +437,12 @@ Safety proof:
 
 ## Execution Sequence
 
-Current checkpoint: steps 1 through 4 are complete. The Phase 1 Mac proof is
-recorded in [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md). The active
-milestone is step 5, beginning with a Windows-side authenticated Native Today
-contract before SwiftUI implementation. The next Mac session starts only after
-that shared contract is stable and begins by rerunning `swift test`.
+Current checkpoint: steps 1 through 4 and the Windows contract half of step 5
+are complete. The Phase 1 Mac proof is recorded in
+[MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md), and the stable Today contract
+is in [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md). The next bounded
+Mac session implements the Swift Codable/network/cache/SwiftUI half of step 5
+and begins by rerunning `swift test`.
 
 1. Docs-only phase selection: update PRD, build plan, architecture, runbook,
    QA matrix, README, and demo script to name Mobile Companion Proof as the
@@ -434,8 +455,9 @@ that shared contract is stable and begins by rerunning `swift test`.
 4. Web readback: prove the existing web dashboard consumes mobile readiness
    summaries and preserves freshness/confidence behavior. Completed on a
    physical iPhone and same-user web session on 2026-07-16.
-5. Native Today: render the deterministic, calendar-aware recommendation from
-   shared state and backend `/decision`.
+5. Native Today: Windows request/response/cache/failure/observability contract
+   completed 2026-07-16; next render the deterministic, calendar-aware
+   recommendation from shared state and backend `/decision` in SwiftUI.
 6. Mobile intake: expose bounded NLP review and deterministic confirm/apply.
 7. Check-in loop: sync completion/skipped/effort data into existing history
    contracts.

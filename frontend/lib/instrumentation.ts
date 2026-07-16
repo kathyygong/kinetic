@@ -133,6 +133,18 @@ type ProductEventProperties = {
   mobile_decision_validated: {
     platform: "ios";
     outcome: "success" | "failed" | "invalid" | "timeout";
+    decision_source: "live" | "cache" | "fallback";
+    failure_state:
+      | "none"
+      | "auth_required"
+      | "offline"
+      | "timeout"
+      | "backend_unavailable"
+      | "invalid_response"
+      | "missing_context"
+      | "unknown";
+    cache_state: "fresh" | "stale" | "expired" | "missing";
+    availability_source: "calendar" | "planned_workout_fallback" | "missing";
     selected_action: string;
     confidence_bucket: string;
     calendar_state: "clear" | "conflict" | "stale" | "missing";
@@ -311,6 +323,10 @@ const EVENT_KEYS: {
   mobile_decision_validated: [
     "platform",
     "outcome",
+    "decision_source",
+    "failure_state",
+    "cache_state",
+    "availability_source",
     "selected_action",
     "confidence_bucket",
     "calendar_state",
@@ -417,6 +433,25 @@ const ENUM_VALUES: Record<string, readonly string[]> = {
   calendar_state: ["clear", "conflict", "stale", "missing", "unknown", "other"],
   readiness_state: ["ready", "caution", "unknown", "stale", "other"],
   deterministic_validation: ["passed", "failed", "not_run", "other"],
+  decision_source: ["live", "cache", "fallback", "other"],
+  failure_state: [
+    "none",
+    "auth_required",
+    "offline",
+    "timeout",
+    "backend_unavailable",
+    "invalid_response",
+    "missing_context",
+    "unknown",
+    "other",
+  ],
+  cache_state: ["fresh", "stale", "expired", "missing", "other"],
+  availability_source: [
+    "calendar",
+    "planned_workout_fallback",
+    "missing",
+    "other",
+  ],
   preference_type: [
     "busy_day_preference",
     "rest_day_preference",

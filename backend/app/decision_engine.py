@@ -42,6 +42,8 @@ _CALENDAR_HARD_PENALTY = 0.10
 
 def _freshness_adjustment(
     freshness: Optional[DataFreshness],
+    *,
+    penalize_missing_calendar: bool = False,
 ) -> tuple[float, list[str], list[str]]:
     """Compute the confidence penalty and human-readable notes for the
     supplied freshness info.
@@ -90,10 +92,20 @@ def _freshness_adjustment(
     # --- Calendar freshness ------------------------------------------------
     cal = freshness.calendar_age_hours
     if cal is None:
-        # Calendar may genuinely not be configured — that's the dashboard's
-        # default state for new accounts. Don't penalise; the engine
-        # already has a sensible time-budget fallback.
-        trace.append("Calendar freshness: no sync recorded (skipped).")
+        if penalize_missing_calendar:
+            # Caller-authoritative clients (Native Today) deliberately skipped
+            # server calendar lookup, so a missing age means schedule context
+            # is genuinely unverified and must lower confidence.
+            penalty += _CALENDAR_HARD_PENALTY
+            warnings.append("Missing updated calendar data")
+            trace.append(
+                f"Calendar freshness: no sync recorded "
+                f"(penalty -{_CALENDAR_HARD_PENALTY:.2f})."
+            )
+        else:
+            # Legacy web/server-calendar calls may have just completed a live
+            # lookup without a client-side sync timestamp.
+            trace.append("Calendar freshness: no client sync recorded (skipped).")
     elif cal > _CALENDAR_STALE_HOURS:
         penalty += _CALENDAR_HARD_PENALTY
         days = max(1, round(cal / 24))
@@ -138,7 +150,14 @@ def _merge_calendar_constraints(constraints: Constraints) -> tuple[Constraints, 
         offline, transient API error), fall back to the caller's value
         without failing the whole decision.
     """
-    caller_minutes = constraints.available_minutes if constraints.available_minutes else 0
+    caller_minutes = constraints.available_minutes
+
+    if constraints.calendar_authoritative:
+        note = (
+            f"Calendar availability: caller-authoritative "
+            f"{caller_minutes} min (server lookup skipped)."
+        )
+        return constraints, note
 
     try:
         calendar_minutes = get_available_minutes()
@@ -313,7 +332,10 @@ def make_decision(
     #    selected action — that would amount to making things up — but
     #    they do erode how much the engine trusts its own answer, which
     #    is exactly what confidence is for.
-    penalty, warnings, freshness_trace = _freshness_adjustment(freshness)
+    penalty, warnings, freshness_trace = _freshness_adjustment(
+        freshness,
+        penalize_missing_calendar=constraints.calendar_authoritative,
+    )
     trace.extend(freshness_trace)
     if penalty > 0:
         trace.append(

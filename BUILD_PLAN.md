@@ -869,10 +869,36 @@ Acceptance gates:
 Status: Phase 1 completed on 2026-07-16. The checked-in Xcode project passed
 Swift package tests, simulator build, signed physical-device build/install,
 Firebase sign-in, read-only HealthKit summarization, Firestore sync, same-user
-web readback, retry, and authoritative deletion-tombstone proof. The active
-Windows milestone is Phase 2A: define and validate the authenticated Native
-Today data, decision, caching, failure, and observability contracts before the
-next bounded Mac implementation session.
+web readback, retry, and authoritative deletion-tombstone proof. Phase 2A also
+completed on Windows on 2026-07-16: authenticated Native Today data, decision,
+cache, failure, privacy, and observability contracts now pass shared frontend
+and backend gates. The next bounded Mac session implements those stable
+contracts in Swift and SwiftUI.
+
+### Mobile Phase 2A Shared Today Contract - Completed 2026-07-16
+
+- Added `MOBILE_TODAY_CONTRACT.md` and a canonical fixture shared from
+  `ios/KineticCompanion/Tests/Fixtures/mobile-today-contract.json`.
+- Added a pure request builder around authenticated profile presence, goal,
+  saved plan, latest complete readiness, HealthKit metadata, calendar
+  freshness/availability, confirmed preferences, and completed workout slots.
+- Added privacy minimization: no identity, raw samples, calendar text, notes,
+  tokens, or free-text preference descriptions cross the Today contract.
+- Added caller-authoritative calendar constraints so explicit zero-minute
+  windows and planned-duration fallbacks cannot be replaced by a backend
+  calendar/default. Missing calendar now lowers confidence and emits a warning.
+- Added strict deterministic response validation, optional-AI discard,
+  privacy-minimized snapshots, same-day cache aging, stable failure mapping,
+  and live/cache/fallback resolution.
+- Added authenticated API timeout/error classification and moved the web
+  dashboard onto the same response validator.
+- Extended mobile decision observability with decision source, failure state,
+  cache state, and availability source.
+- Added canonical smoke coverage and backend deterministic gates for missing
+  context, calendar fallback, zero-minute availability, malformed actions,
+  privacy rejection, cache expiry, and missing-calendar confidence.
+- Frontend lint, TypeScript, full smoke, production build, backend compile,
+  deterministic gates, and backend smoke pass on Windows.
 
 ### Validation-Hardening Checkpoint - Updated 2026-07-13
 
@@ -930,7 +956,9 @@ next bounded Mac implementation session.
   handling passed on macOS/physical iPhone on 2026-07-16. Windows remains the
   source of truth for shared contracts, deterministic engine behavior,
   frontend/backend gates, Firebase rule coverage, and web QA. Return to Mac
-  after the Phase 2A Native Today contract is stable.
+  after the Phase 2A Native Today contract is stable. That contract completed
+  on 2026-07-16; the next return to Mac is now authorized for Swift
+  implementation and device proof.
 
 ### Mobile Phase 1 Native Proof - Completed 2026-07-16
 

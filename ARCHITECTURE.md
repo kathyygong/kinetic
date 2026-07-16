@@ -150,6 +150,16 @@ Mobile-originated decisions, intake drafts, validation outcomes, and check-ins
 must emit privacy-safe observability that the existing web admin/QA/eval
 surfaces can inspect.
 
+The Phase 2A boundary is now concrete in
+[MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md). Native Today builds a
+privacy-minimized `mobile-today.v1` request, marks its bounded calendar value
+caller-authoritative, and validates the existing `/decision` envelope before
+creating a reduced same-day snapshot. Missing calendar uses planned workout
+duration rather than invented availability and lowers confidence. The cache is
+fresh for six hours, cannot cross a local-day boundary, and degrades through
+typed auth/offline/timeout/backend/invalid-response states. The dashboard uses
+the same response validator, and TypeScript/Swift share one canonical fixture.
+
 ## Readiness integration boundary
 
 The web beta supports two readiness inputs: manual Recovery entry and Apple
@@ -210,7 +220,8 @@ workout/calendar text, tokens, email, UID, and unnecessary identity data.
   AI validation as non-negotiable rollback boundaries.
 - Mobile Companion Phase 1 passed native QA for read-only HealthKit permission,
   bounded daily-summary sync, web readback, retry, and authoritative deletion
-  tombstones. The active Phase 2 work adds the authenticated calendar-aware
-  Today decision contract, followed by bounded mobile intake, check-ins,
-  native event transport, and stale background-delivery recovery. See
+  tombstones. Phase 2A's authenticated calendar-aware Today contract now passes
+  Windows frontend/backend gates. The next work implements it in SwiftUI,
+  followed by bounded mobile intake, check-ins, native event transport, and
+  stale background-delivery recovery. See
   [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md).

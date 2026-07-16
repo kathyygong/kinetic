@@ -71,6 +71,10 @@ async function main(): Promise<void> {
   trackProductEvent("mobile_decision_validated", {
     platform: "ios",
     outcome: "success",
+    decision_source: "live",
+    failure_state: "none",
+    cache_state: "fresh",
+    availability_source: "calendar",
     selected_action: "modify",
     confidence_bucket: "moderate",
     calendar_state: "conflict",
