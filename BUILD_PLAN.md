@@ -866,8 +866,13 @@ Acceptance gates:
 - Mobile failures degrade through freshness/confidence rather than invented
   certainty.
 
-Status: initial isolated iOS source scaffold created under
-`ios/KineticCompanion`; native compile/test still requires macOS/Xcode.
+Status: Phase 1 completed on 2026-07-16. The checked-in Xcode project passed
+Swift package tests, simulator build, signed physical-device build/install,
+Firebase sign-in, read-only HealthKit summarization, Firestore sync, same-user
+web readback, retry, and authoritative deletion-tombstone proof. The active
+Windows milestone is Phase 2A: define and validate the authenticated Native
+Today data, decision, caching, failure, and observability contracts before the
+next bounded Mac implementation session.
 
 ### Validation-Hardening Checkpoint - Updated 2026-07-13
 
@@ -883,9 +888,11 @@ Status: initial isolated iOS source scaffold created under
   events flow from the privacy-safe local event log into the web QA model.
 - Full frontend lint, production build, and smoke gates pass. The local preview
   remains available at `/mobile-companion`, with audit readback at `/qa/mobile`.
-- Native HealthKit/Firebase execution, connected calendar OAuth, live
-  cross-device deletion/readback, and on-device check-in flows remain release
-  gates assigned to the phases documented in `MOBILE_COMPANION_PLAN.md`.
+- Native HealthKit/Firebase execution and live cross-device
+  deletion/readback passed on 2026-07-16. Connected calendar-aware Native
+  Today, native event transport, stale background-delivery repair, and
+  on-device check-in flows remain release gates assigned to the later phases
+  documented in `MOBILE_COMPANION_PLAN.md`.
 
 ### Mobile Contract Preflight - Updated 2026-07-13
 
@@ -918,7 +925,25 @@ Status: initial isolated iOS source scaffold created under
   readiness/health-sync tombstones.
 - Frontend lint, production build, full smoke, TypeScript compilation, and the
   Firebase emulator gate pass on Windows.
-- Native fixture tests are ready but cannot run on this machine because Swift
-  and Xcode are unavailable. The next Mac checkpoint begins with `swift test`,
-  then Firebase package wiring, HealthKit capability/permission proof, and
-  on-device web readback.
+- Native fixture tests, Firebase package wiring, HealthKit capability and
+  permission proof, on-device web readback, retry behavior, and tombstone
+  handling passed on macOS/physical iPhone on 2026-07-16. Windows remains the
+  source of truth for shared contracts, deterministic engine behavior,
+  frontend/backend gates, Firebase rule coverage, and web QA. Return to Mac
+  after the Phase 2A Native Today contract is stable.
+
+### Mobile Phase 1 Native Proof - Completed 2026-07-16
+
+- Added the checked-in `KineticCompanion.xcodeproj`, shared scheme, HealthKit
+  entitlement, and pinned Firebase Swift package resolution.
+- Proved Firebase email/password sign-in and ID-token retrieval.
+- Proved read-only HealthKit access for sleep, HRV, and resting heart rate.
+- Proved bounded local-day summarization and transactional `readiness` /
+  `health_sync` Firestore writes without raw HealthKit samples.
+- Proved Firestore failure leaves the local summary usable and retryable.
+- Proved the same Firebase account hydrates mobile readiness on the web
+  Recovery surface.
+- Proved web deletion tombstones prevent the native app from recreating health
+  data and clear the native local summary on the next sync attempt.
+- Added web sign-in routing for accounts that have mobile readiness but have
+  not completed web onboarding.

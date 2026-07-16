@@ -91,15 +91,15 @@ health-sync freshness, calendar freshness, preferences, and workout-history
 inputs. The prototype also exposes stable test hooks plus an optional
 `npm run smoke:mobile-browser` gate for visual/e2e browser coverage.
 
-## Native Scaffold
+## Native Implementation
 
-The first iOS source scaffold lives in `ios/KineticCompanion`. It contains the
-SwiftUI Today surface, schema-aligned Codable models, deterministic readiness
-conflict rules, HealthKit summarization boundary, Firestore sync boundary, and
-a Swift Package manifest for core tests. A canonical JSON fixture is consumed
-by both TypeScript smoke coverage and Swift package tests so the web and native
-contracts cannot drift silently. It still requires macOS/Xcode to compile and
-attach Firebase/HealthKit capabilities. The first Mac execution checklist lives
+The iOS implementation lives in `ios/KineticCompanion`. It contains the
+checked-in Xcode project, SwiftUI Health sync surface, schema-aligned Codable
+models, deterministic readiness conflict rules, HealthKit summarization,
+Firestore transactions, HealthKit entitlement, shared scheme, and Swift
+package tests. A canonical JSON fixture is consumed by both TypeScript smoke
+coverage and Swift package tests so the web and native contracts cannot drift
+silently. The first physical-device proof and future Mac rerun checklist live
 in [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md).
 
 Phase 1 native proof status, 2026-07-16:
@@ -417,11 +417,11 @@ Safety proof:
 
 ## Execution Sequence
 
-Current checkpoint: steps 1 and 2 are complete, and the platform-independent
-contract/rules/readback portion of steps 3 and 4 is complete. The Mac handoff
-checklist is complete in [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md). The
-next Mac session starts by running the shared Swift tests before adding
-Firebase packages or HealthKit capabilities.
+Current checkpoint: steps 1 through 4 are complete. The Phase 1 Mac proof is
+recorded in [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md). The active
+milestone is step 5, beginning with a Windows-side authenticated Native Today
+contract before SwiftUI implementation. The next Mac session starts only after
+that shared contract is stable and begins by rerunning `swift test`.
 
 1. Docs-only phase selection: update PRD, build plan, architecture, runbook,
    QA matrix, README, and demo script to name Mobile Companion Proof as the
@@ -432,9 +432,8 @@ Firebase packages or HealthKit capabilities.
 3. HealthKit spike: build a minimal SwiftUI app with Firebase sign-in,
    HealthKit permission, local daily summarization, and Firestore write.
 4. Web readback: prove the existing web dashboard consumes mobile readiness
-   summaries and preserves freshness/confidence behavior. The Windows fixture
-   proof now covers hydration acceptance/rejection; live cross-device readback
-   still requires the native HealthKit/Firebase spike.
+   summaries and preserves freshness/confidence behavior. Completed on a
+   physical iPhone and same-user web session on 2026-07-16.
 5. Native Today: render the deterministic, calendar-aware recommendation from
    shared state and backend `/decision`.
 6. Mobile intake: expose bounded NLP review and deterministic confirm/apply.

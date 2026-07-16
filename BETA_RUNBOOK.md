@@ -12,10 +12,12 @@ review. The current foundation is beta-ready for a small controlled audience,
 not a broad production launch.
 
 The web beta includes Apple Health CSV import as a bounded readiness-input
-bridge. As of 2026-07-10, the selected next phase is Mobile Companion Proof:
-a thin native iOS companion for HealthKit daily readiness summaries,
-calendar-aware Today decisions, bounded natural-language intake, Firebase sync,
-and a recovery/check-in loop. Do not expand into a full native app,
+bridge. Mobile Companion Phase 1 completed on 2026-07-16: a physical iPhone
+proved Firebase sign-in, read-only HealthKit summarization, bounded Firestore
+sync, same-user web readback, retry behavior, and deletion tombstones. The
+active milestone is the shared authenticated contract for calendar-aware
+Native Today, followed by bounded natural-language intake and the
+recovery/check-in loop. Do not expand into a full native app,
 Garmin/Oura ingestion, hosted AI, broad push notifications, coach sharing, or
 autonomous AI plan mutation without another explicit product decision.
 
@@ -116,8 +118,9 @@ Before sending a hosted beta link:
 
 Before inviting mobile beta users:
 
-1. Complete the Mac handoff gates in
-   [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md).
+1. Confirm the Phase 1 physical-device proof remains recorded in
+   [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md); rerun it after changes to
+   native auth, HealthKit, Firestore sync, or deletion behavior.
 2. Confirm the iOS app uses the same Firebase project and UID ownership model.
 3. Confirm HealthKit permission copy names the specific read types and explains
    that raw samples stay on device.

@@ -130,10 +130,12 @@ local-cache ownership. The 2026-07-09 live gate also verifies deletion
 tombstones remain deleted after reload and after signing into the same account
 from the second local origin, closing the remote persistence gate.
 
-The selected mobile direction preserves this boundary. The iOS companion should
-use the same Firebase project, UID ownership model, and user-scoped Kinetic
-namespace. Any mobile-specific sync metadata must be narrow, owner-only, and
-covered by Firestore rule tests before it is considered beta-ready.
+The selected mobile direction preserves this boundary. Phase 1 now proves that
+the iOS companion uses the same Firebase project, UID ownership model, and
+user-scoped Kinetic namespace. Its bounded `readiness` and `health_sync`
+documents passed native write, same-user web readback, owner-only rule, retry,
+and deletion-tombstone checks. Any additional mobile-specific state must remain
+narrow, owner-only, and covered by Firestore rule tests before beta use.
 
 Mobile beta also preserves the existing decision and intake boundaries. The
 iOS app should call the same authenticated deterministic decision endpoint with
@@ -157,12 +159,12 @@ unsupported columns such as raw notes. Browser-native HealthKit background
 sync, Garmin, and Oura ingestion are intentionally not implemented in this
 web build.
 
-The next product phase is a native iOS companion for HealthKit readiness
-summaries. HealthKit raw samples stay on device. The mobile app locally
-summarizes sleep, HRV, resting heart rate, and optional self-reports into
-bounded daily readiness records before Firebase sync. Freshness and confidence
-metadata travel with the summary so stale or partial data lowers certainty
-without changing the deterministic safety rules.
+The native iOS companion now locally summarizes HealthKit sleep, HRV, and
+resting heart rate into bounded daily readiness records before Firebase sync.
+HealthKit raw samples stay on device. Freshness and confidence metadata travel
+with the summary so stale or partial data lowers certainty without changing the
+deterministic safety rules. Subjective recovery remains a future explicit
+user-authored check-in rather than an inferred HealthKit or AI value.
 
 The concrete mobile readiness contract is documented in
 [MOBILE_READINESS_SCHEMA.md](./MOBILE_READINESS_SCHEMA.md). Mobile writes
@@ -206,8 +208,9 @@ workout/calendar text, tokens, email, UID, and unnecessary identity data.
 - Hosted beta operations keep strict backend auth, owner-only Firestore rules,
   UID-scoped storage, deletion tombstones, deterministic fallback, and bounded
   AI validation as non-negotiable rollback boundaries.
-- Mobile Companion Proof adds native QA for HealthKit permission states,
-  bounded daily-summary sync, calendar-aware Today decisions, bounded mobile
-  intake review, web admin/eval readback, cross-device delete/disconnect, and
-  stale background-delivery recovery. See
+- Mobile Companion Phase 1 passed native QA for read-only HealthKit permission,
+  bounded daily-summary sync, web readback, retry, and authoritative deletion
+  tombstones. The active Phase 2 work adds the authenticated calendar-aware
+  Today decision contract, followed by bounded mobile intake, check-ins,
+  native event transport, and stale background-delivery recovery. See
   [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md).

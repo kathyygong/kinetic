@@ -74,11 +74,10 @@ The shippable demo will not include:
 - Final beta hardening is complete for a small controlled beta: dependency
   pins, advisory audit, telemetry QA, hosted preflight, rollback, and triage are
   documented without broadening product scope.
-- Current readiness input supports both manual entry and a privacy-minimized
-  Apple Health CSV import for bounded metrics. Browser-native HealthKit
-  background sync is not possible in the web build; native iOS HealthKit sync
-  is now selected as the next phase. Garmin and Oura remain future
-  integrations.
+- Current readiness input supports manual entry, a privacy-minimized Apple
+  Health CSV import, and a proven native iOS HealthKit path for bounded daily
+  summaries. Browser-native HealthKit background sync is not possible in the
+  web build. Garmin and Oura remain future integrations.
 - Hardening now includes a behavior-prompt privacy gate that proves raw
   athlete notes are excluded before optional AI narration, plus frontend smoke
   coverage for plan safety invariants across race distance, experience level,
@@ -90,9 +89,11 @@ The shippable demo will not include:
 - Read-only weekly/monthly training reviews are implemented from bounded
   outcome aggregates. Deterministic code owns every metric and trend; optional
   AI may only narrate validated facts, and raw workout notes are excluded.
-- The selected next product phase is **Mobile Companion Proof**: a thin native
-  iOS companion for HealthKit readiness summaries, calendar-aware Today
-  decisions, bounded natural-language intake, Firebase sync, and a
+- **Mobile Companion Proof** is in progress. Phase 1 passed on a physical
+  iPhone with Firebase sign-in, read-only HealthKit summarization, bounded
+  Firestore sync, same-user web readback, retry, and deletion tombstones. The
+  active phase is the authenticated calendar-aware Native Today contract and
+  surface, followed by bounded natural-language intake and the
   recovery/check-in loop. The web app remains the architecture proof,
   admin/demo/eval review surface, and deeper planning surface. See
   [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md).
@@ -509,7 +510,8 @@ Any AI-generated suggestion that could affect training must pass deterministic v
 
 - Treat [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md) as the source of
   truth for the selected mobile-first phase.
-- Phase 1: HealthKit/Firebase sync spike.
+- Phase 1: HealthKit/Firebase sync spike. Completed 2026-07-16 with
+  physical-device and cross-device readback/deletion proof.
 - Phase 2: Native calendar-aware Today surface.
 - Phase 2.5: Bounded mobile natural-language intake and deterministic
   confirm/apply.

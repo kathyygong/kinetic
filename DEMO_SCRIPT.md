@@ -34,10 +34,10 @@ deterministic, raw notes are excluded, and its narrative cannot alter the plan.
 
 Open **Recovery** and enter a manual readiness signal. Then open **Profile** and
 show the Apple Health CSV import path for bounded readiness metrics, noting
-that native iOS HealthKit sync is the selected next phase, not part of the
-current web demo. Garmin/Oura remain deferred. Show a tentative behavior
-pattern. Confirm or dismiss it, noting that only confirmed preferences become
-bounded scoring nudges.
+that native iOS HealthKit sync has now passed its physical-device Phase 1 proof
+but remains outside this web walkthrough. Garmin/Oura remain deferred. Show a
+tentative behavior pattern. Confirm or dismiss it, noting that only confirmed
+preferences become bounded scoring nudges.
 
 ## 4:15–5:00 — Prove the boundaries
 
@@ -53,11 +53,11 @@ is enabled, rules are deployed, and live QA verifies hydration/account
 isolation plus deletion tombstones after reload and second-origin sign-in.
 
 If the reviewer asks what comes next, point to
-[MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md): Kinetic's selected next
-phase is a thin iOS companion that proves HealthKit daily readiness summaries,
-Firebase sync, calendar-aware native Today, bounded mobile NLP intake with
-deterministic confirm/apply, shared web QA/eval observability, and the
-recovery/check-in loop before any full mobile rebuild.
+[MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md): native HealthKit daily
+readiness, Firebase sync, same-user web readback, retry, and tombstones are
+proven. The active phase is calendar-aware Native Today, followed by bounded
+mobile NLP intake with deterministic confirm/apply, shared web QA/eval
+observability, and the recovery/check-in loop before any full mobile rebuild.
 
 If the reviewer asks about beta operations, point to `BETA_RUNBOOK.md` and
 `QA_MATRIX.md`: the product is demo-shippable with the Firebase persistence

@@ -5,16 +5,16 @@ the next beta checkpoint.
 
 | Area | Required check | Current status |
 | --- | --- | --- |
-| Frontend lint | `cd frontend && npm run lint` | Passed 2026-07-13 |
-| Frontend production build | `cd frontend && npm run build` | Passed 2026-07-13 |
-| Frontend deterministic smoke | `cd frontend && npm run smoke` | Passed 2026-07-13; canonical PR units and calendar adjustment paths asserted |
+| Frontend lint | `cd frontend && npm run lint` | Passed 2026-07-16 |
+| Frontend production build | `cd frontend && npm run build` | Passed 2026-07-16 |
+| Frontend deterministic smoke | `cd frontend && npm run smoke` | Passed 2026-07-16; mobile-only readiness routing and canonical plan/calendar paths asserted |
 | Frontend beta posture | `cd frontend && npm run beta:readiness` | Dependency pinning passes; default audit skip warning expected |
 | Frontend advisory audit | `cd frontend && npm run beta:audit` | Passed 2026-07-13; no moderate/high/critical findings |
 | Dependency pin review | direct frontend/backend dependencies exact-pinned | Passed 2026-07-09 |
-| Backend compile | `cd backend && .\.venv\Scripts\python.exe -m compileall app evals` | Required before checkpoint |
-| Backend deterministic gates | `cd backend && .\.venv\Scripts\python.exe -m evals._gates` | Required before checkpoint |
-| Backend smoke | `cd backend && .\.venv\Scripts\python.exe -m evals._smoke` | Required before checkpoint |
-| Firebase rules | `npx firebase-tools emulators:exec --only auth,firestore "cd frontend && npm run test:firestore-rules"` | Passed 2026-07-13; owner-only mobile readiness/health-sync access and tombstones asserted |
+| Backend compile | `cd backend && .\.venv\Scripts\python.exe -m compileall app evals` | Passed 2026-07-16 |
+| Backend deterministic gates | `cd backend && .\.venv\Scripts\python.exe -m evals._gates` | Passed 2026-07-16 |
+| Backend smoke | `cd backend && .\.venv\Scripts\python.exe -m evals._smoke` | Passed 2026-07-16 |
+| Firebase rules | `npx firebase-tools emulators:exec --only auth,firestore "cd frontend && npm run test:firestore-rules"` | Passed 2026-07-16 on Mac; owner-only mobile readiness/health-sync access and tombstones asserted |
 | Strict backend auth | signed-in token accepted and anonymous protected requests rejected | Passed in prior release gate; rerun after auth changes |
 | Signed-in responsive UI | desktop and mobile browser QA | Passed in prior release gate; rerun after layout changes |
 | Live Firebase hydration | same signed-in account hydrates across independent sessions | Passed 2026-07-09 |
@@ -29,19 +29,19 @@ the next beta checkpoint.
 | Behavior prompt privacy | raw workout notes excluded before AI narration | Covered by backend deterministic gates |
 | Final runbook review | hosted preflight, rollback, triage, and protected-artifact handling documented | Passed 2026-07-09 |
 | Mobile phase scope | [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md) defines iOS MVP, privacy boundary, phases, and gates | Selected 2026-07-10 |
-| Mobile Mac handoff | [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md) defines the first macOS/Xcode execution checklist and stop-line for Windows-only work | Authored 2026-07-13 |
-| iOS HealthKit permissions | denied, partial, granted, and stale background delivery states handled | Required before mobile beta |
-| iOS readiness sync | [MOBILE_READINESS_SCHEMA.md](./MOBILE_READINESS_SCHEMA.md) contract followed; bounded daily summaries only; no raw HealthKit samples in Firestore | Shared fixture and Windows validator passed 2026-07-13; native HealthKit execution required before mobile beta |
+| Mobile Mac handoff | [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md) defines the macOS/Xcode execution checklist and records the physical-device proof | Completed 2026-07-16 |
+| iOS HealthKit permissions | denied, partial, granted, and unavailable states handled; stale background delivery remains later hardening | Read-only grant and bounded partial/unavailable code paths passed; background delivery not yet implemented |
+| iOS readiness sync | [MOBILE_READINESS_SCHEMA.md](./MOBILE_READINESS_SCHEMA.md) contract followed; bounded daily summaries only; no raw HealthKit samples in Firestore | Passed 2026-07-16 on physical iPhone with web readback |
 | Mobile calendar awareness | Today decisions consume existing calendar availability/freshness and lower confidence on stale/missing calendar data | Required before mobile beta |
 | Mobile NLP intake | schedule/availability/travel/goal/preference notes create review-only drafts; recovery, pain, missed-workout, and reflection notes open bounded flows; strict-auth rejection when anonymous; deterministic confirm/apply; malformed/ambiguous fallback | Required before mobile beta |
 | Mobile perceived-recovery flow | NLP recovery notes open explicit perceived-recovery capture; captured fields coexist with HealthKit summaries; AI never fabricates readiness values from text | Required before mobile beta |
 | Behavior pattern result contract | every surfaced pattern has a bounded response; confirmed schedule patterns can update preferred-day inputs for deterministic plan generation; pain patterns route to caution only | Required before mobile beta |
 | Mobile admin/eval observability | `/qa/mobile` shows mobile-originated sync, recommendation, intake, validation, and check-in events from the shared privacy-safe event log | Shared event-log-to-QA contract passed 2026-07-13; native event transport remains required before mobile beta |
-| Mobile/web sync compatibility | web dashboard consumes mobile readiness without unsafe overwrite or confidence drift | Shared envelope, five-case conflict parity, and web hydration acceptance/rejection passed in TypeScript 2026-07-13; live cross-device readback required before mobile beta |
+| Mobile/web sync compatibility | web dashboard consumes mobile readiness without unsafe overwrite or confidence drift | Passed 2026-07-16 with physical-device write and same-user web Recovery readback |
 | Mobile companion state matrix | `cd frontend && npm run smoke` | Default smoke covers readiness, health-sync freshness, calendar, profile, goal, saved plan, preferences, workout history, intake, and check-in decision states without browser dependencies |
 | Mobile companion browser smoke | `cd frontend && npm run smoke:mobile-browser` against a running `/mobile-companion` server | Optional visual/e2e gate authored 2026-07-13 with stable test hooks; local execution requires Playwright package |
-| Mobile delete/disconnect | synced summaries respect owner-only rules and deletion tombstones across devices | Emulator owner scope and both mobile tombstones passed 2026-07-13; on-device disconnect/full-delete QA remains required |
-| iOS scaffold compile | `cd ios/KineticCompanion && swift test` on macOS/Xcode toolchain | Shared fixture tests authored; Swift unavailable on Windows, so execution remains required before mobile beta |
+| Mobile delete/disconnect | synced summaries respect owner-only rules and deletion tombstones across devices | Web delete/native next-sync tombstone behavior passed 2026-07-16; explicit native disconnect UI remains future work |
+| iOS package and app compile | `cd ios/KineticCompanion && swift test`; Xcode simulator/device build | 10 Swift tests, simulator build, and signed physical-device build/install passed 2026-07-16 |
 
 ## Browser QA notes
 
@@ -55,8 +55,8 @@ The demo is shippable and the Firebase persistence foundation is beta-ready.
 Beta hardening is complete for a small controlled web beta. Apple Health CSV
 import is an implemented web-beta bridge for readiness metrics.
 
-As of 2026-07-10, native/background HealthKit sync and native mobile are
-selected as the next phase, scoped to Mobile Companion Proof. Mobile beta must
+As of 2026-07-16, Mobile Companion Phase 1 native HealthKit/Firebase proof is
+complete and Phase 2 Native Today is active. Mobile beta must
 preserve calendar-aware decisions, bounded NLP intake, deterministic
 confirm/apply, perceived-recovery routing, pattern-to-action behavior memory,
 and shared QA/eval observability. Garmin, Oura, hosted AI, coach sharing,
