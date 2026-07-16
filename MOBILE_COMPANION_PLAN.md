@@ -102,7 +102,7 @@ contracts cannot drift silently. It still requires macOS/Xcode to compile and
 attach Firebase/HealthKit capabilities. The first Mac execution checklist lives
 in [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md).
 
-Windows preflight status, 2026-07-13:
+Phase 1 native proof status, 2026-07-16:
 
 - Shared readiness, health-sync, and tombstone envelopes validate against the
   bounded mobile contract.
@@ -116,8 +116,17 @@ Windows preflight status, 2026-07-13:
 - Firebase Auth/Firestore emulator coverage passes for owner reads/writes,
   cross-user denial, unknown-domain denial, and readiness/health-sync
   tombstones.
-- Swift package tests are authored but remain unexecuted until a macOS/Xcode
-  toolchain is available.
+- Swift package tests pass on macOS, and the SwiftUI/Firebase/HealthKit target
+  builds and runs on a physical iPhone.
+- Read-only HealthKit permission, bounded local summarization, Firestore sync,
+  same-user web readback, retry behavior, and authoritative web tombstones were
+  proven end to end. The dated evidence is recorded in
+  [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md).
+
+The general web, backend, contract, and planning work can resume from the
+original Windows environment. Return to macOS/Xcode only when a later task
+changes native Swift code, Xcode capabilities/signing, HealthKit behavior, or
+requires another physical-device proof.
 
 ## Phase 1: HealthKit/Firebase Sync Spike
 
