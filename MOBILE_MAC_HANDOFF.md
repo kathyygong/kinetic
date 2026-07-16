@@ -220,6 +220,48 @@ A successful Phase 1 demo shows:
 7. Delete/tombstone behavior.
 8. No raw HealthKit samples in Firestore or telemetry.
 
+## Phase 1 Proof Record
+
+Completed on July 16, 2026:
+
+- Physical device: iPhone 17, iOS 26.5.2.
+- Xcode: 26.3.
+- Firebase email/password sign-in and ID-token verification succeeded with a
+  disposable user.
+- HealthKit requested read access only for sleep analysis, HRV, and resting
+  heart rate. The device reported read access granted.
+- The app produced a bounded local daily summary with date, sleep, HRV,
+  resting heart rate, and confidence.
+- A Firestore permission failure left the local summary usable and exposed a
+  retryable cloud state.
+- After deploying the checked-in Firestore rules, the same device retry wrote
+  `readiness` and `health_sync` successfully.
+- The same Firebase user signed into the web app, and `/recovery` hydrated and
+  displayed the mobile-written sleep, HRV, and resting heart rate.
+- Web deletion wrote tombstones. On the next physical-device sync attempt, the
+  native app reported `Training data deleted`, wrote nothing back, and cleared
+  its local summary.
+- Shared fixtures and tests proved manual/CSV precedence, fresher HealthKit
+  merging, stale HealthKit rejection, bounded contracts, and tombstones.
+
+Validation completed:
+
+```text
+swift test: 10 passed
+Xcode simulator build: passed
+Xcode signed physical-device build and install: passed
+Firestore rules emulator suite: passed
+frontend lint: passed
+frontend production build: passed
+frontend smoke suite: passed
+backend compileall: passed
+```
+
+The beta-demo-only backend `_gates` and `_smoke` suites were not executed on
+this Mac because the clone has no backend virtual environment and the system
+Python does not include `fastapi`. Set up `backend/.venv` before a beta-facing
+demo and run the commands above.
+
 ## Do Not Add Yet
 
 - Native plan editing.

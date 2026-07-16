@@ -6,6 +6,7 @@ type SignInHydrationOptions = {
   hydrate: () => Promise<HydrationOutcome>;
   readProfile: () => UserProfile | null;
   hasCompletedTrainingState?: () => boolean;
+  hasReadinessState?: () => boolean;
   mergeIdentity: () => UserProfile;
   markProfileComplete?: () => void;
 };
@@ -21,9 +22,12 @@ export async function completeReturningUserSignIn({
   hydrate,
   readProfile,
   hasCompletedTrainingState = () => false,
+  hasReadinessState = () => false,
   mergeIdentity,
   markProfileComplete,
-}: SignInHydrationOptions): Promise<"/dashboard" | "/onboarding/goal"> {
+}: SignInHydrationOptions): Promise<
+  "/dashboard" | "/recovery" | "/onboarding/goal"
+> {
   const hydration = await hydrate();
   if (hydration === "timeout" && !readProfile()) {
     throw new Error(
@@ -36,5 +40,6 @@ export async function completeReturningUserSignIn({
     markProfileComplete?.();
     return "/dashboard";
   }
+  if (hasReadinessState()) return "/recovery";
   return "/onboarding/goal";
 }

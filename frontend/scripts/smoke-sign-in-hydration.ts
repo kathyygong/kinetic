@@ -83,6 +83,25 @@ async function main() {
   );
   expect(markedComplete, "profile completion should be repaired from saved plan");
 
+  let readinessMarkedComplete = false;
+  const readinessDestination = await completeReturningUserSignIn({
+    hydrate: async () => "updated",
+    readProfile: () => profile(false),
+    hasReadinessState: () => true,
+    mergeIdentity: () => profile(false),
+    markProfileComplete: () => {
+      readinessMarkedComplete = true;
+    },
+  });
+  expect(
+    readinessDestination === "/recovery",
+    "mobile-only readiness should route to recovery readback",
+  );
+  expect(
+    !readinessMarkedComplete,
+    "mobile-only readiness must not imply completed web onboarding",
+  );
+
   console.log("OK - returning-user routing hydrates before identity merge");
 }
 

@@ -35,6 +35,7 @@ enum CloudSyncState: Equatable {
     case idle
     case syncing
     case synced
+    case deleted
     case failed
 
     var label: String {
@@ -42,6 +43,7 @@ enum CloudSyncState: Equatable {
         case .idle: "Not attempted"
         case .syncing: "Syncing"
         case .synced: "Synced"
+        case .deleted: "Training data deleted"
         case .failed: "Retry available"
         }
     }
@@ -53,6 +55,7 @@ final class TodayViewModel: ObservableObject {
     @Published private(set) var idTokenVerified = false
     @Published private(set) var healthState = HealthAccessState.notRequested
     @Published private(set) var cloudState = CloudSyncState.idle
+    @Published private(set) var cloudErrorCode: String?
     @Published private(set) var dailySummary: HealthKitReadinessSummary?
 
     private let firebaseConfigured: Bool
@@ -97,6 +100,7 @@ final class TodayViewModel: ObservableObject {
         idTokenVerified = false
         healthState = .notRequested
         cloudState = .idle
+        cloudErrorCode = nil
         dailySummary = nil
     }
 
@@ -104,6 +108,7 @@ final class TodayViewModel: ObservableObject {
         guard isSignedIn else { return }
         healthState = .requesting
         cloudState = .idle
+        cloudErrorCode = nil
 
         do {
             _ = try await healthStore.requestAuthorization()
@@ -117,10 +122,18 @@ final class TodayViewModel: ObservableObject {
 
             cloudState = .syncing
             do {
-                try await syncClient.syncHealthKitSummary(summary)
-                cloudState = .synced
+                let outcome = try await syncClient.syncHealthKitSummary(summary)
+                switch outcome {
+                case .synced:
+                    cloudState = .synced
+                case .trainingDataDeleted:
+                    dailySummary = nil
+                    cloudState = .deleted
+                }
             } catch {
                 // The local summary remains visible and can be retried later.
+                let cloudError = error as NSError
+                cloudErrorCode = "\(cloudError.domain):\(cloudError.code)"
                 cloudState = .failed
             }
         } catch HealthKitReadinessError.unavailable {
@@ -257,11 +270,15 @@ struct TodayView: View {
                     Task { await viewModel.readAndSyncToday() }
                 } label: {
                     Label(
-                        viewModel.cloudState == .failed ? "Retry today's sync" : "Read and sync today",
+                        syncButtonLabel,
                         systemImage: "arrow.triangle.2.circlepath"
                     )
                 }
-                .disabled(viewModel.healthState == .requesting || viewModel.cloudState == .syncing)
+                .disabled(
+                    viewModel.healthState == .requesting ||
+                        viewModel.cloudState == .syncing ||
+                        viewModel.cloudState == .deleted
+                )
             }
 
             if let summary = viewModel.dailySummary {
@@ -300,6 +317,15 @@ struct TodayView: View {
                     Text("The local summary remains usable. No plan or manual readiness data was changed.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
+                    if let errorCode = viewModel.cloudErrorCode {
+                        Text("Firebase diagnostic: \(errorCode)")
+                            .font(.footnote.monospaced())
+                            .foregroundStyle(.secondary)
+                    }
+                } else if viewModel.cloudState == .deleted {
+                    Text("The web deletion tombstone was honored. No HealthKit summary was written back.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
             }
 
@@ -326,6 +352,17 @@ struct TodayView: View {
         case .synced: KineticColor.emerald
         case .failed: KineticColor.rose
         default: KineticColor.muted
+        }
+    }
+
+    private var syncButtonLabel: String {
+        switch viewModel.cloudState {
+        case .failed:
+            "Retry today's sync"
+        case .deleted:
+            "Training data deleted"
+        default:
+            "Read and sync today"
         }
     }
 

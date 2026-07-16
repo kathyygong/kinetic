@@ -12,15 +12,23 @@ enum FirestoreSyncError: Error {
     case signedOut
     case unavailable
     case encodingFailed
+}
+
+enum ReadinessSyncOutcome {
+    case synced
     case trainingDataDeleted
 }
 
 protocol ReadinessSyncing {
-    func syncHealthKitSummary(_ summary: HealthKitReadinessSummary) async throws
+    func syncHealthKitSummary(
+        _ summary: HealthKitReadinessSummary
+    ) async throws -> ReadinessSyncOutcome
 }
 
 final class FirestoreReadinessSyncClient: ReadinessSyncing {
-    func syncHealthKitSummary(_ summary: HealthKitReadinessSummary) async throws {
+    func syncHealthKitSummary(
+        _ summary: HealthKitReadinessSummary
+    ) async throws -> ReadinessSyncOutcome {
         #if canImport(FirebaseFirestore) && canImport(FirebaseAuth)
         guard let userId = Auth.auth().currentUser?.uid else {
             throw FirestoreSyncError.signedOut
@@ -38,12 +46,12 @@ final class FirestoreReadinessSyncClient: ReadinessSyncing {
             .collection("kinetic")
             .document("health_sync")
 
-        try await db.runTransaction { transaction, errorPointer in
+        let result = try await db.runTransaction { transaction, errorPointer in
             do {
                 let readinessData = try transaction.getDocument(readinessRef).data()
                 let healthSyncData = try transaction.getDocument(healthSyncRef).data()
                 guard !Self.isDeleted(readinessData), !Self.isDeleted(healthSyncData) else {
-                    throw FirestoreSyncError.trainingDataDeleted
+                    return true
                 }
 
                 let currentLog = try Self.decodeReadinessLog(from: readinessData)
@@ -110,8 +118,9 @@ final class FirestoreReadinessSyncClient: ReadinessSyncing {
             } catch {
                 errorPointer?.pointee = error as NSError
             }
-            return nil
+            return false
         }
+        return (result as? Bool) == true ? .trainingDataDeleted : .synced
         #else
         throw FirestoreSyncError.unavailable
         #endif

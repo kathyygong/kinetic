@@ -20,6 +20,7 @@ import {
   hydrateUserStorage,
 } from "@/lib/persistence/firebasePersistence";
 import { completeReturningUserSignIn } from "@/lib/persistence/signInHydration";
+import { getReadinessLog } from "@/lib/readinessStorage";
 import { getSavedPlan } from "@/lib/storage";
 import { tokens } from "@/lib/tokens";
 import AthleticImage from "@/components/AthleticImage";
@@ -73,6 +74,8 @@ function LoginInner() {
             hydrateUserStorage(cred.user.uid, () => true, 10_000),
           readProfile: getUserProfile,
           hasCompletedTrainingState: () => getSavedPlan() !== null,
+          hasReadinessState: () =>
+            Object.keys(getReadinessLog().entries).length > 0,
           mergeIdentity: () => mergeAuthIntoProfile(cred.user),
           markProfileComplete: markOnboardingComplete,
         });
@@ -111,6 +114,8 @@ function LoginInner() {
           hydrateUserStorage(cred.user.uid, () => true, 10_000),
         readProfile: getUserProfile,
         hasCompletedTrainingState: () => getSavedPlan() !== null,
+        hasReadinessState: () =>
+          Object.keys(getReadinessLog().entries).length > 0,
         mergeIdentity: () => mergeAuthIntoProfile(cred.user),
         markProfileComplete: markOnboardingComplete,
       });

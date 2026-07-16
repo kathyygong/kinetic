@@ -12,6 +12,10 @@ in `MOBILE_MAC_HANDOFF.md`. It is not a full native companion app.
   authenticated Firebase UID.
 - Manual/CSV precedence, stale HealthKit rejection, and tombstone protection.
 - A local summary that remains visible when Firestore fails.
+- Same-user web readiness hydration, including mobile-only account routing to
+  the Recovery readback surface.
+- Authoritative web tombstones that clear the native local summary and prevent
+  HealthKit data from being recreated on the next sync attempt.
 
 The spike does not include plan editing, onboarding, notifications, calendar
 ingestion, AI coaching, or raw HealthKit cloud sync.

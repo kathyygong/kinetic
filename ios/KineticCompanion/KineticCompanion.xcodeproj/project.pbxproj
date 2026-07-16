@@ -23,7 +23,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		48A776192600D3C0D26B0392 /* KineticCompanion.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = KineticCompanion.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		48A776192600D3C0D26B0392 /* KineticCompanion.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KineticCompanion.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		548BC69A4C8329E046EC1A47 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		70ED0161ECBE4358A3ED7DE2 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
 		88DE97D168A7D0850DD4C339 /* KineticCompanionApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KineticCompanionApp.swift; sourceTree = "<group>"; };
@@ -228,6 +228,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RV2HCYTN4N;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Kinetic;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Kinetic reads sleep, HRV, and resting heart rate to create a daily readiness summary on this device.";
@@ -313,6 +314,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RV2HCYTN4N;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Kinetic;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Kinetic reads sleep, HRV, and resting heart rate to create a daily readiness summary on this device.";
