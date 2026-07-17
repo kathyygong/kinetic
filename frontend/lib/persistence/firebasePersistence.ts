@@ -222,6 +222,18 @@ export async function clearAllUserStorage(userId?: string): Promise<void> {
       }
     }),
   );
+  if (userId) {
+    try {
+      await firestoreStore.write(userId, "mobile_audit", {
+        schemaVersion: 1,
+        payload: null,
+        deleted: true,
+        clientUpdatedAt: new Date().toISOString(),
+      });
+    } catch {
+      failed = true;
+    }
+  }
   trackProductEvent("persistence_sync_completed", {
     operation: "delete",
     outcome: failed ? "failed" : "success",

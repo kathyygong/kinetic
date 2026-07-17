@@ -83,11 +83,17 @@ protocol MobileAuditPayload: Codable, Equatable {
 
 struct MobileAuditEnvelope<Payload: MobileAuditPayload>: Codable, Equatable {
     var schemaVersion = 2
+    var id: String
     var name: MobileAuditEventName
     var at: Date
     var properties: Payload
 
-    init(at: Date = Date(), properties: Payload) {
+    init(
+        id: String = UUID().uuidString.lowercased(),
+        at: Date = Date(),
+        properties: Payload
+    ) {
+        self.id = id
         self.name = Payload.eventName
         self.at = at
         self.properties = properties
@@ -125,6 +131,10 @@ struct MobileDecisionValidatedAudit: MobileAuditPayload {
 
     var platform = MobilePlatform.ios
     var outcome: MobileDecisionOutcome
+    var decisionSource: MobileTodayDecisionSource
+    var failureState: MobileAuditFailureState
+    var cacheState: MobileTodayCacheState
+    var availabilitySource: MobileTodayAvailabilitySource
     var selectedAction: SelectedActionBucket
     var confidenceBucket: ConfidenceBucket
     var calendarState: MobileCalendarState
@@ -138,6 +148,10 @@ struct MobileDecisionValidatedAudit: MobileAuditPayload {
     enum CodingKeys: String, CodingKey {
         case platform
         case outcome
+        case decisionSource = "decision_source"
+        case failureState = "failure_state"
+        case cacheState = "cache_state"
+        case availabilitySource = "availability_source"
         case selectedAction = "selected_action"
         case confidenceBucket = "confidence_bucket"
         case calendarState = "calendar_state"
@@ -147,6 +161,25 @@ struct MobileDecisionValidatedAudit: MobileAuditPayload {
         case hasRecoveryWarning = "has_recovery_warning"
         case aiAssisted = "ai_assisted"
         case latencyMs = "latency_ms"
+    }
+}
+
+enum MobileAuditFailureState: String, Codable {
+    case none
+    case authRequired = "auth_required"
+    case offline
+    case timeout
+    case backendUnavailable = "backend_unavailable"
+    case invalidResponse = "invalid_response"
+    case missingContext = "missing_context"
+    case unknown
+
+    init(_ failure: MobileTodayFailureCode?) {
+        guard let failure else {
+            self = .none
+            return
+        }
+        self = MobileAuditFailureState(rawValue: failure.rawValue) ?? .unknown
     }
 }
 

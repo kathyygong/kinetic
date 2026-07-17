@@ -159,6 +159,9 @@ duration rather than invented availability and lowers confidence. The cache is
 fresh for six hours, cannot cross a local-day boundary, and degrades through
 typed auth/offline/timeout/backend/invalid-response states. The dashboard uses
 the same response validator, and TypeScript/Swift share one canonical fixture.
+The native implementation reads the existing owner-scoped Firebase domains,
+calls `/decision` with the Firebase ID token, and writes capped privacy-safe
+decision events to an owner-only audit envelope that `/qa/mobile` can inspect.
 
 ## Readiness integration boundary
 
@@ -221,7 +224,8 @@ workout/calendar text, tokens, email, UID, and unnecessary identity data.
 - Mobile Companion Phase 1 passed native QA for read-only HealthKit permission,
   bounded daily-summary sync, web readback, retry, and authoritative deletion
   tombstones. Phase 2A's authenticated calendar-aware Today contract now passes
-  Windows frontend/backend gates. The next work implements it in SwiftUI,
-  followed by bounded mobile intake, check-ins, native event transport, and
-  stale background-delivery recovery. See
+  Windows frontend/backend plus Swift fixture, cache, response, observability,
+  and simulator-build gates. Signed physical-device Today QA remains pending;
+  later phases add bounded mobile intake, check-ins, and stale
+  background-delivery recovery. See
   [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md).

@@ -97,6 +97,13 @@ async function main() {
       "kinetic",
       "readiness",
     );
+    const ownMobileAudit = doc(
+      dbA,
+      "users",
+      userA.uid,
+      "kinetic",
+      "mobile_audit",
+    );
     const foreignReadinessFromB = doc(
       dbB,
       "users",
@@ -110,6 +117,13 @@ async function main() {
       userA.uid,
       "kinetic",
       "health_sync",
+    );
+    const foreignMobileAuditFromB = doc(
+      dbB,
+      "users",
+      userA.uid,
+      "kinetic",
+      "mobile_audit",
     );
     const unknownDomainA = doc(
       dbA,
@@ -129,11 +143,37 @@ async function main() {
       ownHealthSync,
       asDocument(fixtures.health_sync_envelope, "health sync envelope"),
     );
+    await setDoc(ownMobileAudit, {
+      schemaVersion: 1,
+      payload: {
+        version: 2,
+        events: [
+          {
+            schemaVersion: 2,
+            id: "native-decision-1",
+            name: "mobile_decision_validated",
+            at: "2026-07-17T12:00:00.000Z",
+            properties: {
+              platform: "ios",
+              outcome: "success",
+              decision_source: "live",
+            },
+          },
+        ],
+      },
+      deleted: false,
+      clientUpdatedAt: "2026-07-17T12:00:00.000Z",
+    });
     expect((await getDoc(ownA)).exists(), "owner A should read their document");
     expect((await getDoc(ownB)).exists(), "owner B should read their document");
     expect(
       (await getDoc(ownHealthSync)).exists(),
       "owner A should read their mobile health sync document",
+    );
+    expect(
+      (await getDoc(ownMobileAudit)).data()?.payload?.events?.[0]?.properties
+        ?.decision_source === "live",
+      "owner A should read privacy-safe native audit events",
     );
     const readinessSnapshot = await getDoc(ownReadiness);
     expect(readinessSnapshot.exists(), "owner A should read mobile readiness");
@@ -162,6 +202,19 @@ async function main() {
     await expectDenied(
       () => getDoc(foreignHealthSyncFromB),
       "cross-user health sync read",
+    );
+    await expectDenied(
+      () => getDoc(foreignMobileAuditFromB),
+      "cross-user mobile audit read",
+    );
+    await expectDenied(
+      () =>
+        setDoc(foreignMobileAuditFromB, {
+          schemaVersion: 1,
+          payload: { version: 2, events: [] },
+          deleted: false,
+        }),
+      "cross-user mobile audit write",
     );
     await expectDenied(
       () =>
@@ -197,7 +250,7 @@ async function main() {
     );
 
     console.log(
-      "OK - Firestore rules preserve owner-only mobile readiness/health sync data and tombstones",
+      "OK - Firestore rules preserve owner-only mobile readiness, health sync, audit data, and tombstones",
     );
   } finally {
     await Promise.all([deleteApp(appA), deleteApp(appB), deleteApp(appGuest)]);

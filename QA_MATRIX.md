@@ -32,17 +32,17 @@ the next beta checkpoint.
 | Mobile Mac handoff | [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md) defines the macOS/Xcode execution checklist and records the physical-device proof | Completed 2026-07-16 |
 | iOS HealthKit permissions | denied, partial, granted, and unavailable states handled; stale background delivery remains later hardening | Read-only grant and bounded partial/unavailable code paths passed; background delivery not yet implemented |
 | iOS readiness sync | [MOBILE_READINESS_SCHEMA.md](./MOBILE_READINESS_SCHEMA.md) contract followed; bounded daily summaries only; no raw HealthKit samples in Firestore | Passed 2026-07-16 on physical iPhone with web readback |
-| Mobile Today shared contract | [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md), `smoke-mobile-today-contract.ts`, and the shared JSON fixture validate request, response, privacy, cache, and failure semantics | Passed 2026-07-16 on Windows; Swift parity remains |
-| Mobile calendar awareness | Today decisions consume existing calendar availability/freshness, preserve explicit zero-minute windows, use a labeled planned-duration fallback, and lower confidence on stale/missing calendar data | Shared frontend/backend contract passed 2026-07-16; native device proof remains |
+| Mobile Today shared contract | [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md), `smoke-mobile-today-contract.ts`, and the shared JSON fixture validate request, response, privacy, cache, and failure semantics | Passed TypeScript and 17-test Swift package gates 2026-07-17; signed-device interaction remains |
+| Mobile calendar awareness | Today decisions consume existing calendar availability/freshness, preserve explicit zero-minute windows, use a labeled planned-duration fallback, and lower confidence on stale/missing calendar data | Native fixture/fallback/zero-window tests passed 2026-07-17; physical-device conflict rerun remains |
 | Mobile NLP intake | schedule/availability/travel/goal/preference notes create review-only drafts; recovery, pain, missed-workout, and reflection notes open bounded flows; strict-auth rejection when anonymous; deterministic confirm/apply; malformed/ambiguous fallback | Required before mobile beta |
 | Mobile perceived-recovery flow | NLP recovery notes open explicit perceived-recovery capture; captured fields coexist with HealthKit summaries; AI never fabricates readiness values from text | Required before mobile beta |
 | Behavior pattern result contract | every surfaced pattern has a bounded response; confirmed schedule patterns can update preferred-day inputs for deterministic plan generation; pain patterns route to caution only | Required before mobile beta |
-| Mobile admin/eval observability | `/qa/mobile` shows mobile-originated sync, recommendation, intake, validation, and check-in events from the shared privacy-safe event log | Shared event-log-to-QA contract passed 2026-07-13; native event transport remains required before mobile beta |
+| Mobile admin/eval observability | `/qa/mobile` shows mobile-originated sync, recommendation, intake, validation, and check-in events from the shared privacy-safe event log | Native capped owner-only decision transport and Firebase readback implemented 2026-07-17; live signed-user readback rerun remains |
 | Mobile/web sync compatibility | web dashboard consumes mobile readiness without unsafe overwrite or confidence drift | Passed 2026-07-16 with physical-device write and same-user web Recovery readback |
 | Mobile companion state matrix | `cd frontend && npm run smoke` | Default smoke covers readiness, health-sync freshness, calendar, profile, goal, saved plan, preferences, workout history, intake, and check-in decision states without browser dependencies |
 | Mobile companion browser smoke | `cd frontend && npm run smoke:mobile-browser` against a running `/mobile-companion` server | Optional visual/e2e gate authored 2026-07-13 with stable test hooks; local execution requires Playwright package |
 | Mobile delete/disconnect | synced summaries respect owner-only rules and deletion tombstones across devices | Web delete/native next-sync tombstone behavior passed 2026-07-16; explicit native disconnect UI remains future work |
-| iOS package and app compile | `cd ios/KineticCompanion && swift test`; Xcode simulator/device build | 10 Swift tests, simulator build, and signed physical-device build/install passed 2026-07-16 |
+| iOS package and app compile | `cd ios/KineticCompanion && swift test`; Xcode simulator/device build | 17 Swift tests, signed generic-device build, and iPhone 17 / iOS 26.3 simulator build/install/launch passed 2026-07-17; physical iPhone unavailable |
 
 ## Browser QA notes
 
@@ -56,9 +56,10 @@ The demo is shippable and the Firebase persistence foundation is beta-ready.
 Beta hardening is complete for a small controlled web beta. Apple Health CSV
 import is an implemented web-beta bridge for readiness metrics.
 
-As of 2026-07-16, Mobile Companion Phase 1 native HealthKit/Firebase proof and
-the Phase 2A Windows Native Today contract are complete. SwiftUI/device
-implementation is active. Mobile beta must
+As of 2026-07-17, Mobile Companion Phase 1 native HealthKit/Firebase proof and
+the Phase 2A shared/SwiftUI Native Today implementation are complete. Signed
+physical-device Today interaction and live `/qa/mobile` readback remain the
+bounded rerun before this checkpoint is fully closed. Mobile beta must
 preserve calendar-aware decisions, bounded NLP intake, deterministic
 confirm/apply, perceived-recovery routing, pattern-to-action behavior memory,
 and shared QA/eval observability. Garmin, Oura, hosted AI, coach sharing,

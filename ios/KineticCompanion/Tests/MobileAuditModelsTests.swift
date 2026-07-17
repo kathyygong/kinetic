@@ -7,6 +7,10 @@ final class MobileAuditModelsTests: XCTestCase {
             at: Date(timeIntervalSince1970: 0),
             properties: MobileDecisionValidatedAudit(
                 outcome: .success,
+                decisionSource: .live,
+                failureState: .none,
+                cacheState: .fresh,
+                availabilitySource: .calendar,
                 selectedAction: .modify,
                 confidenceBucket: .moderate,
                 calendarState: .conflict,
@@ -24,6 +28,10 @@ final class MobileAuditModelsTests: XCTestCase {
         XCTAssertEqual(payload["name"] as? String, "mobile_decision_validated")
         let properties = try XCTUnwrap(payload["properties"] as? [String: Any])
         XCTAssertEqual(properties["platform"] as? String, "ios")
+        XCTAssertEqual(properties["decision_source"] as? String, "live")
+        XCTAssertEqual(properties["failure_state"] as? String, "none")
+        XCTAssertEqual(properties["cache_state"] as? String, "fresh")
+        XCTAssertEqual(properties["availability_source"] as? String, "calendar")
         XCTAssertEqual(properties["selected_action"] as? String, "modify")
         XCTAssertEqual(properties["calendar_state"] as? String, "conflict")
         XCTAssertEqual(properties["deterministic_validation"] as? String, "passed")

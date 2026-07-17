@@ -1,7 +1,10 @@
 # Mobile Today Contract
 
-Status: Windows contract complete on 2026-07-16. Native SwiftUI implementation
-and physical-device proof are the next bounded macOS tasks.
+Status: Windows contract complete on 2026-07-16. Native Swift models,
+authenticated networking, Firestore reads, same-day cache/failure handling,
+SwiftUI Today, and owner-only audit readback were implemented and validated on
+macOS on 2026-07-17. Signed physical-device interaction remains to be rerun
+when the registered iPhone is available.
 
 This contract defines how the authenticated iOS Today surface derives a
 deterministic recommendation from the same Kinetic state and backend endpoint
@@ -156,3 +159,15 @@ stable HTTP failure mapping.
 6. Add native observability transport and prove `/qa/mobile` readback.
 7. Run simulator, signed device, calendar conflict, offline cache, and
    prior-day cache-expiry QA; record the evidence in `MOBILE_MAC_HANDOFF.md`.
+
+Implementation result, 2026-07-17:
+
+- Steps 1 through 6 pass native fixture/package, Xcode simulator-build, and
+  frontend readback gates.
+- The signed-out surface launched on an iPhone 17 / iOS 26.3 simulator.
+- Calendar conflict, zero-minute availability, offline same-day cache,
+  timeout/invalid response, and prior-day expiry are covered by deterministic
+  Swift tests.
+- Physical-device interaction is not claimed: the registered iPhone was
+  reported as unavailable by `devicectl`. The remaining signed-device rerun is
+  recorded in `MOBILE_MAC_HANDOFF.md`.

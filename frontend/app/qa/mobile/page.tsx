@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Activity,
   CheckCircle2,
@@ -25,6 +25,7 @@ import {
   summarizeMobileAuditEvents,
   type MobileEventName,
 } from "@/lib/mobileAudit";
+import { readCombinedMobileAuditEvents } from "@/lib/mobileAuditRemote";
 
 type EventFilter = "all" | MobileEventName;
 
@@ -39,14 +40,21 @@ const FILTERS: Array<{ value: EventFilter; label: string }> = [
 export default function MobileQaPage() {
   const [events, setEvents] = useState<ProductEvent[]>([]);
   const [filter, setFilter] = useState<EventFilter>("all");
+  const [readback, setReadback] = useState<"loading" | "ready">("loading");
 
-  const refresh = () => {
-    setEvents(selectMobileAuditEvents(listProductEvents()));
-  };
+  const refresh = useCallback(async () => {
+    setReadback("loading");
+    setEvents(
+      await readCombinedMobileAuditEvents(
+        selectMobileAuditEvents(listProductEvents()),
+      ),
+    );
+    setReadback("ready");
+  }, []);
 
   useEffect(() => {
-    refresh();
-  }, []);
+    void refresh();
+  }, [refresh]);
 
   const filteredEvents = useMemo(() => {
     if (filter === "all") return events;
@@ -108,12 +116,12 @@ export default function MobileQaPage() {
       update_succeeded: true,
       latency_ms: 160,
     });
-    refresh();
+    void refresh();
   };
 
   const clearMobileEvents = () => {
     clearProductEvents();
-    refresh();
+    void refresh();
   };
 
   return (
@@ -131,11 +139,11 @@ export default function MobileQaPage() {
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={refresh}
+            onClick={() => void refresh()}
             className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-neutral-200 bg-white/80 px-4 text-sm font-medium text-neutral-800 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 dark:border-white/10 dark:bg-white/10 dark:text-neutral-100"
           >
             <RefreshCw size={16} />
-            Refresh
+            {readback === "loading" ? "Reading Firebase…" : "Refresh"}
           </button>
           <button
             type="button"
@@ -151,7 +159,7 @@ export default function MobileQaPage() {
             className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-rose-200 bg-white/80 px-4 text-sm font-medium text-rose-700 shadow-sm transition hover:bg-rose-50 dark:border-rose-400/20 dark:bg-white/10 dark:text-rose-200"
           >
             <Trash2 size={16} />
-            Clear log
+            Clear browser log
           </button>
         </div>
       </header>
@@ -216,7 +224,7 @@ export default function MobileQaPage() {
           {filteredEvents.length === 0 ? (
             <GlassCard interactive={false} className="p-8 text-center">
               <p className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
-                No mobile audit events in this browser log.
+                No mobile audit events in the browser or signed-in Firebase readback.
               </p>
             </GlassCard>
           ) : (

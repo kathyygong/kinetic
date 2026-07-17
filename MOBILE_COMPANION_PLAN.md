@@ -148,6 +148,21 @@ Phase 2A shared contract status, 2026-07-16:
 - The detailed contract and Mac handoff are documented in
   [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md).
 
+Phase 2A native implementation status, 2026-07-17:
+
+- Swift reconstructs the canonical request from owner-scoped Firebase domains,
+  calls authenticated `POST /decision`, validates wrapped and legacy
+  responses, and discards malformed optional AI copy.
+- The privacy-minimized decision cache enforces the six-hour fresh,
+  same-day stale, 24-hour maximum, and local-day expiry rules.
+- SwiftUI Today renders live, fresh/stale cache, missing-readiness,
+  signed-out, offline, timeout, backend, and invalid-response states.
+- Native decision events write a capped privacy-safe owner-only audit log that
+  `/qa/mobile` can read without exposing the Firebase UID or health values.
+- Package tests, simulator build, and signed-out simulator launch pass.
+  Signed-device interaction remains pending because the registered iPhone was
+  unavailable during this run.
+
 ## Phase 1: HealthKit/Firebase Sync Spike
 
 Goal: prove native HealthKit access and bounded Firebase sync without changing
@@ -437,12 +452,12 @@ Safety proof:
 
 ## Execution Sequence
 
-Current checkpoint: steps 1 through 4 and the Windows contract half of step 5
-are complete. The Phase 1 Mac proof is recorded in
+Current checkpoint: steps 1 through 4 and both halves of step 5 are
+implemented. The Phase 1 Mac proof is recorded in
 [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md), and the stable Today contract
 is in [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md). The next bounded
-Mac session implements the Swift Codable/network/cache/SwiftUI half of step 5
-and begins by rerunning `swift test`.
+Mac session reruns the signed physical-device Today matrix, then work can
+continue to step 6 without expanding Phase 2A.
 
 1. Docs-only phase selection: update PRD, build plan, architecture, runbook,
    QA matrix, README, and demo script to name Mobile Companion Proof as the

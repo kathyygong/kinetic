@@ -262,6 +262,60 @@ this Mac because the clone has no backend virtual environment and the system
 Python does not include `fastapi`. Set up `backend/.venv` before a beta-facing
 demo and run the commands above.
 
+## Phase 2A Native Today Proof Record
+
+Implemented and locally validated on July 17, 2026:
+
+- Swift Codable request, response, snapshot, cache, failure, and source-state
+  models consume the canonical `mobile-today-contract.json` fixture.
+- Native request construction matches the authoritative fixture, including
+  reconstructed tempo duration, rolling HRV baseline, recent controlled
+  workout labels, confirmed preference filtering, and adjustment bias.
+- Firebase reads remain owner scoped and use the existing profile, goal, plan,
+  readiness, `health_sync`, workouts, preferences, `calendar_sync`, and
+  `calendar_failure` domains.
+- `POST /decision` attaches the Firebase ID token, uses an eight-second
+  deadline, validates deterministic bounds, accepts wrapped or legacy
+  responses, and drops malformed optional AI copy.
+- The reduced local cache is fresh for six hours, visibly stale only on the
+  same local day, and expired after 24 hours or a day change.
+- SwiftUI Today includes live, fresh/stale cache, missing-readiness,
+  signed-out, offline, timeout, backend-unavailable, and invalid-response
+  states.
+- Native `mobile_decision_validated` events contain only bounded properties,
+  write to a capped owner-only `mobile_audit` envelope, honor deletion
+  tombstones, and are readable by `/qa/mobile`.
+
+Local evidence:
+
+```text
+swift test: 17 passed
+Xcode unsigned iOS Simulator build: passed
+Xcode signed generic iOS device build: passed
+iPhone 17 / iOS 26.3 simulator install and signed-out launch: passed
+Firestore Auth/rules emulator suite: passed
+frontend lint: passed
+frontend TypeScript no-emit check: passed
+frontend deterministic smoke: passed
+frontend production build: passed
+backend compileall: passed
+```
+
+The deterministic Swift suite covers fresh/stale/prior-day cache, explicit
+zero-minute calendar conflict, planned-duration fallback, malformed response,
+malformed optional AI, privacy rejection, and stable HTTP failure mapping.
+
+Remaining signed-device rerun:
+
+- `devicectl` detected the registered iPhone 17 but reported it as
+  `unavailable`; no new physical-device interaction is claimed.
+- When available, sign in with a disposable account, point the app at the
+  reachable backend, and verify live decision, `0`-minute conflict, offline
+  fresh/stale cache, prior-day expiry, and `/qa/mobile` readback.
+- Backend `_gates` and `_smoke` remain blocked in this clone: the newest local
+  Python is 3.9 and cannot install the pinned `fastapi==0.136.1`; use the
+  supported backend toolchain before a beta-facing demo.
+
 ## Do Not Add Yet
 
 - Native plan editing.

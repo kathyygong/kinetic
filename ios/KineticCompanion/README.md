@@ -1,7 +1,8 @@
-# Kinetic iOS Companion Phase 1 Spike
+# Kinetic iOS Companion
 
-This directory contains the bounded native HealthKit/Firebase spike described
-in `MOBILE_MAC_HANDOFF.md`. It is not a full native companion app.
+This directory contains the bounded Phase 1 HealthKit/Firebase proof and Phase
+2A native Today surface described in `MOBILE_MAC_HANDOFF.md`. It is not a full
+native companion app.
 
 ## Implemented Gates
 
@@ -16,9 +17,20 @@ in `MOBILE_MAC_HANDOFF.md`. It is not a full native companion app.
   the Recovery readback surface.
 - Authoritative web tombstones that clear the native local summary and prevent
   HealthKit data from being recreated on the next sync attempt.
+- Exact Swift parity with `Tests/Fixtures/mobile-today-contract.json`.
+- Owner-scoped Firestore reads for profile presence, goal, saved plan,
+  readiness, HealthKit freshness, workout history, confirmed preferences, and
+  calendar freshness.
+- Authenticated, finite-deadline `POST /decision` networking with strict
+  wrapped/legacy response validation.
+- Six-hour fresh, same-day stale, 24-hour maximum decision cache behavior.
+- SwiftUI live, cached, stale, missing-readiness, signed-out, offline, timeout,
+  backend-unavailable, and invalid-response states.
+- Capped privacy-safe native decision audit transport and `/qa/mobile`
+  Firebase readback.
 
-The spike does not include plan editing, onboarding, notifications, calendar
-ingestion, AI coaching, or raw HealthKit cloud sync.
+The app does not include plan editing, onboarding, notifications, calendar
+ingestion, mobile intake/check-ins, AI mutation, or raw HealthKit cloud sync.
 
 ## Firebase Scope Decisions
 
@@ -44,13 +56,31 @@ ingestion, AI coaching, or raw HealthKit cloud sync.
 3. Select an Apple development team and run on an iPhone or supported
    simulator.
 
+The decision client defaults to `http://127.0.0.1:8000`. Override it for a
+physical device with the launch argument pair:
+
+```text
+-kinetic.api-base-url
+http://<mac-lan-address>:8000
+```
+
+For bounded calendar-conflict QA without event text, add an integer from `0`
+through `240` to the scheme environment:
+
+```text
+KINETIC_QA_AVAILABLE_MINUTES=0
+```
+
+This is a QA-only local availability input. Production continues to use the
+bounded local calendar cache and explicit planned-duration fallback.
+
 The bundle identifier is `com.kinetic.companion`, matching the checked-in plist
 shape example. No HealthKit write usage description or write authorization is
 configured.
 
 ## Validation
 
-Run the package contract gate before generating or changing the Xcode target:
+Run the package contract gate before changing the Xcode target:
 
 ```bash
 cd ios/KineticCompanion
@@ -68,6 +98,11 @@ xcodebuild \
   build
 ```
 
-Device auth, HealthKit permission interaction, Firestore writes, and web
-readback require the untracked Firebase configuration, a disposable user, and
-an Apple signing team as listed in `MOBILE_MAC_HANDOFF.md`.
+The Swift suite covers canonical request/snapshot/cache parity, missing
+context, explicit zero availability, stale/prior-day cache behavior, privacy
+rejection, malformed optional AI, and stable HTTP failure mapping.
+
+Device auth, HealthKit interaction, authenticated decisions, Firestore audit
+write/readback, and web readback require the untracked Firebase configuration,
+a disposable user, a reachable backend URL, and an Apple signing team as
+listed in `MOBILE_MAC_HANDOFF.md`.
