@@ -258,6 +258,7 @@
 				INFOPLIST_KEY_KINETIC_API_BASE_URL = "http://127.0.0.1:8000";
 				INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking = YES;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Kinetic reads sleep, HRV, and resting heart rate to create a daily readiness summary on this device.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Kinetic connects to your Mac's local development backend during signed device QA.";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

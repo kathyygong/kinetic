@@ -60,13 +60,16 @@ final class UserDefaultsMobileTodayCalendarCache: MobileTodayCalendarCaching {
     }
 
     func load(now: Date = Date()) -> MobileTodayCalendarInput? {
-        if let qaMinutes = ProcessInfo.processInfo.environment["KINETIC_QA_AVAILABLE_MINUTES"]
-            .flatMap(Int.init),
-           (0...240).contains(qaMinutes) {
+        if let qaMinutes = Self.qaAvailableMinutes(
+            environment: ProcessInfo.processInfo.environment,
+            defaultsValue: defaults.string(forKey: "kinetic.qa-available-minutes"),
+            arguments: ProcessInfo.processInfo.arguments
+        ) {
             return MobileTodayCalendarInput(
                 ageHours: 0,
                 availableMinutesToday: qaMinutes,
-                unhealthy: false
+                unhealthy: false,
+                bypassCloudFreshnessForQA: true
             )
         }
         guard
@@ -82,5 +85,23 @@ final class UserDefaultsMobileTodayCalendarCache: MobileTodayCalendarCaching {
             availableMinutesToday: context.availableMinutes,
             unhealthy: context.unhealthy
         )
+    }
+
+    static func qaAvailableMinutes(
+        environment: [String: String],
+        defaultsValue: String?,
+        arguments: [String] = []
+    ) -> Int? {
+        let argumentName = "-kinetic.qa-available-minutes"
+        let argumentValue = arguments.firstIndex(of: argumentName).flatMap { index in
+            arguments.indices.contains(index + 1) ? arguments[index + 1] : nil
+        }
+        let rawValue = environment["KINETIC_QA_AVAILABLE_MINUTES"]
+            ?? argumentValue
+            ?? defaultsValue
+        guard let rawValue, let minutes = Int(rawValue), (0...240).contains(minutes) else {
+            return nil
+        }
+        return minutes
     }
 }

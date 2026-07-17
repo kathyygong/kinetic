@@ -154,6 +154,9 @@ final class FirestoreMobileTodayStateReader: MobileTodayStateReading {
         now: Date
     ) -> MobileTodayCalendarInput? {
         guard var local else { return nil }
+        if local.bypassCloudFreshnessForQA {
+            return local
+        }
         if let successDate = success.flatMap(MobileTodayDate.parse) {
             local.ageHours = max(0, now.timeIntervalSince(successDate) / 3600)
         }

@@ -15,6 +15,7 @@ from fastapi.testclient import TestClient
 
 from app.ai_safety import contains_medical_claim, contradicts_selected_action
 from app.api import app
+from app.auth import _validate_project_token_claims
 from app.llm_client import LLMUnavailable
 from app import intake_parser as intake_parser_module
 from app import training_summary as training_summary_module
@@ -94,6 +95,32 @@ def check_ai_status() -> None:
     status = res.json()
     _assert(status["mode"] == "fallback", "evals must run in fallback mode")
     _assert(status["fallback_used"] is True, "fallback status not reported")
+
+
+def check_project_token_claim_validation() -> None:
+    project_id = "kinetic-test-project"
+    valid = _validate_project_token_claims(
+        {
+            "aud": project_id,
+            "iss": f"https://securetoken.google.com/{project_id}",
+            "sub": "bounded-test-subject",
+        },
+        project_id,
+    )
+    _assert(valid["uid"] == "bounded-test-subject", "Firebase subject was not mapped")
+
+    for invalid in [
+        {"iss": "https://securetoken.google.com/other", "sub": "subject"},
+        {
+            "iss": f"https://securetoken.google.com/{project_id}",
+            "sub": "",
+        },
+    ]:
+        try:
+            _validate_project_token_claims(invalid, project_id)
+        except ValueError:
+            continue
+        raise AssertionError("invalid Firebase claims were accepted")
 
 
 def check_daily_reasoning() -> None:
@@ -697,6 +724,7 @@ def check_mobile_today_contract() -> None:
 def main() -> None:
     checks = [
         ("ai status", check_ai_status),
+        ("project token claim validation", check_project_token_claim_validation),
         ("daily reasoning", check_daily_reasoning),
         ("mobile Today contract", check_mobile_today_contract),
         ("weekly reasoning", check_weekly_reasoning),

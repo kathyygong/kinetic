@@ -14,13 +14,60 @@ enum FirestoreSyncError: Error {
     case encodingFailed
 }
 
-enum ReadinessSyncOutcome {
+enum ReadinessSyncOutcome: Equatable {
     case synced
+    case recovered
     case trainingDataDeleted
+}
+
+enum ReadinessSyncIntent {
+    case routine
+    case recoverDeletedData
+}
+
+struct ReadinessSyncDeletionResolution: Equatable {
+    var blocksSync: Bool
+    var discardReadiness: Bool
+    var discardHealthSync: Bool
+    var resetMobileAudit: Bool
+    var recoveredDeletedData: Bool
+}
+
+enum ReadinessSyncDeletionPolicy {
+    static func resolve(
+        readinessDeleted: Bool,
+        healthSyncDeleted: Bool,
+        mobileAuditDeleted: Bool,
+        intent: ReadinessSyncIntent
+    ) -> ReadinessSyncDeletionResolution {
+        let trainingDataDeleted = readinessDeleted || healthSyncDeleted
+        switch intent {
+        case .routine:
+            return ReadinessSyncDeletionResolution(
+                blocksSync: trainingDataDeleted,
+                discardReadiness: false,
+                discardHealthSync: false,
+                resetMobileAudit: false,
+                recoveredDeletedData: false
+            )
+        case .recoverDeletedData:
+            return ReadinessSyncDeletionResolution(
+                blocksSync: false,
+                discardReadiness: readinessDeleted,
+                discardHealthSync: healthSyncDeleted,
+                resetMobileAudit: mobileAuditDeleted,
+                recoveredDeletedData: trainingDataDeleted || mobileAuditDeleted
+            )
+        }
+    }
 }
 
 protocol ReadinessSyncing {
     func syncHealthKitSummary(
+        _ summary: HealthKitReadinessSummary
+    ) async throws -> ReadinessSyncOutcome
+
+    func recoverDeletedTrainingData(
         _ summary: HealthKitReadinessSummary
     ) async throws -> ReadinessSyncOutcome
 }
@@ -28,6 +75,19 @@ protocol ReadinessSyncing {
 final class FirestoreReadinessSyncClient: ReadinessSyncing {
     func syncHealthKitSummary(
         _ summary: HealthKitReadinessSummary
+    ) async throws -> ReadinessSyncOutcome {
+        try await sync(summary, intent: .routine)
+    }
+
+    func recoverDeletedTrainingData(
+        _ summary: HealthKitReadinessSummary
+    ) async throws -> ReadinessSyncOutcome {
+        try await sync(summary, intent: .recoverDeletedData)
+    }
+
+    private func sync(
+        _ summary: HealthKitReadinessSummary,
+        intent: ReadinessSyncIntent
     ) async throws -> ReadinessSyncOutcome {
         #if canImport(FirebaseFirestore) && canImport(FirebaseAuth)
         guard let userId = Auth.auth().currentUser?.uid else {
@@ -45,17 +105,35 @@ final class FirestoreReadinessSyncClient: ReadinessSyncing {
             .document(userId)
             .collection("kinetic")
             .document("health_sync")
+        let mobileAuditRef = db
+            .collection("users")
+            .document(userId)
+            .collection("kinetic")
+            .document("mobile_audit")
 
         let result = try await db.runTransaction { transaction, errorPointer in
             do {
                 let readinessData = try transaction.getDocument(readinessRef).data()
                 let healthSyncData = try transaction.getDocument(healthSyncRef).data()
-                guard !Self.isDeleted(readinessData), !Self.isDeleted(healthSyncData) else {
+                let mobileAuditData = intent == .recoverDeletedData
+                    ? try transaction.getDocument(mobileAuditRef).data()
+                    : nil
+                let deletion = ReadinessSyncDeletionPolicy.resolve(
+                    readinessDeleted: Self.isDeleted(readinessData),
+                    healthSyncDeleted: Self.isDeleted(healthSyncData),
+                    mobileAuditDeleted: Self.isDeleted(mobileAuditData),
+                    intent: intent
+                )
+                guard !deletion.blocksSync else {
                     return true
                 }
 
-                let currentLog = try Self.decodeReadinessLog(from: readinessData)
-                let currentSync = try Self.decodeHealthSync(from: healthSyncData)
+                let currentLog = try Self.decodeReadinessLog(
+                    from: deletion.discardReadiness ? nil : readinessData
+                )
+                let currentSync = try Self.decodeHealthSync(
+                    from: deletion.discardHealthSync ? nil : healthSyncData
+                )
                 let merge: ReadinessMergeResult
                 if let incoming = summary.entry {
                     merge = ReadinessConflictResolver.merge(
@@ -115,12 +193,31 @@ final class FirestoreReadinessSyncClient: ReadinessSyncing {
                     clientUpdatedAt: now
                 )
                 transaction.setData(try Self.encodeEnvelope(syncEnvelope), forDocument: healthSyncRef)
+
+                if deletion.resetMobileAudit {
+                    let emptyEvents: [[String: Any]] = []
+                    transaction.setData(
+                        [
+                            "schemaVersion": 1,
+                            "payload": [
+                                "version": 2,
+                                "events": emptyEvents
+                            ],
+                            "deleted": false,
+                            "clientUpdatedAt": MobileTodayDate.isoString(now),
+                            "serverUpdatedAt": FieldValue.serverTimestamp()
+                        ],
+                        forDocument: mobileAuditRef
+                    )
+                }
+                return deletion.recoveredDeletedData
             } catch {
                 errorPointer?.pointee = error as NSError
             }
             return false
         }
-        return (result as? Bool) == true ? .trainingDataDeleted : .synced
+        guard (result as? Bool) == true else { return .synced }
+        return intent == .routine ? .trainingDataDeleted : .recovered
         #else
         throw FirestoreSyncError.unavailable
         #endif

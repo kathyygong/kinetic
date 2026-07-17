@@ -159,9 +159,14 @@ Phase 2A native implementation status, 2026-07-17:
   signed-out, offline, timeout, backend, and invalid-response states.
 - Native decision events write a capped privacy-safe owner-only audit log that
   `/qa/mobile` can read without exposing the Firebase UID or health values.
-- Package tests, simulator build, and signed-out simulator launch pass.
-  Signed-device interaction remains pending because the registered iPhone was
-  unavailable during this run.
+- Package tests, simulator build, signed-out simulator launch, signed
+  physical-device build/install, strict authenticated live decision,
+  zero-minute calendar conflict, fresh same-day cache fallback, and live
+  `/qa/mobile` readback pass.
+- An explicit confirmed `Reconnect Apple Health` action starts new readiness,
+  health-sync, and privacy-safe audit epochs after account deletion. Routine
+  sync still treats tombstones as authoritative and cannot resurrect deleted
+  data.
 
 ## Phase 1: HealthKit/Firebase Sync Spike
 
@@ -452,12 +457,11 @@ Safety proof:
 
 ## Execution Sequence
 
-Current checkpoint: steps 1 through 4 and both halves of step 5 are
-implemented. The Phase 1 Mac proof is recorded in
+Current checkpoint: steps 1 through 5 are implemented and device-validated.
+The Phase 1 Mac proof is recorded in
 [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md), and the stable Today contract
-is in [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md). The next bounded
-Mac session reruns the signed physical-device Today matrix, then work can
-continue to step 6 without expanding Phase 2A.
+is in [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md). Work can continue
+to step 6 without expanding Phase 2A.
 
 1. Docs-only phase selection: update PRD, build plan, architecture, runbook,
    QA matrix, README, and demo script to name Mobile Companion Proof as the
@@ -471,8 +475,8 @@ continue to step 6 without expanding Phase 2A.
    summaries and preserves freshness/confidence behavior. Completed on a
    physical iPhone and same-user web session on 2026-07-16.
 5. Native Today: Windows request/response/cache/failure/observability contract
-   completed 2026-07-16; next render the deterministic, calendar-aware
-   recommendation from shared state and backend `/decision` in SwiftUI.
+   completed 2026-07-16; deterministic calendar-aware SwiftUI rendering and
+   signed-device proof completed 2026-07-17.
 6. Mobile intake: expose bounded NLP review and deterministic confirm/apply.
 7. Check-in loop: sync completion/skipped/effort data into existing history
    contracts.

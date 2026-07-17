@@ -257,10 +257,8 @@ frontend smoke suite: passed
 backend compileall: passed
 ```
 
-The beta-demo-only backend `_gates` and `_smoke` suites were not executed on
-this Mac because the clone has no backend virtual environment and the system
-Python does not include `fastapi`. Set up `backend/.venv` before a beta-facing
-demo and run the commands above.
+The backend `_gates` and `_smoke` suites later passed in an isolated Python
+3.12 environment during the Phase 2A device rerun.
 
 ## Phase 2A Native Today Proof Record
 
@@ -289,32 +287,54 @@ Implemented and locally validated on July 17, 2026:
 Local evidence:
 
 ```text
-swift test: 17 passed
+swift test: 21 passed
 Xcode unsigned iOS Simulator build: passed
 Xcode signed generic iOS device build: passed
 iPhone 17 / iOS 26.3 simulator install and signed-out launch: passed
+Xcode signed iPhone 17 / iOS 26.5.2 build, install, and launch: passed
 Firestore Auth/rules emulator suite: passed
 frontend lint: passed
 frontend TypeScript no-emit check: passed
 frontend deterministic smoke: passed
 frontend production build: passed
 backend compileall: passed
+backend deterministic gates: passed
+backend smoke: passed
 ```
 
 The deterministic Swift suite covers fresh/stale/prior-day cache, explicit
 zero-minute calendar conflict, planned-duration fallback, malformed response,
 malformed optional AI, privacy rejection, and stable HTTP failure mapping.
 
-Remaining signed-device rerun:
+Signed-device rerun completed on July 17, 2026:
 
-- `devicectl` detected the registered iPhone 17 but reported it as
-  `unavailable`; no new physical-device interaction is claimed.
-- When available, sign in with a disposable account, point the app at the
-  reachable backend, and verify live decision, `0`-minute conflict, offline
-  fresh/stale cache, prior-day expiry, and `/qa/mobile` readback.
-- Backend `_gates` and `_smoke` remain blocked in this clone: the newest local
-  Python is 3.9 and cannot install the pinned `fastapi==0.136.1`; use the
-  supported backend toolchain before a beta-facing demo.
+- The physical iPhone 17 / iOS 26.5.2 connected through CoreDevice. A signed
+  build installed and launched with the local-network usage description.
+- The Mac backend listened only on its USB private-link address. The iPhone
+  sent a Firebase bearer token, project-scoped strict verification accepted
+  it, and `POST /decision` returned `200`.
+- `/qa/mobile` read back a live, privacy-safe success with deterministic
+  validation passed, ready readiness, fresh cache, and no identity or health
+  values.
+- A device-only zero-minute availability input produced
+  `availability_source=calendar`, `calendar_state=conflict`,
+  `selected_action=rest`, and another authenticated `200`.
+- A timed-out request selected the fresh same-day cache and recorded
+  `decision_source=cache`, `cache_state=fresh`, and `failure_state=timeout`.
+- Prior-day cache rejection passed the deterministic Swift clock-controlled
+  test. Physical device time was not changed.
+- The same account recovered after web deletion only through the confirmed
+  native `Reconnect Apple Health` action. Routine sync remained blocked by
+  tombstones; the confirmed action created new readiness, `health_sync`, and
+  empty privacy-safe `mobile_audit` epochs while leaving previously deleted
+  data deleted.
+- The checked-in owner-only Firestore rules were deployed to `kinetic-aca73`
+  to enable the new `mobile_audit` domain; the emulator rules gate remains the
+  repeatable policy proof.
+
+Remaining blocker: none for the Phase 2A Native Today handoff. Fresh/stale and
+prior-day cache timing remain deterministic automated gates; later mobile
+intake, check-ins, notifications, and calendar ingestion remain out of scope.
 
 ## Do Not Add Yet
 

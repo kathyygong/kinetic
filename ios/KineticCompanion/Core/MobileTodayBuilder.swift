@@ -97,6 +97,7 @@ struct MobileTodayCalendarInput: Codable, Equatable {
     var ageHours: Double?
     var availableMinutesToday: Int?
     var unhealthy: Bool
+    var bypassCloudFreshnessForQA: Bool = false
 }
 
 struct MobileTodayBuildContext {

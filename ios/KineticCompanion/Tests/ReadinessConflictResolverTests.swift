@@ -51,6 +51,50 @@ final class ReadinessConflictResolverTests: XCTestCase {
         XCTAssertEqual(result.entryToWrite?.hrv, 55)
     }
 
+    func testRoutineSyncCannotResurrectDeletedTrainingData() {
+        let result = ReadinessSyncDeletionPolicy.resolve(
+            readinessDeleted: true,
+            healthSyncDeleted: true,
+            mobileAuditDeleted: true,
+            intent: .routine
+        )
+
+        XCTAssertTrue(result.blocksSync)
+        XCTAssertFalse(result.discardReadiness)
+        XCTAssertFalse(result.discardHealthSync)
+        XCTAssertFalse(result.resetMobileAudit)
+        XCTAssertFalse(result.recoveredDeletedData)
+    }
+
+    func testExplicitRecoveryStartsNewDeletedDataAndAuditEpochs() {
+        let result = ReadinessSyncDeletionPolicy.resolve(
+            readinessDeleted: true,
+            healthSyncDeleted: true,
+            mobileAuditDeleted: true,
+            intent: .recoverDeletedData
+        )
+
+        XCTAssertFalse(result.blocksSync)
+        XCTAssertTrue(result.discardReadiness)
+        XCTAssertTrue(result.discardHealthSync)
+        XCTAssertTrue(result.resetMobileAudit)
+        XCTAssertTrue(result.recoveredDeletedData)
+    }
+
+    func testExplicitRecoveryPreservesRecreatedManualReadiness() {
+        let result = ReadinessSyncDeletionPolicy.resolve(
+            readinessDeleted: false,
+            healthSyncDeleted: true,
+            mobileAuditDeleted: true,
+            intent: .recoverDeletedData
+        )
+
+        XCTAssertFalse(result.discardReadiness)
+        XCTAssertTrue(result.discardHealthSync)
+        XCTAssertTrue(result.resetMobileAudit)
+        XCTAssertTrue(result.recoveredDeletedData)
+    }
+
     private func entry(
         source: ReadinessSource?,
         updatedAt: Date,

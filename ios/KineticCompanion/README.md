@@ -17,6 +17,8 @@ native companion app.
   the Recovery readback surface.
 - Authoritative web tombstones that clear the native local summary and prevent
   HealthKit data from being recreated on the next sync attempt.
+- Confirmed `Reconnect Apple Health` recovery that starts new bounded
+  readiness, health-sync, and audit epochs without restoring deleted history.
 - Exact Swift parity with `Tests/Fixtures/mobile-today-contract.json`.
 - Owner-scoped Firestore reads for profile presence, goal, saved plan,
   readiness, HealthKit freshness, workout history, confirmed preferences, and
@@ -64,6 +66,10 @@ physical device with the launch argument pair:
 http://<mac-lan-address>:8000
 ```
 
+The debug build declares local-network usage for a Mac development backend.
+Allow the iOS Local Network prompt during signed-device QA. A USB private-link
+address may be used when Wi-Fi client isolation prevents LAN access.
+
 For bounded calendar-conflict QA without event text, add an integer from `0`
 through `240` to the scheme environment:
 
@@ -71,8 +77,26 @@ through `240` to the scheme environment:
 KINETIC_QA_AVAILABLE_MINUTES=0
 ```
 
+For `devicectl`, place the environment option before the bundle identifier and
+the backend launch argument after `--`:
+
+```bash
+xcrun devicectl device process launch \
+  --device <device-id> \
+  --terminate-existing \
+  --environment-variables '{"KINETIC_QA_AVAILABLE_MINUTES":"0"}' \
+  com.kinetic.companion -- \
+  -kinetic.api-base-url http://<mac-private-link-address>:8000
+```
+
 This is a QA-only local availability input. Production continues to use the
 bounded local calendar cache and explicit planned-duration fallback.
+
+For local strict-auth backend QA without a service-account file, set the exact
+Firebase project ID together with `KINETIC_AUTH_REQUIRED=true`. This mode
+verifies public-key signature, audience, issuer, expiry, and subject and has no
+Firebase Admin capability. Credential-backed Admin verification takes
+precedence when a real credential file is present.
 
 The bundle identifier is `com.kinetic.companion`, matching the checked-in plist
 shape example. No HealthKit write usage description or write authorization is

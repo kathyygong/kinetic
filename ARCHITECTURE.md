@@ -162,6 +162,10 @@ the same response validator, and TypeScript/Swift share one canonical fixture.
 The native implementation reads the existing owner-scoped Firebase domains,
 calls `/decision` with the Firebase ID token, and writes capped privacy-safe
 decision events to an owner-only audit envelope that `/qa/mobile` can inspect.
+Local signed-device QA may opt into project-scoped public-key verification
+with `FIREBASE_PROJECT_ID`; it still validates Firebase signature, audience,
+issuer, expiry, and subject and provides no Admin capability. Credential-backed
+Firebase Admin verification remains the default when credentials are present.
 
 ## Readiness integration boundary
 
@@ -183,6 +187,10 @@ The concrete mobile readiness contract is documented in
 [MOBILE_READINESS_SCHEMA.md](./MOBILE_READINESS_SCHEMA.md). Mobile writes
 bounded daily metrics into the existing `readiness` domain for web readback and
 sync/permission metadata into the `health_sync` domain for operations and QA.
+Deletion tombstones remain authoritative for routine native sync. A user must
+explicitly confirm `Reconnect Apple Health` to start new readiness,
+health-sync, and privacy-safe audit epochs; this does not restore previously
+deleted data.
 
 ## Observability direction
 
@@ -225,7 +233,8 @@ workout/calendar text, tokens, email, UID, and unnecessary identity data.
   bounded daily-summary sync, web readback, retry, and authoritative deletion
   tombstones. Phase 2A's authenticated calendar-aware Today contract now passes
   Windows frontend/backend plus Swift fixture, cache, response, observability,
-  and simulator-build gates. Signed physical-device Today QA remains pending;
-  later phases add bounded mobile intake, check-ins, and stale
+  simulator-build, and signed physical-device gates, including strict live
+  decision, zero-minute conflict, same-day cache fallback, and `/qa/mobile`
+  readback. Later phases add bounded mobile intake, check-ins, and stale
   background-delivery recovery. See
   [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md).

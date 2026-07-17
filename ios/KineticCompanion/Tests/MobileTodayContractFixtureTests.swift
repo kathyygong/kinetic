@@ -222,6 +222,32 @@ final class MobileTodayContractFixtureTests: XCTestCase {
         XCTAssertEqual(URLSessionMobileTodayDecisionClient.failure(for: 422), .invalidResponse)
     }
 
+    func testCalendarQALaunchArgumentPreservesZeroMinuteConflict() {
+        XCTAssertEqual(
+            UserDefaultsMobileTodayCalendarCache.qaAvailableMinutes(
+                environment: ["KINETIC_QA_AVAILABLE_MINUTES": "0"],
+                defaultsValue: "30",
+                arguments: ["KineticCompanion", "-kinetic.qa-available-minutes", "15"]
+            ),
+            0
+        )
+        XCTAssertEqual(
+            UserDefaultsMobileTodayCalendarCache.qaAvailableMinutes(
+                environment: [:],
+                defaultsValue: "30",
+                arguments: ["KineticCompanion", "--", "-kinetic.qa-available-minutes", "0"]
+            ),
+            0
+        )
+        XCTAssertNil(
+            UserDefaultsMobileTodayCalendarCache.qaAvailableMinutes(
+                environment: [:],
+                defaultsValue: nil,
+                arguments: ["KineticCompanion", "-kinetic.qa-available-minutes", "241"]
+            )
+        )
+    }
+
     func testMissingContextStopsAndCalendarFallbackPreservesZero() throws {
         let fixture = try loadFixture()
         let now = try XCTUnwrap(MobileTodayDate.parse("2026-07-16T12:00:00.000Z"))

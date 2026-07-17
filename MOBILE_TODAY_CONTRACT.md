@@ -3,8 +3,9 @@
 Status: Windows contract complete on 2026-07-16. Native Swift models,
 authenticated networking, Firestore reads, same-day cache/failure handling,
 SwiftUI Today, and owner-only audit readback were implemented and validated on
-macOS on 2026-07-17. Signed physical-device interaction remains to be rerun
-when the registered iPhone is available.
+macOS on 2026-07-17. Signed physical-device interaction, authenticated live
+decision, zero-minute calendar conflict, same-day cache fallback, and
+`/qa/mobile` readback passed on an iPhone 17 / iOS 26.5.2 the same day.
 
 This contract defines how the authenticated iOS Today surface derives a
 deterministic recommendation from the same Kinetic state and backend endpoint
@@ -121,8 +122,8 @@ Schema: `mobile-today-cache.v1`.
 - selected-action, confidence, calendar/readiness, deterministic-validation,
   warning-presence, AI-assisted, and latency buckets already used by mobile QA.
 
-The local `/qa/mobile` surface can inspect these properties. Phase 2 native
-work still needs to send the same event shape through the iOS transport.
+The local `/qa/mobile` surface inspects these properties from the capped
+owner-only native audit transport.
 
 ## Validation
 
@@ -162,12 +163,17 @@ stable HTTP failure mapping.
 
 Implementation result, 2026-07-17:
 
-- Steps 1 through 6 pass native fixture/package, Xcode simulator-build, and
-  frontend readback gates.
+- Steps 1 through 7 pass native fixture/package, Xcode simulator/device,
+  authenticated backend, and frontend readback gates.
 - The signed-out surface launched on an iPhone 17 / iOS 26.3 simulator.
 - Calendar conflict, zero-minute availability, offline same-day cache,
   timeout/invalid response, and prior-day expiry are covered by deterministic
   Swift tests.
-- Physical-device interaction is not claimed: the registered iPhone was
-  reported as unavailable by `devicectl`. The remaining signed-device rerun is
-  recorded in `MOBILE_MAC_HANDOFF.md`.
+- A signed iPhone 17 / iOS 26.5.2 build installed and launched. Firebase Auth
+  supplied the bearer token over the USB private link, strict `POST /decision`
+  returned `200`, and `/qa/mobile` read back a privacy-safe live success.
+- A device-only zero-minute calendar input produced
+  `availability_source=calendar`, `calendar_state=conflict`, and `rest`.
+  A separate timeout used the fresh same-day cache; prior-day expiry remains a
+  deterministic clock-controlled Swift gate because device time was not
+  changed.

@@ -231,6 +231,14 @@ final class TodayViewModel: ObservableObject {
     }
 
     func readAndSyncToday() async {
+        await readAndSyncToday(intent: .routine)
+    }
+
+    func recoverDeletedTrainingData() async {
+        await readAndSyncToday(intent: .recoverDeletedData)
+    }
+
+    private func readAndSyncToday(intent: ReadinessSyncIntent) async {
         guard isSignedIn else { return }
         healthState = .requesting
         cloudState = .idle
@@ -248,9 +256,14 @@ final class TodayViewModel: ObservableObject {
 
             cloudState = .syncing
             do {
-                let outcome = try await syncClient.syncHealthKitSummary(summary)
+                let outcome = switch intent {
+                case .routine:
+                    try await syncClient.syncHealthKitSummary(summary)
+                case .recoverDeletedData:
+                    try await syncClient.recoverDeletedTrainingData(summary)
+                }
                 switch outcome {
-                case .synced:
+                case .synced, .recovered:
                     cloudState = .synced
                     await loadToday()
                 case .trainingDataDeleted:
@@ -376,6 +389,7 @@ struct TodayView: View {
     @ObservedObject var viewModel: TodayViewModel
     @State private var email = ""
     @State private var password = ""
+    @State private var showingReconnectConfirmation = false
 
     var body: some View {
         NavigationStack {
@@ -620,19 +634,54 @@ struct TodayView: View {
                 Text("The local summary remains usable. No plan or manual readiness data was changed.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                if let cloudErrorCode = viewModel.cloudErrorCode {
+                    Text("Firestore error: \(cloudErrorCode)")
+                        .font(.caption.monospaced())
+                        .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                }
             }
 
-            Button {
-                Task { await viewModel.readAndSyncToday() }
-            } label: {
-                Label(syncButtonLabel, systemImage: "arrow.triangle.2.circlepath")
+            if viewModel.cloudState == .deleted {
+                Text(
+                    "Deleted training data stays deleted until you explicitly start a new Apple Health sync history."
+                )
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+
+                Button {
+                    showingReconnectConfirmation = true
+                } label: {
+                    Label("Reconnect Apple Health", systemImage: "link.badge.plus")
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(viewModel.healthState == .requesting)
+                .confirmationDialog(
+                    "Reconnect Apple Health?",
+                    isPresented: $showingReconnectConfirmation,
+                    titleVisibility: .visible
+                ) {
+                    Button("Reconnect Apple Health") {
+                        Task { await viewModel.recoverDeletedTrainingData() }
+                    }
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text(
+                        "Previously deleted data stays deleted. Kinetic will create new bounded readiness and sync records and start a new privacy-safe mobile audit history."
+                    )
+                }
+            } else {
+                Button {
+                    Task { await viewModel.readAndSyncToday() }
+                } label: {
+                    Label(syncButtonLabel, systemImage: "arrow.triangle.2.circlepath")
+                }
+                .buttonStyle(.bordered)
+                .disabled(
+                    viewModel.healthState == .requesting
+                        || viewModel.cloudState == .syncing
+                )
             }
-            .buttonStyle(.bordered)
-            .disabled(
-                viewModel.healthState == .requesting
-                    || viewModel.cloudState == .syncing
-                    || viewModel.cloudState == .deleted
-            )
         }
         .padding(20)
         .kineticCard()

@@ -18,6 +18,12 @@ Service-account credentials are picked up automatically by
   2. ``GOOGLE_APPLICATION_CREDENTIALS`` — same, standard Google convention.
   3. Application Default Credentials (gcloud, GCE/GKE metadata, etc.).
 
+For local strict-auth device QA without privileged Admin credentials,
+``FIREBASE_PROJECT_ID`` enables project-scoped verification against Google's
+published Firebase signing certificates. This path still validates signature,
+audience, issuer, expiry, and subject. It cannot mint tokens or access Admin
+APIs.
+
 If the SDK fails to initialize while ``KINETIC_AUTH_REQUIRED=true``, the
 dependency raises 503 on every protected call so misconfiguration is loud
 rather than silently insecure.
@@ -41,6 +47,43 @@ _initialized: bool = False
 
 def _auth_required() -> bool:
     return os.environ.get("KINETIC_AUTH_REQUIRED", "").strip().lower() == "true"
+
+
+def _project_only_verification_id() -> Optional[str]:
+    """Return the explicitly opted-in project-only verifier ID, if any."""
+    project_id = os.environ.get("FIREBASE_PROJECT_ID", "").strip()
+    if not project_id:
+        return None
+    credential_path = (
+        os.environ.get("FIREBASE_CREDENTIALS")
+        or os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+    )
+    if credential_path and os.path.isfile(credential_path):
+        return None
+    return project_id
+
+
+def _validate_project_token_claims(claims: dict, project_id: str) -> dict:
+    """Apply Firebase issuer/subject invariants after public-key validation."""
+    if claims.get("iss") != f"https://securetoken.google.com/{project_id}":
+        raise ValueError("Firebase ID token has an invalid issuer.")
+    subject = claims.get("sub")
+    if not isinstance(subject, str) or not subject or len(subject) > 128:
+        raise ValueError("Firebase ID token has an invalid subject.")
+    return {**claims, "uid": subject}
+
+
+def _verify_project_scoped_token(token: str, project_id: str) -> dict:
+    """Verify a Firebase ID token without privileged Admin credentials."""
+    from google.auth.transport.requests import Request
+    from google.oauth2 import id_token
+
+    claims = id_token.verify_firebase_token(
+        token,
+        Request(),
+        audience=project_id,
+    )
+    return _validate_project_token_claims(claims, project_id)
 
 
 def _ensure_admin_initialized() -> Optional[Exception]:
@@ -101,15 +144,6 @@ def verify_firebase_token(
     per-user state.
     """
     strict = _auth_required()
-    init_err = _ensure_admin_initialized()
-
-    if init_err is not None:
-        if strict:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Auth backend unavailable.",
-            )
-        return None
 
     if not authorization:
         if strict:
@@ -132,20 +166,35 @@ def verify_firebase_token(
         return None
 
     token = parts[1].strip()
+    project_id = _project_only_verification_id()
 
     try:
+        if project_id:
+            return _verify_project_scoped_token(token, project_id)
+
+        init_err = _ensure_admin_initialized()
+        if init_err is not None:
+            raise init_err
+
         from firebase_admin import auth as fb_auth
 
-        decoded = fb_auth.verify_id_token(token)
-        return decoded
+        return fb_auth.verify_id_token(token)
     except Exception as exc:  # noqa: BLE001 — collapse to one auth failure
         if strict:
+            from google.auth.exceptions import DefaultCredentialsError
+
+            if isinstance(exc, DefaultCredentialsError):
+                _log.error("Firebase Admin credentials unavailable in strict mode.")
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Auth backend unavailable.",
+                ) from exc
             _log.info("Token verification failed: %s", exc)
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid or expired ID token.",
                 headers={"WWW-Authenticate": "Bearer"},
-            )
+            ) from exc
         _log.debug("Token verification failed (permissive mode): %s", exc)
         return None
 
