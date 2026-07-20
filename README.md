@@ -22,11 +22,11 @@ iPhone sync, web readback, retry, and deletion-tombstone behavior were proven on
 Windows-side Native Today request, response, cache, failure, privacy, and
 observability contract completed on 2026-07-16. The SwiftUI implementation and
 signed physical-device proof completed on 2026-07-17 and were integrated into
-`main` on 2026-07-20. The active milestone is
-[Mobile Phase 2.5 bounded intake](./MOBILE_INTAKE_HANDOFF.md), beginning with
-the [shared mobile intake contract](./MOBILE_INTAKE_CONTRACT.md). Windows Part
-A completed and passed all required gates on 2026-07-20; native
-Codable/SwiftUI/device Part B is next.
+`main` on 2026-07-20. [Mobile Phase 2.5 bounded intake](./MOBILE_INTAKE_HANDOFF.md)
+and its [shared contract](./MOBILE_INTAKE_CONTRACT.md) completed on
+`codex/mobile-intake-contract` on 2026-07-20, including native
+Codable/SwiftUI, deterministic confirmation/rejection, signed-device, and
+`/qa/mobile` evidence. Integration into `main` remains a separate action.
 
 ## 🏃 The Problem
 Most running apps provide static plans that exist in a vacuum. When life happens (e.g. a late-night meeting, poor sleep, or an unexpected trip) the plan breaks. Users are left to manually adjust their training or, more often, lose consistency and abandon the plan entirely.
@@ -89,9 +89,9 @@ Runtime modes are explicit:
 - [X] **Mobile Phase 2 — Native Today:** The shared authenticated contract,
   SwiftUI live/cache/failure surfaces, owner-only audit readback, and signed
   physical-device proof are complete.
-- [ ] **Mobile Phase 2.5 — Bounded Intake:** Add authenticated NLP intent
-  routing, review-only drafts, deterministic confirm/apply, and privacy-safe
-  lifecycle observability. Start with the shared Windows contract in
+- [X] **Mobile Phase 2.5 — Bounded Intake:** Authenticated NLP routing,
+  review-only drafts, deterministic confirm/apply, privacy-safe lifecycle
+  observability, and signed-device evidence completed on 2026-07-20. See
   [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md).
 - [ ] **Mobile Phase 3 — Recovery/Check-In:** Add perceived-recovery capture
   and completion/skipped/effort check-ins after the Phase 2.5 routing contract

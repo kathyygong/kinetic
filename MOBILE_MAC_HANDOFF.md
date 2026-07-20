@@ -34,9 +34,10 @@ closed:
 4. HealthKit permission request runs on simulator/device where supported.
 5. A bounded daily summary writes to Firestore and is readable by web.
 
-Phase 2.5 now starts on Windows with the shared intake contract in
-[MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md). Return to macOS only
-after that contract and its fixtures are stable.
+Phase 2.5 subsequently started on Windows with the shared intake contract in
+[MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md), then completed its
+macOS/native and physical-device proof on 2026-07-20 without changing that
+contract or its fixtures.
 
 ## Mac Prerequisites
 
@@ -336,9 +337,9 @@ Signed-device rerun completed on July 17, 2026:
   repeatable policy proof.
 
 Remaining blocker: none for the Phase 2A Native Today handoff. Fresh/stale and
-prior-day cache timing remain deterministic automated gates. Mobile intake is
-now the separately scoped active Phase 2.5 milestone; check-ins, notifications,
-and calendar ingestion remain later work.
+prior-day cache timing remain deterministic automated gates. The separately
+scoped Phase 2.5 mobile-intake milestone completed on 2026-07-20; check-ins,
+notifications, and calendar ingestion remain later work.
 
 ## Do Not Add Yet
 

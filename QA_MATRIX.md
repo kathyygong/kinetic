@@ -57,9 +57,9 @@ The demo is shippable and the Firebase persistence foundation is beta-ready.
 Beta hardening is complete for a small controlled web beta. Apple Health CSV
 import is an implemented web-beta bridge for readiness metrics.
 
-As of 2026-07-17, Mobile Companion Phase 1 native HealthKit/Firebase proof and
-the Phase 2A shared/SwiftUI Native Today implementation and signed-device
-handoff are complete. Mobile beta must
+As of 2026-07-20, Mobile Companion Phase 1 native HealthKit/Firebase proof,
+Phase 2A shared/SwiftUI Native Today, and Phase 2.5 bounded intake
+implementation plus signed-device evidence are complete. Mobile beta must
 preserve calendar-aware decisions, bounded NLP intake, deterministic
 confirm/apply, perceived-recovery routing, pattern-to-action behavior memory,
 and shared QA/eval observability. Garmin, Oura, hosted AI, coach sharing,

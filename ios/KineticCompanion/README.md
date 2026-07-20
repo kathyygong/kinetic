@@ -1,8 +1,9 @@
 # Kinetic iOS Companion
 
-This directory contains the bounded Phase 1 HealthKit/Firebase proof and Phase
-2A native Today surface described in `MOBILE_MAC_HANDOFF.md`. It is not a full
-native companion app.
+This directory contains the bounded Phase 1 HealthKit/Firebase proof, Phase 2A
+native Today surface, and Phase 2.5 bounded intake implementation described in
+`MOBILE_MAC_HANDOFF.md` and `MOBILE_INTAKE_HANDOFF.md`. It is not a full native
+companion app.
 
 ## Implemented Gates
 

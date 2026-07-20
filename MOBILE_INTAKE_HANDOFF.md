@@ -9,8 +9,8 @@ regressions also pass.
 
 Phase 1 HealthKit/Firebase sync and Phase 2A Native Today are complete,
 device-validated, integrated into `main`, and pushed to `origin/main`. This
-handoff scopes the next milestone: bounded mobile natural-language intake and
-deterministic validation.
+handoff records the completed bounded mobile natural-language intake and
+deterministic-validation milestone.
 
 ## Outcome
 
@@ -179,7 +179,7 @@ tree with no reported npm vulnerabilities.
 ## Mac Continuation Instructions
 
 Part B used the following procedure. Keep it as the rerun checklist for the
-remaining physical-device evidence or future native regressions.
+future native regressions.
 
 ### 1. Check out the shared-contract branch
 
@@ -319,14 +319,14 @@ screenshots containing identity, or disposable test-user details.
 - Commit and push `codex/mobile-intake-contract`.
 - Do not merge to `main` unless explicitly requested.
 
-### Simple continuation prompt
+### Regression rerun prompt
 
 ```text
-Finish Kinetic Mobile Phase 2.5 Part B physical-device evidence on Mac. Follow
-the remaining proof in MOBILE_INTAKE_HANDOFF.md from the clean tip of
-origin/codex/mobile-intake-contract. Do not redo Part A or the completed native
-implementation, change the shared mobile-intake.v1 vocabulary, or broaden the
-documented scope.
+Revalidate Kinetic Mobile Phase 2.5 Part B on Mac after a native regression or
+contract-compatible implementation change. Follow the Mac rerun checklist in
+MOBILE_INTAKE_HANDOFF.md from the clean tip of
+origin/codex/mobile-intake-contract. Do not redo Part A, change the shared
+mobile-intake.v1 vocabulary, or broaden the documented scope.
 ```
 
 ## Starting State
@@ -334,7 +334,8 @@ documented scope.
 - Shared-contract branch: `codex/mobile-intake-contract`
 - Part A implementation commit: `25cb769`
 - Integrated Phase 2A commit: `7139dcd`
-- Part B implementation and repeatable Mac gates: completed 2026-07-20.
+- Part B implementation, repeatable Mac gates, and physical-device proof:
+  completed 2026-07-20.
 - Source-of-truth roadmap:
   [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md)
 - Shared intake contract:

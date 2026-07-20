@@ -97,8 +97,10 @@ The shippable demo will not include:
   Firestore sync, same-user web readback, retry, and deletion tombstones.
   Phase 2A Native Today also passed its shared contract, SwiftUI, strict-auth,
   cache, calendar-conflict, audit-readback, and signed-device gates. Phase 2.5
-  Windows/shared intake Part A passed on 2026-07-20; native Part B is next,
-  followed by the recovery/check-in loop. The web app remains the architecture
+  shared and native bounded intake, deterministic confirmation/rejection,
+  audit readback, and signed-device gates passed on 2026-07-20. The
+  recovery/check-in loop is the next separately authorized phase. The web app
+  remains the architecture
   proof, admin/demo/eval review
   surface, and deeper planning surface. See
   [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md).
@@ -522,8 +524,9 @@ Any AI-generated suggestion that could affect training must pass deterministic v
   Swift, simulator, signed-device, strict-auth, cache, calendar-conflict, and
   `/qa/mobile` proof; integrated into `main` on 2026-07-20.
 - Phase 2.5: Bounded mobile natural-language intake and deterministic
-  confirm/apply. Windows/shared Part A completed 2026-07-20; native Part B is
-  next. See [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md) and
+  confirm/apply. Windows/shared Part A and macOS/native Part B, including
+  signed-device proof, completed 2026-07-20. See
+  [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md) and
   [MOBILE_INTAKE_CONTRACT.md](./MOBILE_INTAKE_CONTRACT.md).
 - Phase 3: Recovery/check-in loop.
 - Phase 4: Notifications only if justified by the Today/check-in loop.

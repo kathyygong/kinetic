@@ -811,7 +811,8 @@ Completed.
   through the existing readiness store. Native HealthKit sync and the
   calendar-aware Today surface are implemented as a thin iOS companion that
   summarizes locally and syncs bounded daily readiness records. Phase 2.5
-  bounded mobile intake is active; Garmin and Oura remain deferred.
+  bounded mobile intake implementation and physical-device proof are complete;
+  Garmin and Oura remain deferred.
 - Final operational polish is complete: [BETA_RUNBOOK.md](./BETA_RUNBOOK.md),
   [QA_MATRIX.md](./QA_MATRIX.md), and [DEPLOY.md](./DEPLOY.md) document hosted
   preflight, strict-auth posture, rollback, triage, protected artifact handling,
@@ -880,8 +881,8 @@ completed on Windows on 2026-07-16: authenticated Native Today data, decision,
 cache, failure, privacy, and observability contracts now pass shared frontend
 and backend gates. The SwiftUI implementation and signed-device proof completed
 on 2026-07-17 and were integrated into `main` on 2026-07-20. Phase 2.5 bounded
-mobile intake Part A completed and passed the required Windows suite on
-2026-07-20. Part B native Codable/SwiftUI/device implementation is next; see
+mobile intake Parts A and B completed and passed the required Windows, Mac,
+and signed-device suites on 2026-07-20; see
 [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md) and
 [MOBILE_INTAKE_CONTRACT.md](./MOBILE_INTAKE_CONTRACT.md).
 
@@ -909,6 +910,21 @@ mobile intake Part A completed and passed the required Windows suite on
   gates, smoke; and Auth + Firestore emulator rules passed on Windows.
 - Did not add Swift/SwiftUI, Phase 3 persistence, notifications, calendar
   ingestion, hosted AI, general chat, or autonomous mutation.
+
+### Mobile Phase 2.5 Native Intake - Completed 2026-07-20
+
+- Added strict Swift Codable parity, bounded authenticated networking, Native
+  Today intake, and all eight concrete outcome destinations.
+- Added explicit owner-scoped confirmation with deterministic grounding,
+  plan, availability, race-day, unique-day, load, and hard-spacing validation.
+- Passed Swift package, unsigned simulator, signed generic-device, strict-auth,
+  frontend/backend, and Firestore gates.
+- Passed physical iPhone install and authenticated route interaction, a
+  grounded availability mutation, an ungrounded Sunday-swap rejection, bounded
+  `/qa/mobile` readback, and Today/cache/HealthKit/reconnect/tombstone
+  regressions.
+- Kept `mobile-intake.v1` and its canonical fixture unchanged; Phase 3
+  persistence and broader native scope remain deferred.
 
 ### Mobile Phase 2A Shared Today Contract - Completed 2026-07-16
 
@@ -951,9 +967,9 @@ mobile intake Part A completed and passed the required Windows suite on
   remains available at `/mobile-companion`, with audit readback at `/qa/mobile`.
 - Native HealthKit/Firebase execution and live cross-device
   deletion/readback passed on 2026-07-16. Connected calendar-aware Native
-  Today, native event transport, stale background-delivery repair, and
-  on-device check-in flows remain release gates assigned to the later phases
-  documented in `MOBILE_COMPANION_PLAN.md`.
+  Today and native event transport also pass. Stale background-delivery repair
+  and on-device check-in persistence remain gates assigned to later phases in
+  `MOBILE_COMPANION_PLAN.md`.
 
 ### Mobile Contract Preflight - Updated 2026-07-13
 
@@ -991,9 +1007,9 @@ mobile intake Part A completed and passed the required Windows suite on
   handling passed on macOS/physical iPhone on 2026-07-16. Windows remains the
   source of truth for shared contracts, deterministic engine behavior,
   frontend/backend gates, Firebase rule coverage, and web QA. The Phase 2A Mac
-  implementation and device proof completed on 2026-07-17. Start Phase 2.5 on
-  Windows; return to Mac only after its intake contract and canonical fixtures
-  are stable.
+  implementation and device proof completed on 2026-07-17. Phase 2.5 then
+  completed its Windows contract and macOS/native device proof on 2026-07-20
+  without changing the canonical fixture vocabulary.
 
 ### Mobile Phase 1 Native Proof - Completed 2026-07-16
 

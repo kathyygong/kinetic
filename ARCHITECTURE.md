@@ -179,7 +179,7 @@ with `FIREBASE_PROJECT_ID`; it still validates Firebase signature, audience,
 issuer, expiry, and subject and provides no Admin capability. Credential-backed
 Firebase Admin verification remains the default when credentials are present.
 The shared and native Phase 2A implementation was integrated into `main` on
-2026-07-20. Phase 2.5 bounded intake is now the active architecture slice:
+2026-07-20. Phase 2.5 bounded intake is now an implemented architecture slice:
 reuse the authenticated web intake boundary, route every supported intent to a
 bounded product flow, and keep deterministic confirmation authoritative. Its
 Windows-first contract is scoped in

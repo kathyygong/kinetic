@@ -28,8 +28,8 @@ by the existing authenticated `POST /ai/parse-intake` endpoint. Its schema is
   validation requires an existing plan, rejects race-day movement, duplicate
   days, changed weekly load, and newly unsafe hard-workout spacing.
 - Recovery, caution, missed-workout, and reflection routes do not persist in
-  Phase 2.5 Part A. They identify a bounded destination for the later native
-  UI; Phase 3 owns deeper check-in persistence.
+  Phase 2.5. Native UI renders each bounded destination without inferring or
+  storing hidden values; Phase 3 owns deeper check-in persistence.
 - Explanation uses bounded current-decision facts and a deterministic template
   identifier. It does not call AI or expose generated prose.
 

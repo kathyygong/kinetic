@@ -174,8 +174,9 @@ Integration status, 2026-07-20:
 - Windows frontend lint, TypeScript, deterministic smoke, production build,
   beta-readiness, backend compile/gates/smoke, and Firestore emulator rules
   pass against the integrated source.
-- Phase 2.5 is the active milestone. Its Windows-first contract, stop line, and
-  later Mac handoff are documented in
+- Phase 2.5 implementation and physical-device proof are complete on
+  `codex/mobile-intake-contract`; integration into `main` remains a separate
+  explicit action. Its contract and Mac evidence are documented in
   [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md).
 
 Phase 2.5 shared-contract status, 2026-07-20:
@@ -506,8 +507,8 @@ repeatable and physical-device gates pass; integration remains a separate
 explicit action.
 The Phase 1 Mac proof is recorded in
 [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md), and the stable Today contract
-is in [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md). Work can continue
-to step 6 without expanding Phase 2A.
+is in [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md). Do not begin
+step 7 or expand the Phase 2.5 boundary without a separate product decision.
 
 1. Docs-only phase selection: update PRD, build plan, architecture, runbook,
    QA matrix, README, and demo script to name Mobile Companion Proof as the
@@ -526,8 +527,9 @@ to step 6 without expanding Phase 2A.
 6. Mobile intake: expose bounded NLP review and deterministic confirm/apply.
    Shared Windows contract, canonical fixture, strict routes/failures,
    deterministic apply proof, telemetry, and `/qa/mobile` readback completed
-   2026-07-20. Return to Mac for Codable/SwiftUI implementation and device
-   proof without changing the shared vocabulary or adding mutation authority.
+   2026-07-20. Codable/SwiftUI implementation and signed physical-device proof
+   also completed that day without changing the shared vocabulary or adding
+   mutation authority.
 7. Check-in loop: sync completion/skipped/effort data into existing history
    contracts.
 8. QA and beta proof: add iOS manual QA, privacy checklist, schema tests,
