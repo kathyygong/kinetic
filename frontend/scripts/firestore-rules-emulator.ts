@@ -159,6 +159,23 @@ async function main() {
               decision_source: "live",
             },
           },
+          {
+            schemaVersion: 2,
+            id: "native-intake-1",
+            name: "mobile_intake_lifecycle",
+            at: "2026-07-20T12:00:00.000Z",
+            properties: {
+              platform: "ios",
+              action: "reviewed",
+              outcome: "success",
+              route: "review_draft",
+              draft_kind: "availability",
+              failure_state: "none",
+              parser_source: "deterministic",
+              mutation_state: "review_only",
+              deterministic_validation: "not_run",
+            },
+          },
         ],
       },
       deleted: false,
@@ -174,6 +191,11 @@ async function main() {
       (await getDoc(ownMobileAudit)).data()?.payload?.events?.[0]?.properties
         ?.decision_source === "live",
       "owner A should read privacy-safe native audit events",
+    );
+    expect(
+      (await getDoc(ownMobileAudit)).data()?.payload?.events?.[1]?.properties
+        ?.route === "review_draft",
+      "owner A should read bounded mobile intake lifecycle outcomes",
     );
     const readinessSnapshot = await getDoc(ownReadiness);
     expect(readinessSnapshot.exists(), "owner A should read mobile readiness");

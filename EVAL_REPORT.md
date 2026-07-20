@@ -1,10 +1,11 @@
 # Kinetic Deterministic AI Eval Report
 
-Generated: 2026-07-10
+Generated: 2026-07-20
 
 ## Result
 
-**PASS — all 24 deterministic fallback cases satisfied the demo safety gates.**
+**PASS — all 43 deterministic fallback and Mobile Phase 2.5 contract cases
+satisfied the demo safety gates.**
 
 | Gate group | Cases | Result |
 | --- | ---: | --- |
@@ -15,6 +16,8 @@ Generated: 2026-07-10
 | What-if malformed/timeout fallback | 2 | PASS |
 | Intake grounding and no-mutation safety | 2 | PASS |
 | Intake malformed/timeout/ungrounded fallback | 3 | PASS |
+| Mobile intake tagged route contract | 14 | PASS |
+| Mobile intake context/auth/AI failure safety | 5 | PASS |
 | Behavior-learning safety | 4 | PASS |
 | Behavior prompt privacy | 1 | PASS |
 | Training-summary grounding and privacy | 3 | PASS |
@@ -32,6 +35,10 @@ Generated: 2026-07-10
   confirmation, and cannot mutate request or persisted state while parsing.
 - Sparse, malformed, timed-out, unavailable, and ungrounded intake output
   cannot invent or apply a change.
+- Mobile intake routes schedule, availability, travel, workout-swap, goal,
+  preferred-day, recovery, caution, missed-workout, reflection, explanation,
+  ambiguous, unsupported, and unsafe notes without mutation. Strict context,
+  strict-auth rejection, and AI failure fallbacks pass.
 - Sparse behavior history emits a limited-history warning and cannot claim
   moderate or high confidence.
 - Weekly/monthly reviews derive metrics deterministically from bounded outcome

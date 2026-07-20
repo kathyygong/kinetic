@@ -48,6 +48,7 @@ const draft: IntakeDraft = {
     },
   ],
   preference_changes: [],
+  workout_swap_changes: [],
   grounding: [
     { change_id: "goal-date", evidence: "2026-10-18" },
     { change_id: "goal-race", evidence: "half marathon" },
@@ -157,6 +158,78 @@ expect(
   ).valid,
   "unsafe availability must be rejected before apply",
 );
+
+const swapSource = currentPlan.weeks[0]?.workouts.find(
+  (workout) => workout.type !== "race",
+);
+const emptySwapDay = (["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const).find(
+  (day) => !currentPlan.weeks[0]?.workouts.some((workout) => workout.day === day),
+);
+expect(swapSource && emptySwapDay, "fixture plan needs a safe workout swap");
+if (swapSource && emptySwapDay) {
+  const shortDay = swapSource.day.toLowerCase().slice(0, 3) as
+    | "mon"
+    | "tue"
+    | "wed"
+    | "thu"
+    | "fri"
+    | "sat"
+    | "sun";
+  const targetDay = emptySwapDay.toLowerCase().slice(0, 3) as typeof shortDay;
+  const swapText = `Move ${swapSource.day} workout to ${emptySwapDay}.`;
+  const swapDraft: IntakeDraft = {
+    status: "ready",
+    summary: "One grounded workout swap.",
+    goal_changes: [],
+    schedule_changes: [],
+    availability_changes: [],
+    preference_changes: [],
+    workout_swap_changes: [
+      {
+        id: `workout-swap-${shortDay}-${targetDay}`,
+        from_day: shortDay,
+        to_day: targetDay,
+      },
+    ],
+    grounding: [
+      {
+        change_id: `workout-swap-${shortDay}-${targetDay}`,
+        evidence: swapText,
+      },
+    ],
+    warnings: [],
+  };
+  const swapValidation = validateIntakeDraft(
+    swapDraft,
+    swapText,
+    "2026-06-29",
+    goal,
+    currentPlan,
+  );
+  expect(swapValidation.valid, swapValidation.errors.join(" "));
+  const swapped = buildConfirmedIntakeState({
+    draft: swapDraft,
+    sourceText: swapText,
+    today: "2026-06-29",
+    currentGoal: goal,
+    currentProfile: profile,
+    currentPlan,
+  });
+  expect(
+    swapped.savedPlan?.weeks[0].workouts.some(
+      (workout) =>
+        workout.day === emptySwapDay && workout.type === swapSource.type,
+    ),
+    "confirmed swap must move the selected workout deterministically",
+  );
+  expect(
+    currentPlan.weeks[0].workouts.some(
+      (workout) =>
+        workout.day === swapSource.day && workout.type === swapSource.type,
+    ),
+    "confirmed swap must not mutate the source plan",
+  );
+}
 
 console.log(
   "OK - intake drafts stay grounded, immutable, and deterministic on confirmation",

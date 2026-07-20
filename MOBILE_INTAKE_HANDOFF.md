@@ -1,6 +1,7 @@
 # Kinetic Mobile Phase 2.5 Intake Handoff
 
-Status: active starting milestone as of 2026-07-20.
+Status: Part A Windows/shared contract completed and validated on 2026-07-20.
+Part B macOS/native implementation is the next task and has not started.
 
 Phase 1 HealthKit/Firebase sync and Phase 2A Native Today are complete,
 device-validated, integrated into `main`, and pushed to `origin/main`. This
@@ -102,6 +103,36 @@ Return to Mac only after Part A is committed and pushed:
 - `/qa/mobile` shows only privacy-safe route/lifecycle outcomes.
 - Existing frontend, backend, Firebase, and mobile Today gates remain green.
 
+## Part A Completion Evidence
+
+Completed on `codex/mobile-intake-contract` on 2026-07-20:
+
+- Added the strict `mobile-intake.v1` request/response contract to the existing
+  authenticated `POST /ai/parse-intake` endpoint. Legacy `intake.v1` web
+  requests remain compatible.
+- Added tagged review-draft, perceived-recovery, caution, missed-workout,
+  reflection, deterministic-explanation, clarification, and refusal outcomes.
+- Added schedule, availability, travel, workout-swap, goal, and preferred-day
+  draft kinds. All responses report `mutation_performed=false`.
+- Reused the current web confirm/apply authority. Explicit workout swaps now
+  pass deterministic existing-plan, race-day, duplicate-day, weekly-load, and
+  hard-workout-spacing checks before the existing persistence path can run.
+- Added bounded goal/profile/decision context; unknown identity, raw
+  readiness, biometric, and unrelated fields receive `422`.
+- Added stable client/auth/backend/parser failure codes and deterministic safe
+  behavior for timeout, unavailable AI, malformed/ungrounded AI, ambiguity,
+  unsupported input, and unsafe input.
+- Added privacy-safe intake route, failure, parser, mutation, validation, and
+  latency fields to `mobile_intake_lifecycle`; `/qa/mobile` and the owner-only
+  `mobile_audit` reader expose only those bounded fields.
+- Added the canonical fixture at
+  `ios/KineticCompanion/Tests/Fixtures/mobile-intake-contract.json` and shared
+  frontend/backend gates for every route and failure class.
+
+The detailed authority, schemas, failure table, telemetry fields, and current
+Part B limitations are in
+[MOBILE_INTAKE_CONTRACT.md](./MOBILE_INTAKE_CONTRACT.md).
+
 ## Required Windows Validation
 
 ```powershell
@@ -124,6 +155,24 @@ npx firebase-tools emulators:exec --only auth,firestore "cd frontend && npm run 
 `npm run beta:readiness` may report the expected warning that the connected
 advisory audit was skipped. Run `npm run beta:audit` when network access is
 available or dependencies change.
+
+All commands above passed on 2026-07-20. Frontend lint, TypeScript, smoke,
+production build, and beta-readiness passed; backend compile, gates, and smoke
+passed; Auth + Firestore emulator rules passed. Beta-readiness reported only
+the documented connected advisory-audit skip warning. Firestore emulator
+`PERMISSION_DENIED` log lines were the expected cross-user/guest assertions,
+and the rule suite exited successfully.
+
+## Part B Start Condition
+
+Part A is ready for macOS/SwiftUI continuation. Pull the pushed
+`codex/mobile-intake-contract` branch, read
+[MOBILE_INTAKE_CONTRACT.md](./MOBILE_INTAKE_CONTRACT.md), and consume the
+canonical fixture before editing Swift. Do not change the shared outcome
+vocabulary or add a native mutation authority. Native confirmation must call
+the existing authenticated endpoint, render the bounded route, then use the
+same deterministic validation/apply semantics represented by the shared
+contract.
 
 ## Starting State
 

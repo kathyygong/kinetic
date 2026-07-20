@@ -178,6 +178,25 @@ Integration status, 2026-07-20:
   later Mac handoff are documented in
   [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md).
 
+Phase 2.5 shared-contract status, 2026-07-20:
+
+- Windows Part A is complete on `codex/mobile-intake-contract`.
+- The existing authenticated `POST /ai/parse-intake` endpoint now accepts the
+  strict `mobile-intake.v1` request while preserving legacy web intake.
+- Every supported note maps to a tagged bounded destination; schedule,
+  availability, travel, workout-swap, goal, and preferred-day changes are
+  review-only drafts.
+- Recovery, pain/injury, missed-workout, reflection, explanation,
+  clarification, unsupported, and unsafe notes cannot create hidden health,
+  completion, medical, or mutation state.
+- The canonical cross-platform fixture and deterministic frontend/backend
+  suites cover every route plus auth, timeout, unavailable-AI, malformed,
+  ambiguous, and unsupported behavior.
+- Privacy-safe lifecycle fields are readable through `/qa/mobile` and the
+  existing owner-only `mobile_audit` envelope.
+- Part B native Codable/SwiftUI/device proof is next. The contract is
+  documented in [MOBILE_INTAKE_CONTRACT.md](./MOBILE_INTAKE_CONTRACT.md).
+
 ## Phase 1: HealthKit/Firebase Sync Spike
 
 Goal: prove native HealthKit access and bounded Firebase sync without changing
@@ -468,7 +487,8 @@ Safety proof:
 ## Execution Sequence
 
 Current checkpoint: steps 1 through 5 are implemented, device-validated,
-integrated into `main`, and pushed. Step 6 is active.
+integrated into `main`, and pushed. Step 6 Part A is complete and validated on
+Windows; Step 6 Part B native implementation is active next.
 The Phase 1 Mac proof is recorded in
 [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md), and the stable Today contract
 is in [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md). Work can continue
@@ -489,9 +509,10 @@ to step 6 without expanding Phase 2A.
    completed 2026-07-16; deterministic calendar-aware SwiftUI rendering and
    signed-device proof completed 2026-07-17.
 6. Mobile intake: expose bounded NLP review and deterministic confirm/apply.
-   Begin with the shared Windows contract and canonical fixtures described in
-   [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md), then return to Mac
-   for SwiftUI implementation and device proof.
+   Shared Windows contract, canonical fixture, strict routes/failures,
+   deterministic apply proof, telemetry, and `/qa/mobile` readback completed
+   2026-07-20. Return to Mac for Codable/SwiftUI implementation and device
+   proof without changing the shared vocabulary or adding mutation authority.
 7. Check-in loop: sync completion/skipped/effort data into existing history
    contracts.
 8. QA and beta proof: add iOS manual QA, privacy checklist, schema tests,

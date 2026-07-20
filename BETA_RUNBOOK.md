@@ -142,13 +142,17 @@ Before inviting mobile beta users:
    missing calendar must use the labeled planned-workout fallback.
 7. Confirm bounded mobile natural-language intake routes every supported note
    to a concrete flow: reviewable draft, guided check-in, read-only
-   explanation, clarifying prompt, or safe refusal/routing.
+   explanation, clarifying prompt, or safe refusal/routing. Use
+   [MOBILE_INTAKE_CONTRACT.md](./MOBILE_INTAKE_CONTRACT.md) and its canonical
+   cross-platform fixture.
 8. Confirm recovery and pain language opens explicit perceived-recovery or
    caution capture. AI must not fabricate readiness, biometric, pain, or injury
    values from free text.
-9. Confirm schedule/availability/travel/goal/preference NLP uses review-only
-   drafts, rejects anonymous requests under strict auth, and cannot apply
-   without deterministic validation.
+9. Confirm schedule/availability/travel/workout-swap/goal/preferred-day NLP
+   uses review-only drafts, rejects anonymous requests under strict auth, and
+   cannot apply without explicit confirmation and deterministic validation.
+   Verify timeout, unavailable AI, malformed AI/response, ambiguous,
+   unsupported, and unsafe inputs stop or fall back without mutation.
 10. Confirm behavior patterns have bounded outcomes: confirmed schedule-style
    patterns can update preferred-day inputs for deterministic plan generation;
    scoring patterns remain capped nudges; stale-data patterns prompt sync or
@@ -164,6 +168,12 @@ Before inviting mobile beta users:
    across web and iOS.
 15. Confirm existing deterministic backend gates still pass after any mobile
    schema or decision-input changes.
+
+Windows Part A passed these checks on 2026-07-20. Do not invite native mobile
+beta users until Part B consumes `mobile-intake.v1`, passes the same canonical
+fixture in Swift, and completes simulator/device/auth/failure/mutation/readback
+proof. Part A does not implement perceived-recovery, caution, missed-workout,
+or reflection persistence; those routes remain bounded destinations.
 
 ## Live Firebase persistence QA
 
@@ -196,6 +206,11 @@ Kinetic observability is local/demo-safe only. It must remain:
 - failure-isolated;
 - free of raw notes, biometrics, workout/calendar text, tokens, email, UID, or
   unnecessary identity data.
+
+For `mobile_intake_lifecycle`, also verify that `/qa/mobile` contains only
+action, outcome, route, draft kind, failure, parser, mutation, validation,
+platform, and bounded latency fields. It must not contain the note, grounding
+text, generated prose, recovery/pain/completion values, or medical data.
 
 Run `npm run smoke` and confirm `smoke-instrumentation.ts` passes before
 shipping telemetry changes. The smoke covers every typed event family,

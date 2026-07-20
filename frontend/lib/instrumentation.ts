@@ -157,8 +157,42 @@ type ProductEventProperties = {
   };
   mobile_intake_lifecycle: {
     platform: "ios";
-    action: "reviewed" | "confirmed" | "discarded";
+    action: "routed" | "reviewed" | "confirmed" | "discarded" | "failed";
     outcome: "success" | "failed" | "invalid" | "timeout";
+    route:
+      | "review_draft"
+      | "perceived_recovery"
+      | "caution"
+      | "missed_workout"
+      | "reflection"
+      | "explanation"
+      | "clarification"
+      | "refusal"
+      | "none";
+    draft_kind?:
+      | "schedule"
+      | "availability"
+      | "travel"
+      | "workout_swap"
+      | "goal"
+      | "preferred_day"
+      | "multiple"
+      | "none";
+    failure_state:
+      | "none"
+      | "auth_required"
+      | "offline"
+      | "timeout"
+      | "backend_unavailable"
+      | "invalid_response"
+      | "ai_unavailable"
+      | "malformed_ai"
+      | "ambiguous"
+      | "unsupported"
+      | "unsafe"
+      | "unknown";
+    parser_source: "deterministic" | "ollama" | "deterministic_router" | "none";
+    mutation_state: "not_requested" | "review_only" | "applied" | "rejected";
     status?: string;
     source?: string;
     fallback_used?: boolean;
@@ -341,6 +375,11 @@ const EVENT_KEYS: {
     "platform",
     "action",
     "outcome",
+    "route",
+    "draft_kind",
+    "failure_state",
+    "parser_source",
+    "mutation_state",
     "status",
     "source",
     "fallback_used",
@@ -417,6 +456,8 @@ const ENUM_VALUES: Record<string, readonly string[]> = {
     "removed",
     "reviewed",
     "discarded",
+    "routed",
+    "failed",
     "other",
   ],
   permission_state: ["not_determined", "denied", "partial", "granted", "unknown", "other"],
@@ -442,6 +483,11 @@ const ENUM_VALUES: Record<string, readonly string[]> = {
     "backend_unavailable",
     "invalid_response",
     "missing_context",
+    "ai_unavailable",
+    "malformed_ai",
+    "ambiguous",
+    "unsupported",
+    "unsafe",
     "unknown",
     "other",
   ],
@@ -450,6 +496,43 @@ const ENUM_VALUES: Record<string, readonly string[]> = {
     "calendar",
     "planned_workout_fallback",
     "missing",
+    "other",
+  ],
+  route: [
+    "review_draft",
+    "perceived_recovery",
+    "caution",
+    "missed_workout",
+    "reflection",
+    "explanation",
+    "clarification",
+    "refusal",
+    "none",
+    "other",
+  ],
+  draft_kind: [
+    "schedule",
+    "availability",
+    "travel",
+    "workout_swap",
+    "goal",
+    "preferred_day",
+    "multiple",
+    "none",
+    "other",
+  ],
+  parser_source: [
+    "deterministic",
+    "ollama",
+    "deterministic_router",
+    "none",
+    "other",
+  ],
+  mutation_state: [
+    "not_requested",
+    "review_only",
+    "applied",
+    "rejected",
     "other",
   ],
   preference_type: [

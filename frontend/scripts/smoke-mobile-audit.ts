@@ -89,6 +89,11 @@ async function main(): Promise<void> {
     platform: "ios",
     action: "reviewed",
     outcome: "success",
+    route: "review_draft",
+    draft_kind: "availability",
+    failure_state: "none",
+    parser_source: "ollama",
+    mutation_state: "review_only",
     status: "ready",
     source: "ollama",
     fallback_used: false,
@@ -136,6 +141,17 @@ async function main(): Promise<void> {
         event.properties.status === "checked_in",
     ),
     "mobile QA should expose check-in outcomes",
+  );
+  expect(
+    mobileEvents.some(
+      (event) =>
+        event.name === "mobile_intake_lifecycle" &&
+        event.properties.route === "review_draft" &&
+        event.properties.draft_kind === "availability" &&
+        event.properties.failure_state === "none" &&
+        event.properties.mutation_state === "review_only",
+    ),
+    "mobile QA should expose bounded intake route and mutation state",
   );
   expect(summary.latest !== null, "mobile QA should expose latest event freshness");
 

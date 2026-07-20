@@ -67,6 +67,7 @@ export function validateIntakeDraft(
   sourceText: string,
   today: string,
   currentGoal: Goal | null,
+  currentPlan: SavedPlan | null = null,
 ): IntakeValidation {
   const errors: string[] = [];
   const changes = [
@@ -74,6 +75,7 @@ export function validateIntakeDraft(
     ...draft.schedule_changes,
     ...draft.availability_changes,
     ...draft.preference_changes,
+    ...draft.workout_swap_changes,
   ];
   const ids = new Set<string>();
   const grounding = new Map(
@@ -156,6 +158,42 @@ export function validateIntakeDraft(
     }
   }
 
+  for (const change of draft.workout_swap_changes) {
+    if (
+      !DAYS.includes(change.from_day) ||
+      !DAYS.includes(change.to_day) ||
+      change.from_day === change.to_day
+    ) {
+      errors.push("Workout swaps need two different supported days.");
+    }
+  }
+  if (draft.workout_swap_changes.length > 0) {
+    if (!currentPlan) {
+      errors.push("A saved plan is required before reviewing a workout swap.");
+    } else if (
+      draft.goal_changes.length > 0 ||
+      draft.schedule_changes.length > 0 ||
+      draft.preference_changes.length > 0
+    ) {
+      errors.push(
+        "Confirm plan-input changes before reviewing a workout swap.",
+      );
+    } else {
+      try {
+        applyDeterministicWorkoutSwaps(
+          currentPlan,
+          draft.workout_swap_changes,
+        );
+      } catch (cause) {
+        errors.push(
+          cause instanceof Error
+            ? cause.message
+            : "The workout swap failed deterministic validation.",
+        );
+      }
+    }
+  }
+
   if (!currentGoal && draft.availability_changes.length > 0) {
     errors.push("Set a race goal before applying availability to a plan.");
   }
@@ -189,6 +227,7 @@ export function buildConfirmedIntakeState({
     sourceText,
     today,
     currentGoal,
+    currentPlan,
   );
   if (!validation.valid) {
     throw new Error(validation.errors.join(" "));
@@ -256,6 +295,13 @@ export function buildConfirmedIntakeState({
     };
   }
 
+  if (savedPlan && draft.workout_swap_changes.length > 0) {
+    savedPlan = applyDeterministicWorkoutSwaps(
+      savedPlan,
+      draft.workout_swap_changes,
+    );
+  }
+
   if (savedPlan && draft.availability_changes.length > 0) {
     if (!savedPlan.weeks[0]) {
       throw new Error("The current plan has no week available to adjust.");
@@ -308,8 +354,94 @@ export function buildConfirmedIntakeState({
       draft.goal_changes.length +
       draft.schedule_changes.length +
       draft.availability_changes.length +
-      draft.preference_changes.length,
+      draft.preference_changes.length +
+      draft.workout_swap_changes.length,
   };
+}
+
+function applyDeterministicWorkoutSwaps(
+  plan: SavedPlan,
+  changes: IntakeDraft["workout_swap_changes"],
+): SavedPlan {
+  const next = structuredClone(plan);
+  const week = next.weeks[0];
+  if (!week) {
+    throw new Error("The current plan has no week available to swap.");
+  }
+  const originalWorkouts = week.workouts.map((workout) => ({ ...workout }));
+  const originalAdjacentHardPairs = countAdjacentHardPairs(originalWorkouts);
+
+  for (const change of changes) {
+    const from = DAY_LABEL[change.from_day];
+    const to = DAY_LABEL[change.to_day];
+    const source = week.workouts.find((workout) => workout.day === from);
+    const target = week.workouts.find((workout) => workout.day === to);
+    if (!source) {
+      throw new Error(`There is no planned workout on ${from} to move.`);
+    }
+    if (source.type === "race" || target?.type === "race") {
+      throw new Error("Race-day workouts cannot be moved by intake.");
+    }
+    source.day = to;
+    if (target) target.day = from;
+  }
+
+  const uniqueDays = new Set(week.workouts.map((workout) => workout.day));
+  if (uniqueDays.size !== week.workouts.length) {
+    throw new Error("The workout swap would create duplicate plan days.");
+  }
+  if (countAdjacentHardPairs(week.workouts) > originalAdjacentHardPairs) {
+    throw new Error(
+      "The workout swap would create unsafe hard-workout spacing.",
+    );
+  }
+  const beforeLoad = originalWorkouts.reduce(
+    (total, workout) => total + workout.duration,
+    0,
+  );
+  const afterLoad = week.workouts.reduce(
+    (total, workout) => total + workout.duration,
+    0,
+  );
+  if (
+    week.workouts.length !== originalWorkouts.length ||
+    afterLoad !== beforeLoad
+  ) {
+    throw new Error("The workout swap changed weekly training load.");
+  }
+  week.workouts.sort(
+    (a, b) =>
+      Object.values(DAY_LABEL).indexOf(a.day as DayLabel) -
+      Object.values(DAY_LABEL).indexOf(b.day as DayLabel),
+  );
+  next.reasoning = [
+    ...next.reasoning,
+    ...changes.map(
+      (change) =>
+        `Confirmed workout swap: ${DAY_LABEL[change.from_day]} to ${DAY_LABEL[change.to_day]}`,
+    ),
+  ];
+  next.savedAt = new Date().toISOString();
+  return next;
+}
+
+function countAdjacentHardPairs(
+  workouts: SavedPlan["weeks"][number]["workouts"],
+): number {
+  const hard = new Set(["tempo", "intervals", "long run", "race"]);
+  const dayIndex = new Map(
+    Object.values(DAY_LABEL).map((day, index) => [day, index]),
+  );
+  const hardDays = workouts
+    .filter((workout) => hard.has(workout.type))
+    .map((workout) => dayIndex.get(workout.day as DayLabel))
+    .filter((index): index is number => index !== undefined)
+    .sort((a, b) => a - b);
+  let pairs = 0;
+  for (let index = 1; index < hardDays.length; index += 1) {
+    if (hardDays[index] - hardDays[index - 1] === 1) pairs += 1;
+  }
+  return pairs;
 }
 
 export function persistConfirmedIntake(state: ConfirmedIntakeState): void {

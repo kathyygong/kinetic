@@ -57,8 +57,10 @@ If the reviewer asks what comes next, point to
 readiness, Firebase sync, same-user web readback, retry, and tombstones are
 proven, and calendar-aware Native Today has passed shared, simulator, and signed
 physical-device gates. The active phase is bounded mobile NLP intake with
-deterministic confirm/apply and shared web QA/eval observability, followed by
-the recovery/check-in loop before any full mobile rebuild.
+deterministic confirm/apply and shared web QA/eval observability. Its Windows
+contract, canonical fixture, strict routes/failures, audit readback, and full
+gate suite passed on 2026-07-20; native SwiftUI/device proof is next, followed
+by the recovery/check-in loop before any full mobile rebuild.
 
 If the reviewer asks about beta operations, point to `BETA_RUNBOOK.md` and
 `QA_MATRIX.md`: the product is demo-shippable with the Firebase persistence

@@ -52,9 +52,10 @@ export default function IntakePanel({
             draftState.sourceText,
             today,
             goal,
+            savedPlan,
           )
         : null,
-    [draftState, goal, today],
+    [draftState, goal, savedPlan, today],
   );
 
   async function parseNote() {
@@ -356,6 +357,11 @@ function describeChanges(draft: IntakeDraft) {
       label: "Experience level",
       value: change.value[0].toUpperCase() + change.value.slice(1),
     })),
+    ...draft.workout_swap_changes.map((change) => ({
+      id: change.id,
+      label: "Workout swap",
+      value: `${titleDay(change.from_day)} to ${titleDay(change.to_day)}`,
+    })),
   ];
 }
 
@@ -364,7 +370,8 @@ function countChanges(draft: IntakeDraft) {
     draft.goal_changes.length +
     draft.schedule_changes.length +
     draft.availability_changes.length +
-    draft.preference_changes.length
+    draft.preference_changes.length +
+    draft.workout_swap_changes.length
   );
 }
 

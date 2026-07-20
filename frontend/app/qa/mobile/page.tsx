@@ -98,6 +98,11 @@ export default function MobileQaPage() {
       platform: "ios",
       action: "reviewed",
       outcome: "success",
+      route: "review_draft",
+      draft_kind: "availability",
+      failure_state: "none",
+      parser_source: "ollama",
+      mutation_state: "review_only",
       status: "ready",
       source: "ollama",
       fallback_used: false,
@@ -164,7 +169,7 @@ export default function MobileQaPage() {
         </div>
       </header>
 
-      <section className="grid gap-3 md:grid-cols-4">
+      <section className="grid gap-3 md:grid-cols-5">
         <SummaryTile
           icon={Activity}
           label="Mobile events"
@@ -181,6 +186,17 @@ export default function MobileQaPage() {
           value={String(
             events.filter(
               (event) => event.properties.deterministic_validation === "passed",
+            ).length,
+          )}
+        />
+        <SummaryTile
+          icon={ClipboardList}
+          label="Intake routes"
+          value={String(
+            events.filter(
+              (event) =>
+                event.name === "mobile_intake_lifecycle" &&
+                event.properties.route !== undefined,
             ).length,
           )}
         />

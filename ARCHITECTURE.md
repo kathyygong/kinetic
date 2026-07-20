@@ -54,6 +54,18 @@ draft, guided check-in, read-only explanation, clarifying prompt, or safe
 refusal/routing. NLP must never synthesize hidden readiness values such as
 "recovery seems low" from free text.
 
+The Phase 2.5 shared mobile boundary is concrete in
+[MOBILE_INTAKE_CONTRACT.md](./MOBILE_INTAKE_CONTRACT.md). The existing endpoint
+accepts the strict `mobile-intake.v1` request alongside legacy web intake and
+returns one tagged outcome with `mutation_performed=false`. Mobile context is
+limited to the local day, bounded goal/profile fields, and optional
+enum-bucketed decision facts. Unknown identity, raw readiness, biometric,
+calendar text, workout text, and unrelated-history fields are rejected.
+Drafts carry explicit review/confirmation/validation requirements; guided
+routes carry no captured or inferred health/completion values. Workout swaps
+reuse the confirmed web intake path and add deterministic existing-plan,
+race-day, duplicate-day, weekly-load, and hard-workout-spacing checks.
+
 Training reviews use a read-only aggregate boundary:
 
 1. The Plan page maps logged outcomes into a bounded 7/30-day request. Workout
@@ -212,6 +224,14 @@ training-review window/source, persistence hydrate/mirror/delete outcomes, and
 stale-data warnings. The log intentionally excludes raw notes, biometrics,
 workout/calendar text, tokens, email, UID, and unnecessary identity data.
 
+For `mobile_intake_lifecycle`, the shared event vocabulary is limited to
+action, outcome, route, draft kind, failure state, parser source, mutation
+state, deterministic-validation state, platform, and bounded latency.
+`/qa/mobile` reads those fields from the capped owner-only `mobile_audit`
+envelope. Raw intake text, grounding evidence, generated prose, identity,
+tokens, readiness/biometric values, recovery values, pain severity, completion
+values, and medical data are not accepted by this event family.
+
 ## Verification
 
 - Frontend lint, production build, and deterministic smoke suites.
@@ -244,3 +264,8 @@ workout/calendar text, tokens, email, UID, and unnecessary identity data.
   readback. Later phases add bounded mobile intake, check-ins, and stale
   background-delivery recovery. See
   [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md).
+- Mobile Phase 2.5 Part A passed the full Windows frontend/backend/Firestore
+  suite on 2026-07-20. The canonical fixture covers all eight tagged routes,
+  six review-draft kinds, strict auth, timeout, unavailable/malformed AI,
+  malformed response, ambiguity, unsupported/unsafe input, deterministic
+  confirmation, audit privacy, and owner-only readback. Native Part B remains.

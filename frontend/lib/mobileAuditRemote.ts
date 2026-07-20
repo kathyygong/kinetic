@@ -47,6 +47,11 @@ const SAFE_KEYS: Record<string, ReadonlySet<string>> = {
     "platform",
     "action",
     "outcome",
+    "route",
+    "draft_kind",
+    "failure_state",
+    "parser_source",
+    "mutation_state",
     "status",
     "source",
     "fallback_used",
@@ -67,6 +72,100 @@ const SAFE_KEYS: Record<string, ReadonlySet<string>> = {
   ]),
 };
 const SENSITIVE_KEY = /uid|email|full_?name|note|description|calendar_?event|event_?text|biometric|sleep|hrv|heart|soreness|fatigue|workout_?text|raw|token|secret/i;
+const SAFE_ENUM_VALUES: Record<string, ReadonlySet<string>> = {
+  platform: new Set(["ios"]),
+  sync_type: new Set([
+    "healthkit_readiness",
+    "calendar_context",
+    "decision_readback",
+  ]),
+  outcome: new Set(["success", "failed", "partial", "stale", "invalid", "timeout"]),
+  permission_state: new Set(["not_determined", "denied", "partial", "granted"]),
+  background_delivery: new Set(["unknown", "enabled", "disabled", "stale"]),
+  coverage_bucket: new Set(["none", "partial", "complete"]),
+  confidence_bucket: new Set(["low", "moderate", "high", "unknown", "other"]),
+  conflict: new Set([
+    "none",
+    "manual_wins",
+    "csv_wins",
+    "healthkit_update",
+    "stale_healthkit",
+  ]),
+  decision_source: new Set(["live", "cache", "fallback"]),
+  failure_state: new Set([
+    "none",
+    "auth_required",
+    "offline",
+    "timeout",
+    "backend_unavailable",
+    "invalid_response",
+    "missing_context",
+    "ai_unavailable",
+    "malformed_ai",
+    "ambiguous",
+    "unsupported",
+    "unsafe",
+    "unknown",
+  ]),
+  cache_state: new Set(["fresh", "stale", "expired", "missing"]),
+  availability_source: new Set([
+    "calendar",
+    "planned_workout_fallback",
+    "missing",
+  ]),
+  selected_action: new Set(["proceed", "modify", "rest", "unknown", "other"]),
+  calendar_state: new Set(["clear", "conflict", "stale", "missing"]),
+  readiness_state: new Set(["ready", "caution", "unknown", "stale"]),
+  deterministic_validation: new Set(["passed", "failed", "not_run"]),
+  action: new Set(["routed", "reviewed", "confirmed", "discarded", "failed"]),
+  route: new Set([
+    "review_draft",
+    "perceived_recovery",
+    "caution",
+    "missed_workout",
+    "reflection",
+    "explanation",
+    "clarification",
+    "refusal",
+    "none",
+  ]),
+  draft_kind: new Set([
+    "schedule",
+    "availability",
+    "travel",
+    "workout_swap",
+    "goal",
+    "preferred_day",
+    "multiple",
+    "none",
+  ]),
+  parser_source: new Set([
+    "deterministic",
+    "ollama",
+    "deterministic_router",
+    "none",
+  ]),
+  mutation_state: new Set([
+    "not_requested",
+    "review_only",
+    "applied",
+    "rejected",
+  ]),
+  status: new Set([
+    "completed",
+    "skipped",
+    "checked_in",
+    "ready",
+    "needs_clarification",
+    "unsupported",
+  ]),
+  source: new Set(["ollama", "deterministic", "cache", "client", "unknown", "other"]),
+};
+const SAFE_NUMBER_LIMITS: Record<string, readonly [number, number]> = {
+  latency_ms: [0, 120_000],
+  change_count: [0, 100],
+  warning_count: [0, 100],
+};
 
 export async function readNativeMobileAuditEvents(): Promise<ProductEvent[]> {
   await auth.authStateReady();
@@ -139,6 +238,17 @@ function coerceNativeEvent(value: unknown): ProductEvent | null {
       return null;
     }
     if (typeof raw === "number" && !Number.isFinite(raw)) return null;
+    if (
+      typeof raw === "string" &&
+      SAFE_ENUM_VALUES[key] &&
+      !SAFE_ENUM_VALUES[key].has(raw)
+    ) {
+      return null;
+    }
+    if (typeof raw === "number" && SAFE_NUMBER_LIMITS[key]) {
+      const [min, max] = SAFE_NUMBER_LIMITS[key];
+      if (raw < min || raw > max) return null;
+    }
     properties[key] = raw;
   }
   return {

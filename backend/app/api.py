@@ -30,6 +30,11 @@ from .intake_parser import (
     parse_intake,
     warm_intake_model,
 )
+from .mobile_intake import (
+    MobileIntakeEnvelope,
+    MobileIntakeRequest,
+    route_mobile_intake,
+)
 from .training_summary import (
     TrainingSummaryEnvelope,
     TrainingSummaryRequest,
@@ -367,14 +372,16 @@ def explain_what_if(payload: WhatIfRequest):
 
 @app.post(
     "/ai/parse-intake",
-    response_model=IntakeParseEnvelope,
+    response_model=IntakeParseEnvelope | MobileIntakeEnvelope,
     dependencies=[RequireAuth],
 )
 def parse_natural_language_intake(
-    payload: IntakeParseRequest,
-) -> IntakeParseEnvelope:
-    """Parse a note into a grounded draft without mutating training state."""
+    payload: IntakeParseRequest | MobileIntakeRequest,
+) -> IntakeParseEnvelope | MobileIntakeEnvelope:
+    """Route or parse a note without mutating training state."""
 
+    if isinstance(payload, MobileIntakeRequest):
+        return route_mobile_intake(payload)
     return parse_intake(payload)
 
 

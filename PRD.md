@@ -85,7 +85,10 @@ The shippable demo will not include:
 - Deterministic What-if planning and its bounded explanation contract are
   implemented as a read-only preview.
 - Bounded natural-language intake is implemented for explicit goal, schedule,
-  availability, and experience changes.
+  availability, experience, preferred-day, travel, and workout-swap changes.
+  The shared mobile contract also routes recovery, caution, missed-workout,
+  reflection, explanation, ambiguous, unsupported, and unsafe notes without
+  inferring hidden health/completion values.
 - Read-only weekly/monthly training reviews are implemented from bounded
   outcome aggregates. Deterministic code owns every metric and trend; optional
   AI may only narrate validated facts, and raw workout notes are excluded.
@@ -94,8 +97,9 @@ The shippable demo will not include:
   Firestore sync, same-user web readback, retry, and deletion tombstones.
   Phase 2A Native Today also passed its shared contract, SwiftUI, strict-auth,
   cache, calendar-conflict, audit-readback, and signed-device gates. Phase 2.5
-  bounded natural-language intake is active, followed by the recovery/check-in
-  loop. The web app remains the architecture proof, admin/demo/eval review
+  Windows/shared intake Part A passed on 2026-07-20; native Part B is next,
+  followed by the recovery/check-in loop. The web app remains the architecture
+  proof, admin/demo/eval review
   surface, and deeper planning surface. See
   [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md).
 
@@ -518,8 +522,9 @@ Any AI-generated suggestion that could affect training must pass deterministic v
   Swift, simulator, signed-device, strict-auth, cache, calendar-conflict, and
   `/qa/mobile` proof; integrated into `main` on 2026-07-20.
 - Phase 2.5: Bounded mobile natural-language intake and deterministic
-  confirm/apply. Active; start with the Windows/shared contract in
-  [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md).
+  confirm/apply. Windows/shared Part A completed 2026-07-20; native Part B is
+  next. See [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md) and
+  [MOBILE_INTAKE_CONTRACT.md](./MOBILE_INTAKE_CONTRACT.md).
 - Phase 3: Recovery/check-in loop.
 - Phase 4: Notifications only if justified by the Today/check-in loop.
 - Preserve the deterministic safety core: mobile can summarize signals and

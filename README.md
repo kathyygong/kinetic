@@ -24,7 +24,9 @@ observability contract completed on 2026-07-16. The SwiftUI implementation and
 signed physical-device proof completed on 2026-07-17 and were integrated into
 `main` on 2026-07-20. The active milestone is
 [Mobile Phase 2.5 bounded intake](./MOBILE_INTAKE_HANDOFF.md), beginning with
-the shared Windows contract before another native Mac pass.
+the [shared mobile intake contract](./MOBILE_INTAKE_CONTRACT.md). Windows Part
+A completed and passed all required gates on 2026-07-20; native
+Codable/SwiftUI/device Part B is next.
 
 ## 🏃 The Problem
 Most running apps provide static plans that exist in a vacuum. When life happens (e.g. a late-night meeting, poor sleep, or an unexpected trip) the plan breaks. Users are left to manually adjust their training or, more often, lose consistency and abandon the plan entirely.
@@ -38,7 +40,7 @@ Most running apps provide static plans that exist in a vacuum. When life happens
 * **Grounded AI Reasoning:** Uses bounded reasoning for decision explanations, recalibration summaries, behavior patterns, and evals. Deterministic validation remains the authority for plan changes.
 * **Training Memory:** Shows tentative patterns and confirmed preferences with confidence, supporting-history context, and explicit confirm/dismiss/remove controls. Every surfaced pattern should have a bounded result; confirmed preferences can become scoring nudges, and schedule-style preferences can feed deterministic plan generation as preferred-day inputs.
 * **Read-Only What-if Planning:** Previews day, duration, and easy-only plan variants without mutating the saved plan.
-* **Bounded Natural-Language Intake:** Parses explicit goal, training-day, availability, and experience changes into a typed, source-grounded draft. The draft remains read-only until the runner confirms it, then the existing deterministic planner validates and applies it.
+* **Bounded Natural-Language Intake:** The web path parses explicit goal, training-day, availability, experience, and workout-swap changes into typed, grounded drafts. The shared mobile contract also routes recovery, pain/injury, missed-workout, reflection, explanation, ambiguous, unsupported, and unsafe notes to bounded non-mutating destinations. Drafts remain read-only until the runner confirms them and deterministic validation passes.
 * **Read-Only Training Reviews:** Summarizes 7- or 30-day consistency, completed volume, and recovery trends from deterministic aggregates. Optional local AI can narrate those facts but cannot invent metrics or change the plan.
 * **Consistent Readiness Decisions:** Dashboard and Recovery use the same rolling biometric baselines, so the displayed recovery score and training state cannot drift between surfaces.
 * **Local-First Persistence:** Keeps the demo responsive through localStorage while authenticated Firebase repositories mirror user-scoped training domains in the background. Returning sign-in hydrates remote state before identity merge, and signed-in deletes require confirmed Firebase tombstones instead of silently dropping local state.

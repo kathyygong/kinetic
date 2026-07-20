@@ -24,6 +24,14 @@ import {
   type DecisionResponse,
   type MobileTodayFailureCode,
 } from "./mobileTodayContract";
+import {
+  classifyMobileIntakeClientFailure,
+  classifyMobileIntakeHttpFailure,
+  parseMobileIntakeResponse,
+  type MobileIntakeRequest,
+  type MobileIntakeRequestFailure,
+  type MobileIntakeResponse,
+} from "./mobileIntakeContract";
 
 const DEFAULT_BASE = "http://127.0.0.1:8000";
 
@@ -341,6 +349,11 @@ export type IntakeDraft = {
     field: "experience_level";
     value: "beginner" | "intermediate" | "advanced";
   }[];
+  workout_swap_changes: {
+    id: string;
+    from_day: IntakeDay;
+    to_day: IntakeDay;
+  }[];
   grounding: { change_id: string; evidence: string }[];
   warnings: string[];
 };
@@ -350,6 +363,14 @@ export type IntakeParseResponse = {
   source: string;
   schema_version: "intake.v1";
   fallback_used: boolean;
+  failure_code:
+    | "none"
+    | "ai_disabled"
+    | "ai_timeout"
+    | "ai_unavailable"
+    | "malformed_ai"
+    | "ungrounded_ai"
+    | "parser_error";
   warnings: string[];
   grounding: {
     deterministic_authority: true;
@@ -391,6 +412,78 @@ export async function fetchIntakeDraft(
   }
 }
 
+export class MobileIntakeRequestError extends Error {
+  constructor(
+    public readonly code: MobileIntakeRequestFailure,
+    message: string,
+    public readonly status?: number,
+  ) {
+    super(message);
+    this.name = "MobileIntakeRequestError";
+  }
+}
+
+export async function fetchMobileIntakeRoute(
+  request: MobileIntakeRequest,
+  timeoutMs = 30_000,
+): Promise<MobileIntakeResponse> {
+  const controller = new AbortController();
+  const timer = globalThis.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await apiFetch("/ai/parse-intake", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      throw new MobileIntakeRequestError(
+        classifyMobileIntakeHttpFailure(response.status),
+        `mobile intake failed: HTTP ${response.status}`,
+        response.status,
+      );
+    }
+    let body: unknown;
+    try {
+      body = await response.json();
+    } catch {
+      throw new MobileIntakeRequestError(
+        "invalid_response",
+        "mobile intake returned malformed JSON",
+      );
+    }
+    try {
+      return parseMobileIntakeResponse(body);
+    } catch {
+      throw new MobileIntakeRequestError(
+        "invalid_response",
+        "mobile intake returned an invalid response envelope",
+      );
+    }
+  } catch (cause) {
+    if (cause instanceof MobileIntakeRequestError) throw cause;
+    const clientFailure = classifyMobileIntakeClientFailure(cause);
+    if (clientFailure === "timeout") {
+      throw new MobileIntakeRequestError(
+        "timeout",
+        "mobile intake timed out safely",
+      );
+    }
+    if (clientFailure === "offline") {
+      throw new MobileIntakeRequestError(
+        "offline",
+        "mobile intake is unavailable offline",
+      );
+    }
+    throw new MobileIntakeRequestError(
+      "unknown",
+      "mobile intake failed safely",
+    );
+  } finally {
+    globalThis.clearTimeout(timer);
+  }
+}
+
 function isIntakeParseResponse(value: unknown): value is IntakeParseResponse {
   if (typeof value !== "object" || value === null) return false;
   const envelope = value as Record<string, unknown>;
@@ -399,6 +492,15 @@ function isIntakeParseResponse(value: unknown): value is IntakeParseResponse {
     !["fallback", "local_ollama", "disabled"].includes(String(envelope.mode)) ||
     typeof envelope.source !== "string" ||
     typeof envelope.fallback_used !== "boolean" ||
+    ![
+      "none",
+      "ai_disabled",
+      "ai_timeout",
+      "ai_unavailable",
+      "malformed_ai",
+      "ungrounded_ai",
+      "parser_error",
+    ].includes(String(envelope.failure_code)) ||
     !Array.isArray(envelope.warnings) ||
     typeof envelope.grounding !== "object" ||
     envelope.grounding === null ||
@@ -421,6 +523,7 @@ function isIntakeParseResponse(value: unknown): value is IntakeParseResponse {
     Array.isArray(draft.schedule_changes) &&
     Array.isArray(draft.availability_changes) &&
     Array.isArray(draft.preference_changes) &&
+    Array.isArray(draft.workout_swap_changes) &&
     Array.isArray(draft.grounding) &&
     Array.isArray(draft.warnings)
   );

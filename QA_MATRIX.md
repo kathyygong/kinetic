@@ -7,20 +7,20 @@ the next beta checkpoint.
 | --- | --- | --- |
 | Frontend lint | `cd frontend && npm run lint` | Passed 2026-07-20 on integrated `main` |
 | Frontend production build | `cd frontend && npm run build` | Passed 2026-07-20 on integrated `main` |
-| Frontend deterministic smoke | `cd frontend && npm run smoke` | Passed 2026-07-20; mobile readiness/Today contracts and canonical plan/calendar paths asserted |
+| Frontend deterministic smoke | `cd frontend && npm run smoke` | Passed 2026-07-20 on `codex/mobile-intake-contract`; mobile readiness/Today/intake contracts, every intake route/failure class, deterministic confirmation, and canonical plan/calendar paths asserted |
 | Frontend beta posture | `cd frontend && npm run beta:readiness` | Passed 2026-07-20; default audit skip warning expected |
 | Frontend advisory audit | `cd frontend && npm run beta:audit` | Passed 2026-07-13; no moderate/high/critical findings |
 | Dependency pin review | direct frontend/backend dependencies exact-pinned | Passed 2026-07-09 |
 | Backend compile | `cd backend && python -m compileall app evals` | Passed 2026-07-20 on integrated `main` |
-| Backend deterministic gates | `cd backend && python -m evals._gates` | Passed 2026-07-20, including project-scoped token claim validation |
-| Backend smoke | `cd backend && python -m evals._smoke` | Passed 2026-07-20 |
-| Firebase rules | `npx firebase-tools emulators:exec --only auth,firestore "cd frontend && npm run test:firestore-rules"` | Passed 2026-07-20; owner-only mobile readiness/health-sync/audit access and tombstones asserted |
+| Backend deterministic gates | `cd backend && python -m evals._gates` | Passed 2026-07-20, including project-scoped token claims, all mobile intake routes, strict context, strict-auth rejection, and AI failure fallback |
+| Backend smoke | `cd backend && python -m evals._smoke` | Passed 2026-07-20 with the expanded mobile intake gates |
+| Firebase rules | `npx firebase-tools emulators:exec --only auth,firestore "cd frontend && npm run test:firestore-rules"` | Passed 2026-07-20; owner-only mobile readiness/health-sync/audit access, bounded intake lifecycle readback, cross-user denial, and tombstones asserted |
 | Strict backend auth | signed-in token accepted and anonymous protected requests rejected | Passed 2026-07-17; physical iPhone bearer token accepted over USB private link and anonymous request rejected |
 | Signed-in responsive UI | desktop and mobile browser QA | Passed in prior release gate; rerun after layout changes |
 | Live Firebase hydration | same signed-in account hydrates across independent sessions | Passed 2026-07-09 |
 | Live account isolation | Account B cannot hydrate Account A local or remote data | Passed 2026-07-09 |
 | Live deletion tombstones | signed-in delete remains deleted after reload and second-origin sign-in | Passed 2026-07-09 |
-| Natural-language intake | supported notes route to a reviewable draft, guided check-in, read-only explanation, clarifying prompt, or safe refusal; confirmation required for state changes; anonymous blocked under strict auth | Passed for current review-only draft scope in prior release gate; expanded routing required before mobile beta |
+| Natural-language intake | supported notes route to a reviewable draft, guided check-in, read-only explanation, clarifying prompt, or safe refusal; confirmation required for state changes; anonymous blocked under strict auth | Shared `mobile-intake.v1` contract passed 2026-07-20 for all routes and strict-auth rejection; native UI remains Part B |
 | Training review | grounded live local AI and deterministic fallback for unsafe output | Passed in prior release gate |
 | Observability privacy | every event family sanitized, capped, typed, and failure-isolated | Covered by `smoke-instrumentation.ts` |
 | Apple Health CSV import | bounded readiness metrics imported, unsupported note columns dropped | Covered by `smoke-apple-health.ts` |
@@ -34,11 +34,11 @@ the next beta checkpoint.
 | iOS readiness sync | [MOBILE_READINESS_SCHEMA.md](./MOBILE_READINESS_SCHEMA.md) contract followed; bounded daily summaries only; no raw HealthKit samples in Firestore | Passed 2026-07-16 on physical iPhone with web readback |
 | Mobile Today shared contract | [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md), `smoke-mobile-today-contract.ts`, and the shared JSON fixture validate request, response, privacy, cache, and failure semantics | Passed TypeScript, 21-test Swift package, and signed-device gates 2026-07-17 |
 | Mobile calendar awareness | Today decisions consume existing calendar availability/freshness, preserve explicit zero-minute windows, use a labeled planned-duration fallback, and lower confidence on stale/missing calendar data | Passed 2026-07-17; physical zero-minute input produced live calendar conflict and rest action |
-| Mobile Phase 2.5 scope | [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md) defines the Windows-first shared intake contract, Mac stop line, safety boundary, and acceptance gates | Active 2026-07-20 |
-| Mobile NLP intake | schedule/availability/travel/goal/preference notes create review-only drafts; recovery, pain, missed-workout, and reflection notes open bounded flows; strict-auth rejection when anonymous; deterministic confirm/apply; malformed/ambiguous fallback | Required before mobile beta |
-| Mobile perceived-recovery flow | NLP recovery notes open explicit perceived-recovery capture; captured fields coexist with HealthKit summaries; AI never fabricates readiness values from text | Required before mobile beta |
+| Mobile Phase 2.5 scope | [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md) defines the Windows-first shared intake contract, Mac stop line, safety boundary, and acceptance gates | Part A complete 2026-07-20; Part B native implementation next |
+| Mobile NLP intake | schedule/availability/travel/goal/preference notes create review-only drafts; recovery, pain, missed-workout, and reflection notes open bounded flows; strict-auth rejection when anonymous; deterministic confirm/apply; malformed/ambiguous fallback | Shared contract passed 2026-07-20, including workout swaps, timeout/unavailable/malformed AI, malformed response, ambiguous/unsupported/unsafe, and deterministic apply; native UI remains |
+| Mobile perceived-recovery flow | NLP recovery notes open explicit perceived-recovery capture; captured fields coexist with HealthKit summaries; AI never fabricates readiness values from text | Shared routing contract passed 2026-07-20 with `inferred_values=false` and no Part A persistence; native capture/persistence remains deferred |
 | Behavior pattern result contract | every surfaced pattern has a bounded response; confirmed schedule patterns can update preferred-day inputs for deterministic plan generation; pain patterns route to caution only | Required before mobile beta |
-| Mobile admin/eval observability | `/qa/mobile` shows mobile-originated sync, recommendation, intake, validation, and check-in events from the shared privacy-safe event log | Passed 2026-07-17 for native decisions; live/cache source, bounded failure, calendar/readiness, validation, action, and cache fields read back without identity or health values |
+| Mobile admin/eval observability | `/qa/mobile` shows mobile-originated sync, recommendation, intake, validation, and check-in events from the shared privacy-safe event log | Expanded 2026-07-20 with bounded intake route, draft kind, failure, parser, mutation, validation, and latency readback; instrumentation privacy and owner-only emulator gates pass |
 | Mobile/web sync compatibility | web dashboard consumes mobile readiness without unsafe overwrite or confidence drift | Passed 2026-07-16 with physical-device write and same-user web Recovery readback |
 | Mobile companion state matrix | `cd frontend && npm run smoke` | Default smoke covers readiness, health-sync freshness, calendar, profile, goal, saved plan, preferences, workout history, intake, and check-in decision states without browser dependencies |
 | Mobile companion browser smoke | `cd frontend && npm run smoke:mobile-browser` against a running `/mobile-companion` server | Optional visual/e2e gate authored 2026-07-13 with stable test hooks; local execution requires Playwright package |

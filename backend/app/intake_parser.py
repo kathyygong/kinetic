@@ -13,7 +13,7 @@ import re
 from datetime import date, datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field, ValidationError, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from .ai_runtime import runtime_status
 from .json_utils import extract_json
@@ -56,6 +56,9 @@ class IntakeContext(BaseModel):
 
 
 class IntakeParseRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: Literal["intake.v1"] = "intake.v1"
     text: str = Field(min_length=1, max_length=1000)
     context: IntakeContext
 
@@ -93,6 +96,12 @@ class PreferenceChange(BaseModel):
     value: Experience
 
 
+class WorkoutSwapChange(BaseModel):
+    id: str
+    from_day: Day
+    to_day: Day
+
+
 class GroundingEvidence(BaseModel):
     change_id: str
     evidence: str = Field(min_length=1, max_length=200)
@@ -105,6 +114,7 @@ class IntakeDraft(BaseModel):
     schedule_changes: list[ScheduleChange] = Field(default_factory=list)
     availability_changes: list[AvailabilityChange] = Field(default_factory=list)
     preference_changes: list[PreferenceChange] = Field(default_factory=list)
+    workout_swap_changes: list[WorkoutSwapChange] = Field(default_factory=list)
     grounding: list[GroundingEvidence] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
 
@@ -114,6 +124,15 @@ class IntakeParseEnvelope(BaseModel):
     source: str
     schema_version: Literal["intake.v1"] = "intake.v1"
     fallback_used: bool
+    failure_code: Literal[
+        "none",
+        "ai_disabled",
+        "ai_timeout",
+        "ai_unavailable",
+        "malformed_ai",
+        "ungrounded_ai",
+        "parser_error",
+    ] = "none"
     warnings: list[str]
     grounding: dict
     draft: IntakeDraft
@@ -137,6 +156,17 @@ class IntakeModelExtraction(BaseModel):
         default_factory=list
     )
     experience_level: Experience | None = None
+
+
+IntakeFailureCode = Literal[
+    "none",
+    "ai_disabled",
+    "ai_timeout",
+    "ai_unavailable",
+    "malformed_ai",
+    "ungrounded_ai",
+    "parser_error",
+]
 
 
 SYSTEM_PROMPT = """Extract only explicit runner-requested changes.
@@ -230,6 +260,7 @@ def parse_intake(payload: IntakeParseRequest) -> IntakeParseEnvelope:
     status = runtime_status()
     draft: IntakeDraft | None = None
     failure_warning: str | None = None
+    failure_code: IntakeFailureCode = "none"
     deterministic_draft = deterministic_parse(
         payload.text, payload.context.today
     )
@@ -250,6 +281,7 @@ def parse_intake(payload: IntakeParseRequest) -> IntakeParseEnvelope:
             )
             parsed = extract_json(raw)
             if parsed is None:
+                failure_code = "malformed_ai"
                 failure_warning = (
                     "The AI response was malformed; Kinetic used deterministic parsing."
                 )
@@ -257,6 +289,7 @@ def parse_intake(payload: IntakeParseRequest) -> IntakeParseEnvelope:
                 try:
                     extraction = IntakeModelExtraction.model_validate(parsed)
                 except ValidationError:
+                    failure_code = "malformed_ai"
                     failure_warning = (
                         "The AI response was off-schema; Kinetic used deterministic parsing."
                     )
@@ -265,14 +298,19 @@ def parse_intake(payload: IntakeParseRequest) -> IntakeParseEnvelope:
                         extraction, deterministic_draft
                     )
                     if draft is None:
+                        failure_code = "ungrounded_ai"
                         failure_warning = (
                             "The AI response was not fully grounded; Kinetic used deterministic parsing."
                         )
-        except LLMUnavailable:
+        except LLMUnavailable as exc:
+            failure_code = (
+                "ai_timeout" if "timeout" in str(exc).lower() else "ai_unavailable"
+            )
             failure_warning = (
                 "AI was unavailable or timed out; Kinetic used deterministic parsing."
             )
         except Exception:
+            failure_code = "parser_error"
             failure_warning = (
                 "AI parsing failed safely; Kinetic used deterministic parsing."
             )
@@ -285,6 +323,7 @@ def parse_intake(payload: IntakeParseRequest) -> IntakeParseEnvelope:
     if failure_warning:
         warnings.insert(0, failure_warning)
     elif fallback_used and status["mode"] == "disabled":
+        failure_code = "ai_disabled"
         warnings.insert(0, "AI is disabled; Kinetic used deterministic parsing.")
     elif fallback_used and status["mode"] == "fallback":
         warnings.insert(0, "Deterministic intake parsing is active.")
@@ -294,6 +333,7 @@ def parse_intake(payload: IntakeParseRequest) -> IntakeParseEnvelope:
         mode=status["mode"],
         source="deterministic" if fallback_used else status["source"],
         fallback_used=fallback_used,
+        failure_code=failure_code,
         warnings=warnings,
         grounding={
             "deterministic_authority": True,
@@ -320,6 +360,7 @@ def deterministic_parse(text: str, today: date) -> IntakeDraft:
     schedules: list[ScheduleChange] = []
     availability: list[AvailabilityChange] = []
     preferences: list[PreferenceChange] = []
+    workout_swaps: list[WorkoutSwapChange] = []
     grounding: list[GroundingEvidence] = []
     warnings: list[str] = []
 
@@ -571,6 +612,31 @@ def deterministic_parse(text: str, today: date) -> IntakeDraft:
 
     availability = list(availability_by_day.values())
 
+    swap_match = re.search(
+        rf"\b(?:move|swap)\b[^.!?]{{0,24}}?"
+        rf"\b(?P<from>{DAY_PATTERN})\b"
+        rf"\s*(?:workout\s*)?(?:to|with|and)\s*"
+        rf"\b(?P<to>{DAY_PATTERN})\b",
+        lower,
+    )
+    if swap_match:
+        from_day = _day(swap_match.group("from"))
+        to_day = _day(swap_match.group("to"))
+        if from_day and to_day and from_day != to_day:
+            workout_swaps.append(
+                WorkoutSwapChange(
+                    id=f"workout-swap-{from_day}-{to_day}",
+                    from_day=from_day,
+                    to_day=to_day,
+                )
+            )
+            add_grounding(
+                f"workout-swap-{from_day}-{to_day}",
+                text[swap_match.start() : swap_match.end()],
+            )
+        else:
+            warnings.append("A workout swap needs two different days.")
+
     if re.search(r"\b(slept badly|poor sleep|sore|pain|injur(?:y|ed))\b", lower):
         warnings.append(
             "Recovery or injury notes are not applied by intake; log readiness on Recovery."
@@ -578,7 +644,13 @@ def deterministic_parse(text: str, today: date) -> IntakeDraft:
     if re.search(r"\b(next month|sometime|maybe|as soon as possible)\b", lower):
         warnings.append("A precise date or schedule is needed before applying that part.")
 
-    change_count = len(goals) + len(schedules) + len(availability) + len(preferences)
+    change_count = (
+        len(goals)
+        + len(schedules)
+        + len(availability)
+        + len(preferences)
+        + len(workout_swaps)
+    )
     if change_count:
         status: Literal["ready", "needs_clarification", "unsupported"] = "ready"
         summary = (
@@ -602,6 +674,7 @@ def deterministic_parse(text: str, today: date) -> IntakeDraft:
         schedule_changes=schedules,
         availability_changes=availability,
         preference_changes=preferences,
+        workout_swap_changes=workout_swaps,
         grounding=grounding,
         warnings=warnings,
     )
@@ -632,6 +705,9 @@ def intake_format_schema(reference: IntakeDraft) -> dict:
     if reference.preference_changes:
         keep.add("experience_level")
         required.append("experience_level")
+    # Workout swaps are already normalized deterministically. They are not
+    # delegated to the language model because the current provider schema
+    # has no authority to choose plan slots.
     schema["properties"] = {
         key: value for key, value in properties.items() if key in keep
     }
@@ -725,6 +801,7 @@ def _validate_and_ground(
         *draft.schedule_changes,
         *draft.availability_changes,
         *draft.preference_changes,
+        *draft.workout_swap_changes,
     ]
     evidence_by_id = {item.change_id: item.evidence for item in draft.grounding}
     lower = source_text.lower()
@@ -753,6 +830,8 @@ def _validate_and_ground(
                 return None
         elif change.value not in {"5k", "10k", "half", "marathon"}:
             return None
+    if any(change.from_day == change.to_day for change in draft.workout_swap_changes):
+        return None
     if changes and draft.status != "ready":
         draft = draft.model_copy(update={"status": "ready"})
     if not changes and draft.status == "ready":

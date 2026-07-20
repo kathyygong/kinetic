@@ -1,0 +1,192 @@
+{
+  "schema_version": "mobile-intake-fixture.v1",
+  "contract_schema": "mobile-intake.v1",
+  "context": {
+    "today": "2026-07-20",
+    "current_goal": {
+      "race_distance": "10k",
+      "target_date": "2026-10-18",
+      "weekly_mileage": 24
+    },
+    "current_profile": {
+      "experience_level": "intermediate",
+      "preferred_training_days": ["tue", "thu", "sat"]
+    },
+    "decision": {
+      "selected_action": "modify",
+      "readiness_state": "caution",
+      "calendar_state": "conflict",
+      "confidence_bucket": "moderate",
+      "staleness_warning_count": 1
+    }
+  },
+  "route_cases": [
+    {
+      "id": "draft_schedule",
+      "text": "I cannot run on Thursday.",
+      "expected_route": "review_draft",
+      "expected_draft_kind": "schedule",
+      "mutable": true
+    },
+    {
+      "id": "draft_availability",
+      "text": "Tuesday I only have 30 minutes.",
+      "expected_route": "review_draft",
+      "expected_draft_kind": "availability",
+      "mutable": true
+    },
+    {
+      "id": "draft_travel",
+      "text": "I am traveling Wednesday through Friday.",
+      "expected_route": "review_draft",
+      "expected_draft_kind": "travel",
+      "mutable": true
+    },
+    {
+      "id": "draft_workout_swap",
+      "text": "Move Tuesday workout to Thursday.",
+      "expected_route": "review_draft",
+      "expected_draft_kind": "workout_swap",
+      "mutable": true
+    },
+    {
+      "id": "draft_goal",
+      "text": "I am training for a half marathon race on 2026-11-15 at 30 miles per week.",
+      "expected_route": "review_draft",
+      "expected_draft_kind": "goal",
+      "mutable": true
+    },
+    {
+      "id": "draft_preferred_day",
+      "text": "I prefer to train Monday and Saturday.",
+      "expected_route": "review_draft",
+      "expected_draft_kind": "preferred_day",
+      "mutable": true
+    },
+    {
+      "id": "perceived_recovery",
+      "text": "I slept badly and my legs feel heavy.",
+      "expected_route": "perceived_recovery",
+      "mutable": false
+    },
+    {
+      "id": "caution",
+      "text": "I have sharp knee pain during my run.",
+      "expected_route": "caution",
+      "mutable": false
+    },
+    {
+      "id": "missed_workout",
+      "text": "I missed my workout yesterday.",
+      "expected_route": "missed_workout",
+      "mutable": false
+    },
+    {
+      "id": "reflection",
+      "text": "I completed my run and it felt very hard.",
+      "expected_route": "reflection",
+      "mutable": false
+    },
+    {
+      "id": "explanation",
+      "text": "Why did Kinetic modify today's workout?",
+      "expected_route": "explanation",
+      "mutable": false
+    },
+    {
+      "id": "clarification",
+      "text": "Things changed and I am not sure.",
+      "expected_route": "clarification",
+      "mutable": false
+    },
+    {
+      "id": "unsupported",
+      "text": "Write me a meal plan.",
+      "expected_route": "refusal",
+      "expected_reason": "unsupported",
+      "mutable": false
+    },
+    {
+      "id": "unsafe",
+      "text": "Diagnose my knee pain and prescribe medication.",
+      "expected_route": "refusal",
+      "expected_reason": "unsafe",
+      "mutable": false
+    }
+  ],
+  "failure_cases": [
+    {
+      "id": "strict_auth",
+      "kind": "http",
+      "status": 401,
+      "expected_failure": "auth_required"
+    },
+    {
+      "id": "backend_unavailable",
+      "kind": "http",
+      "status": 503,
+      "expected_failure": "backend_unavailable"
+    },
+    {
+      "id": "client_timeout",
+      "kind": "client",
+      "expected_failure": "timeout"
+    },
+    {
+      "id": "offline",
+      "kind": "client",
+      "expected_failure": "offline"
+    },
+    {
+      "id": "malformed_response",
+      "kind": "client",
+      "expected_failure": "invalid_response"
+    },
+    {
+      "id": "ai_timeout",
+      "kind": "parser",
+      "expected_failure": "ai_timeout",
+      "safe_route": "review_draft"
+    },
+    {
+      "id": "ai_unavailable",
+      "kind": "parser",
+      "expected_failure": "ai_unavailable",
+      "safe_route": "review_draft"
+    },
+    {
+      "id": "malformed_ai",
+      "kind": "parser",
+      "expected_failure": "malformed_ai",
+      "safe_route": "review_draft"
+    },
+    {
+      "id": "ambiguous",
+      "kind": "route",
+      "expected_failure": "ambiguous",
+      "safe_route": "clarification"
+    },
+    {
+      "id": "unsupported",
+      "kind": "route",
+      "expected_failure": "unsupported",
+      "safe_route": "refusal"
+    }
+  ],
+  "privacy_forbidden_audit_keys": [
+    "text",
+    "note",
+    "source_text",
+    "generated_prose",
+    "uid",
+    "email",
+    "token",
+    "sleep_hours",
+    "hrv",
+    "resting_hr",
+    "fatigue",
+    "soreness",
+    "pain_severity",
+    "completion"
+  ]
+}

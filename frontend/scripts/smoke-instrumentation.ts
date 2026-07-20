@@ -184,6 +184,11 @@ async function main(): Promise<void> {
       properties: {
         action: "reviewed",
         outcome: "success",
+        route: "review_draft",
+        draft_kind: "availability",
+        failure_state: "none",
+        parser_source: "ollama",
+        mutation_state: "review_only",
         status: "ready",
         source: "ollama",
         fallback_used: false,

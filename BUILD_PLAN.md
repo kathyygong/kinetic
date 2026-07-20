@@ -875,8 +875,35 @@ completed on Windows on 2026-07-16: authenticated Native Today data, decision,
 cache, failure, privacy, and observability contracts now pass shared frontend
 and backend gates. The SwiftUI implementation and signed-device proof completed
 on 2026-07-17 and were integrated into `main` on 2026-07-20. Phase 2.5 bounded
-mobile intake is now active, beginning with the Windows/shared contract in
-[MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md).
+mobile intake Part A completed and passed the required Windows suite on
+2026-07-20. Part B native Codable/SwiftUI/device implementation is next; see
+[MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md) and
+[MOBILE_INTAKE_CONTRACT.md](./MOBILE_INTAKE_CONTRACT.md).
+
+### Mobile Phase 2.5 Shared Intake Contract - Completed 2026-07-20
+
+- Extended the existing authenticated `POST /ai/parse-intake` authority with
+  the strict `mobile-intake.v1` request/response schema while preserving legacy
+  `intake.v1` web callers.
+- Added tagged review-draft, perceived-recovery, caution, missed-workout,
+  reflection, deterministic-explanation, clarification, and refusal routes.
+- Added schedule, availability, travel, workout-swap, goal, and preferred-day
+  draft kinds. Routing/parsing always reports no mutation.
+- Bounded mobile context to goal/profile/decision enums and rejected identity,
+  raw readiness/biometrics, calendar/workout text, and unrelated history.
+- Reused the current frontend confirm/apply authority and added deterministic
+  workout-swap validation for existing plan, race day, duplicate day, weekly
+  load, and hard-workout spacing.
+- Added strict client response validation and stable auth, timeout, offline,
+  backend, unavailable/malformed AI, malformed response, ambiguous,
+  unsupported, and unsafe behavior.
+- Added the cross-platform canonical fixture, full frontend/backend route and
+  failure gates, privacy-safe `mobile_intake_lifecycle` fields, `/qa/mobile`
+  readback, and owner-only Firestore audit coverage.
+- Frontend lint, TypeScript, smoke, build, beta-readiness; backend compile,
+  gates, smoke; and Auth + Firestore emulator rules passed on Windows.
+- Did not add Swift/SwiftUI, Phase 3 persistence, notifications, calendar
+  ingestion, hosted AI, general chat, or autonomous mutation.
 
 ### Mobile Phase 2A Shared Today Contract - Completed 2026-07-16
 

@@ -234,7 +234,7 @@ Allowed mobile event families:
 | --- | --- | --- |
 | `mobile_companion_sync_completed` | HealthKit/calendar/readback sync outcome, freshness, coarse coverage, confidence, and conflict state. | No raw HealthKit samples, raw biometrics, per-sample timestamps, calendar text, device identifiers, UID, email, or tokens. |
 | `mobile_decision_validated` | Mobile Today decision result, selected action bucket, calendar/readiness state, warnings, and deterministic validation state. | No workout text, raw plan text, calendar event text, or raw health values. |
-| `mobile_intake_lifecycle` | Mobile NLP reviewed/confirmed/discarded outcomes and deterministic validation state. | No raw user note, source text, medical/recovery note, or generated draft prose. |
+| `mobile_intake_lifecycle` | Mobile NLP routed/reviewed/confirmed/discarded/failed outcomes, bounded route/draft/failure/parser/mutation buckets, and deterministic validation state. | No raw user note, grounding/source text, generated prose, identity, token, readiness/biometric/recovery values, pain severity, completion values, or medical data. |
 | `mobile_checkin_synced` | Completion/skip/manual-check-in sync result and coarse effort/reflection booleans. | No raw reflection text or workout notes. |
 
 Every mobile telemetry event must remain typed, capped, enum-bucketed, local

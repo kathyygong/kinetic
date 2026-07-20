@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import json
 import os
+from pathlib import Path
 from typing import Any
 
 os.environ["KINETIC_AI_MODE"] = "fallback"
@@ -18,6 +19,7 @@ from app.api import app
 from app.auth import _validate_project_token_claims
 from app.llm_client import LLMUnavailable
 from app import intake_parser as intake_parser_module
+from app.mobile_intake import MobileIntakeRequest, route_mobile_intake
 from app import training_summary as training_summary_module
 from app import weekly_reasoning as weekly_reasoning_module
 from evals.eval_cases import BEHAVIOR_INSIGHT_CASES, DAILY_REASONING_CASES
@@ -501,6 +503,188 @@ def check_intake_failure_fallbacks() -> None:
             os.environ["OLLAMA_MODEL"] = original_model
 
 
+def check_mobile_intake_contract() -> None:
+    fixture_path = (
+        Path(__file__).resolve().parents[2]
+        / "ios"
+        / "KineticCompanion"
+        / "Tests"
+        / "Fixtures"
+        / "mobile-intake-contract.json"
+    )
+    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+    _assert(
+        fixture["contract_schema"] == "mobile-intake.v1",
+        "mobile intake fixture schema drifted",
+    )
+    for case in fixture["route_cases"]:
+        payload = {
+            "schema_version": "mobile-intake.v1",
+            "platform": "ios",
+            "text": case["text"],
+            "context": fixture["context"],
+        }
+        before = copy.deepcopy(payload)
+        response = client.post("/ai/parse-intake", json=payload)
+        _assert(
+            response.status_code == 200,
+            f"mobile intake {case['id']} HTTP {response.status_code}",
+        )
+        body = response.json()
+        _assert(
+            body["schema_version"] == "mobile-intake.v1",
+            f"mobile intake {case['id']} schema drifted",
+        )
+        _assert(
+            body["mutation_performed"] is False,
+            f"mobile intake {case['id']} reported a mutation",
+        )
+        outcome = body["outcome"]
+        _assert(
+            outcome["route"] == case["expected_route"],
+            f"mobile intake {case['id']} routed to {outcome['route']}",
+        )
+        _assert(
+            outcome["mutable"] is case["mutable"],
+            f"mobile intake {case['id']} mutable flag drifted",
+        )
+        if "expected_draft_kind" in case:
+            _assert(
+                case["expected_draft_kind"] in outcome["draft_kinds"],
+                f"mobile intake {case['id']} draft kind missing",
+            )
+            _assert(
+                outcome["review_required"]
+                and outcome["confirmation_required"]
+                and outcome["deterministic_validation_required"],
+                f"mobile intake {case['id']} bypassed review/validation",
+            )
+        if "expected_reason" in case:
+            _assert(
+                outcome["reason"] == case["expected_reason"],
+                f"mobile intake {case['id']} refusal reason drifted",
+            )
+        serialized = json.dumps(body).lower()
+        for forbidden in (
+            '"uid"',
+            '"email"',
+            '"token"',
+            '"sleep_hours"',
+            '"hrv"',
+            '"resting_hr"',
+            '"medical_data"',
+        ):
+            _assert(
+                forbidden not in serialized,
+                f"mobile intake {case['id']} leaked {forbidden}",
+            )
+        _assert(payload == before, f"mobile intake {case['id']} mutated request")
+
+    unbounded_context = client.post(
+        "/ai/parse-intake",
+        json={
+            "schema_version": "mobile-intake.v1",
+            "platform": "ios",
+            "text": "Tuesday I only have 30 minutes.",
+            "context": {
+                "today": "2026-07-20",
+                "current_profile": {
+                    "experience_level": "intermediate",
+                    "preferred_training_days": ["tue"],
+                    "email": "must-not-cross-boundary@example.com",
+                },
+                "raw_readiness": {"hrv": 55},
+            },
+        },
+    )
+    _assert(
+        unbounded_context.status_code == 422,
+        "mobile intake accepted identity or raw readiness context",
+    )
+
+
+def check_mobile_intake_failure_contract() -> None:
+    original_mode = os.environ.get("KINETIC_AI_MODE")
+    original_provider = os.environ.get("LLM_PROVIDER")
+    original_model = os.environ.get("OLLAMA_MODEL")
+    original_call = intake_parser_module.call_llm
+    os.environ["KINETIC_AI_MODE"] = "local_ollama"
+    os.environ["LLM_PROVIDER"] = "ollama"
+    os.environ["OLLAMA_MODEL"] = "test-model"
+    request = MobileIntakeRequest.model_validate(
+        {
+            "schema_version": "mobile-intake.v1",
+            "platform": "ios",
+            "text": "Tuesday I only have 30 minutes.",
+            "context": {"today": "2026-07-20"},
+        }
+    )
+    try:
+        simulations = [
+            (
+                "ai_timeout",
+                lambda *args, **kwargs: (_ for _ in ()).throw(
+                    LLMUnavailable("simulated timeout")
+                ),
+            ),
+            (
+                "ai_unavailable",
+                lambda *args, **kwargs: (_ for _ in ()).throw(
+                    LLMUnavailable("simulated offline provider")
+                ),
+            ),
+            ("malformed_ai", lambda *args, **kwargs: "not json"),
+        ]
+        for expected, replacement in simulations:
+            intake_parser_module.call_llm = replacement
+            result = route_mobile_intake(request)
+            _assert(
+                result.outcome.route == "review_draft",
+                f"{expected} did not preserve deterministic review draft",
+            )
+            _assert(
+                result.parser.failure == expected,
+                f"{expected} failure mapping drifted to {result.parser.failure}",
+            )
+            _assert(result.parser.fallback_used, f"{expected} did not mark fallback")
+    finally:
+        intake_parser_module.call_llm = original_call
+        if original_mode is None:
+            os.environ.pop("KINETIC_AI_MODE", None)
+        else:
+            os.environ["KINETIC_AI_MODE"] = original_mode
+        if original_provider is None:
+            os.environ.pop("LLM_PROVIDER", None)
+        else:
+            os.environ["LLM_PROVIDER"] = original_provider
+        if original_model is None:
+            os.environ.pop("OLLAMA_MODEL", None)
+        else:
+            os.environ["OLLAMA_MODEL"] = original_model
+
+    original_auth = os.environ.get("KINETIC_AUTH_REQUIRED")
+    os.environ["KINETIC_AUTH_REQUIRED"] = "true"
+    try:
+        anonymous = client.post(
+            "/ai/parse-intake",
+            json={
+                "schema_version": "mobile-intake.v1",
+                "platform": "ios",
+                "text": "Tuesday I only have 30 minutes.",
+                "context": {"today": "2026-07-20"},
+            },
+        )
+        _assert(
+            anonymous.status_code == 401,
+            f"strict-auth mobile intake returned {anonymous.status_code}",
+        )
+    finally:
+        if original_auth is None:
+            os.environ.pop("KINETIC_AUTH_REQUIRED", None)
+        else:
+            os.environ["KINETIC_AUTH_REQUIRED"] = original_auth
+
+
 def check_training_summary() -> None:
     payload = {
         "period": "weekly",
@@ -732,6 +916,8 @@ def main() -> None:
         ("what-if failure fallbacks", check_what_if_failure_fallbacks),
         ("intake parsing", check_intake_parsing),
         ("intake failure fallbacks", check_intake_failure_fallbacks),
+        ("mobile intake contract", check_mobile_intake_contract),
+        ("mobile intake failures and strict auth", check_mobile_intake_failure_contract),
         ("behavior insights", check_behavior_insights),
         ("behavior prompt privacy", check_behavior_prompt_privacy),
         ("training summary", check_training_summary),
