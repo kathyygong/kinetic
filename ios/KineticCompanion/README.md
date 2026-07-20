@@ -137,7 +137,7 @@ xcodebuild \
   build
 ```
 
-The 32-test Swift suite covers readiness/Today/intake canonical fixtures,
+The 41-test Swift suite covers readiness/Today/intake canonical fixtures,
 every intake route and draft kind, bounded request construction, strict
 response/privacy rejection, authenticated networking, stable failure mapping,
 confirmation grounding, availability/preferred-day transforms, and

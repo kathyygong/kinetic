@@ -174,9 +174,10 @@ Integration status, 2026-07-20:
 - Windows frontend lint, TypeScript, deterministic smoke, production build,
   beta-readiness, backend compile/gates/smoke, and Firestore emulator rules
   pass against the integrated source.
-- Phase 2.5 implementation and physical-device proof are complete on
-  `codex/mobile-intake-contract`; integration into `main` remains a separate
-  explicit action. Its contract and Mac evidence are documented in
+- Phase 2.5 implementation and physical-device proof are complete and the
+  final Windows frontend/backend/Firebase revalidation passed before
+  fast-forward integration into `main`. Its contract and Mac evidence are
+  documented in
   [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md).
 
 Phase 2.5 shared-contract status, 2026-07-20:
@@ -501,10 +502,9 @@ Safety proof:
 
 ## Execution Sequence
 
-Current checkpoint: steps 1 through 5 are implemented, device-validated,
-integrated into `main`, and pushed. Step 6 Parts A and B are implemented and
-repeatable and physical-device gates pass; integration remains a separate
-explicit action.
+Current checkpoint: steps 1 through 6 are implemented, device-validated,
+integrated into `main`, and pushed. Phase 2.5 Parts A and B are repeatable and
+their Windows, Mac, and physical-device gates pass.
 The Phase 1 Mac proof is recorded in
 [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md), and the stable Today contract
 is in [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md). Do not begin

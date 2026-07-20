@@ -419,3 +419,30 @@ Physical-device proof completed 2026-07-20:
 No Part A vocabulary or fixture changes were made, no native mutation endpoint
 was added, and no Phase 3 check-in persistence or broader mobile scope was
 introduced.
+
+## Final Windows Integration Evidence
+
+The complete Part A + Part B tree was rerun on Windows on 2026-07-20 before
+fast-forward integration into `main`.
+
+Passed:
+
+- `npm ci`
+- `npm run beta:audit` with 0 failures, 0 warnings, and no
+  moderate/high/critical advisories
+- `npm run lint`
+- `npx tsc --noEmit`
+- `npm run smoke`
+- `npm run build`
+- `npm run beta:readiness` with only the expected offline-audit warning
+- `.\.venv\Scripts\python.exe -m compileall app evals`
+- `.\.venv\Scripts\python.exe -m evals._gates`
+- `.\.venv\Scripts\python.exe -m evals._smoke`
+- `npx firebase-tools emulators:exec --only auth,firestore "cd frontend && npm run test:firestore-rules"`
+
+The Mac lockfile refresh had floated PostCSS and browser-data transitives beyond
+the packages currently mirrored by the configured Windows registry. The final
+lock retains the audited Next.js 16.2.10 and security-remediated dependency
+set, pins PostCSS at the already verified 8.5.14 resolution, and restores the
+previously verified browser-data transitive versions. Clean install, connected
+audit, build, smoke, and Firebase rules all pass with that reproducible lock.

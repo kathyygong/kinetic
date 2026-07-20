@@ -21,7 +21,9 @@ on 2026-07-17. That work was integrated into `main` on 2026-07-20. Phase 2.5
 shared and native implementation plus repeatable Mac gates completed on
 2026-07-20; signed physical-device intake, deterministic confirmation and
 rejection, native audit readback, and Phase 1/2A regressions also passed that
-day. The recovery/check-in loop follows. Do not expand into a
+day. The complete Phase 2.5 tree then passed the Windows dependency,
+frontend, backend, and Firebase rerun and was fast-forwarded into `main`.
+The recovery/check-in loop follows. Do not expand into a
 full native app,
 Garmin/Oura ingestion, hosted AI, broad push notifications, coach sharing, or
 autonomous AI plan mutation without another explicit product decision.
@@ -101,6 +103,11 @@ The audit command is intentionally separate from the offline demo path. It
 passes with no moderate/high/critical npm advisories as of the 2026-07-20
 dependency-hardening checkpoint. A future blocked registry lookup is not proof of safety;
 rerun it from a connected shell before broader beta exposure.
+
+The final Phase 2.5 Windows rerun also passed `npm ci`. The lockfile retains
+the audited Next.js 16.2.10 upgrade and PostCSS 8.5.14 override while pinning
+the previously verified browser-data transitives instead of floating to
+packages not yet mirrored by the configured Windows registry.
 
 Firebase rule checks:
 

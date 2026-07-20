@@ -882,7 +882,8 @@ cache, failure, privacy, and observability contracts now pass shared frontend
 and backend gates. The SwiftUI implementation and signed-device proof completed
 on 2026-07-17 and were integrated into `main` on 2026-07-20. Phase 2.5 bounded
 mobile intake Parts A and B completed and passed the required Windows, Mac,
-and signed-device suites on 2026-07-20; see
+and signed-device suites on 2026-07-20, then passed the final Windows
+integration rerun and were fast-forwarded into `main`; see
 [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md) and
 [MOBILE_INTAKE_CONTRACT.md](./MOBILE_INTAKE_CONTRACT.md).
 

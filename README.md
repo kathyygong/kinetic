@@ -24,9 +24,10 @@ observability contract completed on 2026-07-16. The SwiftUI implementation and
 signed physical-device proof completed on 2026-07-17 and were integrated into
 `main` on 2026-07-20. [Mobile Phase 2.5 bounded intake](./MOBILE_INTAKE_HANDOFF.md)
 and its [shared contract](./MOBILE_INTAKE_CONTRACT.md) completed on
-`codex/mobile-intake-contract` on 2026-07-20, including native
-Codable/SwiftUI, deterministic confirmation/rejection, signed-device, and
-`/qa/mobile` evidence. Integration into `main` remains a separate action.
+2026-07-20, including native Codable/SwiftUI, deterministic
+confirmation/rejection, signed-device, and `/qa/mobile` evidence. The complete
+Phase 2.5 implementation was integrated into `main` after the final Windows
+frontend/backend/Firebase revalidation passed.
 
 ## 🏃 The Problem
 Most running apps provide static plans that exist in a vacuum. When life happens (e.g. a late-night meeting, poor sleep, or an unexpected trip) the plan breaks. Users are left to manually adjust their training or, more often, lose consistency and abandon the plan entirely.

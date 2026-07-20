@@ -281,3 +281,6 @@ values, and medical data are not accepted by this event family.
   confirmation, audit privacy, and owner-only readback. Native Part B
   implementation, repeatable Mac gates, signed physical-device interaction,
   deterministic confirmation/rejection, and native audit readback pass.
+- The completed Part A + Part B tree passed the full Windows dependency,
+  frontend, backend, and owner-only Firestore rerun on 2026-07-20 before
+  fast-forward integration into `main`.
