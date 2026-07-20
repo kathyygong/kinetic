@@ -91,11 +91,12 @@ The shippable demo will not include:
   AI may only narrate validated facts, and raw workout notes are excluded.
 - **Mobile Companion Proof** is in progress. Phase 1 passed on a physical
   iPhone with Firebase sign-in, read-only HealthKit summarization, bounded
-  Firestore sync, same-user web readback, retry, and deletion tombstones. The
-  active phase is the authenticated calendar-aware Native Today contract and
-  surface, followed by bounded natural-language intake and the
-  recovery/check-in loop. The web app remains the architecture proof,
-  admin/demo/eval review surface, and deeper planning surface. See
+  Firestore sync, same-user web readback, retry, and deletion tombstones.
+  Phase 2A Native Today also passed its shared contract, SwiftUI, strict-auth,
+  cache, calendar-conflict, audit-readback, and signed-device gates. Phase 2.5
+  bounded natural-language intake is active, followed by the recovery/check-in
+  loop. The web app remains the architecture proof, admin/demo/eval review
+  surface, and deeper planning surface. See
   [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md).
 
 ## 2. Problem Statement
@@ -371,10 +372,11 @@ Requirements:
 #### Mobile Companion Proof
 
 - Build a thin native iOS companion before a full mobile app.
-- Start with HealthKit daily readiness summaries and Firebase sync.
-- Add a native Today surface that preserves calendar-aware recommendations,
-  user history/preferences, bounded explanations, and deterministic
-  validation.
+- HealthKit daily readiness summaries and Firebase sync completed on
+  2026-07-16.
+- The native Today surface preserving calendar-aware recommendations, user
+  history/preferences, bounded explanations, deterministic validation, and
+  safe cache/failure states completed signed-device proof on 2026-07-17.
 - Add bounded mobile natural-language intake for explicit schedule,
   availability, goal, preference, recovery/check-in, missed-workout, and
   reflection updates. It must route every supported note to a concrete bounded
@@ -512,9 +514,12 @@ Any AI-generated suggestion that could affect training must pass deterministic v
   truth for the selected mobile-first phase.
 - Phase 1: HealthKit/Firebase sync spike. Completed 2026-07-16 with
   physical-device and cross-device readback/deletion proof.
-- Phase 2: Native calendar-aware Today surface.
+- Phase 2: Native calendar-aware Today surface. Completed 2026-07-17 with
+  Swift, simulator, signed-device, strict-auth, cache, calendar-conflict, and
+  `/qa/mobile` proof; integrated into `main` on 2026-07-20.
 - Phase 2.5: Bounded mobile natural-language intake and deterministic
-  confirm/apply.
+  confirm/apply. Active; start with the Windows/shared contract in
+  [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md).
 - Phase 3: Recovery/check-in loop.
 - Phase 4: Notifications only if justified by the Today/check-in loop.
 - Preserve the deterministic safety core: mobile can summarize signals and

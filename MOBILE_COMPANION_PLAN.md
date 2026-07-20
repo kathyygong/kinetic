@@ -4,8 +4,8 @@
 
 Kinetic should become mobile-first without immediately rebuilding the whole
 product as a native app. The web app remains the architecture proof, admin,
-demo, eval, and deeper planning surface. The next product phase is a thin iOS
-companion that proves the mobile-only value loop: HealthKit readiness,
+demo, eval, and deeper planning surface. The selected mobile direction is a
+thin iOS companion that proves the mobile-only value loop: HealthKit readiness,
 calendar-aware deterministic recommendations, bounded natural-language intake,
 Firebase sync, and a lightweight recovery/check-in habit.
 
@@ -143,7 +143,7 @@ Phase 2A shared contract status, 2026-07-16:
   after that, and unusable after 24 hours or a local-day change.
 - Auth, offline, timeout, backend, malformed-response, and missing-context
   failures map to stable mobile states and privacy-safe observability fields.
-- TypeScript and the future Swift implementation share the canonical fixture
+- TypeScript and the native Swift implementation share the canonical fixture
   at `ios/KineticCompanion/Tests/Fixtures/mobile-today-contract.json`.
 - The detailed contract and Mac handoff are documented in
   [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md).
@@ -167,6 +167,16 @@ Phase 2A native implementation status, 2026-07-17:
   health-sync, and privacy-safe audit epochs after account deletion. Routine
   sync still treats tombstones as authoritative and cannot resurrect deleted
   data.
+
+Integration status, 2026-07-20:
+
+- Phase 2A commits are fast-forwarded into `main` and pushed to `origin/main`.
+- Windows frontend lint, TypeScript, deterministic smoke, production build,
+  beta-readiness, backend compile/gates/smoke, and Firestore emulator rules
+  pass against the integrated source.
+- Phase 2.5 is the active milestone. Its Windows-first contract, stop line, and
+  later Mac handoff are documented in
+  [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md).
 
 ## Phase 1: HealthKit/Firebase Sync Spike
 
@@ -457,7 +467,8 @@ Safety proof:
 
 ## Execution Sequence
 
-Current checkpoint: steps 1 through 5 are implemented and device-validated.
+Current checkpoint: steps 1 through 5 are implemented, device-validated,
+integrated into `main`, and pushed. Step 6 is active.
 The Phase 1 Mac proof is recorded in
 [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md), and the stable Today contract
 is in [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md). Work can continue
@@ -478,6 +489,9 @@ to step 6 without expanding Phase 2A.
    completed 2026-07-16; deterministic calendar-aware SwiftUI rendering and
    signed-device proof completed 2026-07-17.
 6. Mobile intake: expose bounded NLP review and deterministic confirm/apply.
+   Begin with the shared Windows contract and canonical fixtures described in
+   [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md), then return to Mac
+   for SwiftUI implementation and device proof.
 7. Check-in loop: sync completion/skipped/effort data into existing history
    contracts.
 8. QA and beta proof: add iOS manual QA, privacy checklist, schema tests,

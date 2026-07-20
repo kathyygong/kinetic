@@ -16,17 +16,20 @@ bridge. Mobile Companion Phase 1 completed on 2026-07-16: a physical iPhone
 proved Firebase sign-in, read-only HealthKit summarization, bounded Firestore
 sync, same-user web readback, retry behavior, and deletion tombstones. The
 shared authenticated contract for calendar-aware Native Today completed on
-Windows on 2026-07-16; the active milestone is its bounded SwiftUI/device
-implementation, followed by natural-language intake and the recovery/check-in
-loop. Do not expand into a full native app,
+Windows on 2026-07-16, and its SwiftUI/signed-device implementation completed
+on 2026-07-17. That work was integrated into `main` on 2026-07-20. The active
+milestone is Phase 2.5 bounded mobile natural-language intake, followed by the
+recovery/check-in loop. Do not expand into a full native app,
 Garmin/Oura ingestion, hosted AI, broad push notifications, coach sharing, or
 autonomous AI plan mutation without another explicit product decision.
 
 The mobile phase plan lives in
-[MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md). The first native
-execution checklist lives in [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md).
-The stable Today request/cache/failure boundary and next Mac steps live in
-[MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md).
+[MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md). The completed native
+execution record lives in [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md), and
+the stable Today request/cache/failure boundary lives in
+[MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md). The active Windows-first
+Phase 2.5 scope and future Mac handoff are in
+[MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md).
 
 ## Environment posture
 

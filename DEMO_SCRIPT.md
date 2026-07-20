@@ -55,9 +55,10 @@ isolation plus deletion tombstones after reload and second-origin sign-in.
 If the reviewer asks what comes next, point to
 [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md): native HealthKit daily
 readiness, Firebase sync, same-user web readback, retry, and tombstones are
-proven. The active phase is calendar-aware Native Today, followed by bounded
-mobile NLP intake with deterministic confirm/apply, shared web QA/eval
-observability, and the recovery/check-in loop before any full mobile rebuild.
+proven, and calendar-aware Native Today has passed shared, simulator, and signed
+physical-device gates. The active phase is bounded mobile NLP intake with
+deterministic confirm/apply and shared web QA/eval observability, followed by
+the recovery/check-in loop before any full mobile rebuild.
 
 If the reviewer asks about beta operations, point to `BETA_RUNBOOK.md` and
 `QA_MATRIX.md`: the product is demo-shippable with the Firebase persistence

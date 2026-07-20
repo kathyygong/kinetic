@@ -5,16 +5,16 @@ the next beta checkpoint.
 
 | Area | Required check | Current status |
 | --- | --- | --- |
-| Frontend lint | `cd frontend && npm run lint` | Passed 2026-07-17 |
-| Frontend production build | `cd frontend && npm run build` | Passed 2026-07-17 |
-| Frontend deterministic smoke | `cd frontend && npm run smoke` | Passed 2026-07-17; mobile readiness/Today contracts and canonical plan/calendar paths asserted |
-| Frontend beta posture | `cd frontend && npm run beta:readiness` | Dependency pinning passes; default audit skip warning expected |
+| Frontend lint | `cd frontend && npm run lint` | Passed 2026-07-20 on integrated `main` |
+| Frontend production build | `cd frontend && npm run build` | Passed 2026-07-20 on integrated `main` |
+| Frontend deterministic smoke | `cd frontend && npm run smoke` | Passed 2026-07-20; mobile readiness/Today contracts and canonical plan/calendar paths asserted |
+| Frontend beta posture | `cd frontend && npm run beta:readiness` | Passed 2026-07-20; default audit skip warning expected |
 | Frontend advisory audit | `cd frontend && npm run beta:audit` | Passed 2026-07-13; no moderate/high/critical findings |
 | Dependency pin review | direct frontend/backend dependencies exact-pinned | Passed 2026-07-09 |
-| Backend compile | `cd backend && python -m compileall app evals` | Passed 2026-07-17 in isolated Python 3.12 environment |
-| Backend deterministic gates | `cd backend && python -m evals._gates` | Passed 2026-07-17, including project-scoped token claim validation |
-| Backend smoke | `cd backend && python -m evals._smoke` | Passed 2026-07-17 |
-| Firebase rules | `npx firebase-tools emulators:exec --only auth,firestore "cd frontend && npm run test:firestore-rules"` | Passed 2026-07-17; owner-only mobile readiness/health-sync/audit access and tombstones asserted |
+| Backend compile | `cd backend && python -m compileall app evals` | Passed 2026-07-20 on integrated `main` |
+| Backend deterministic gates | `cd backend && python -m evals._gates` | Passed 2026-07-20, including project-scoped token claim validation |
+| Backend smoke | `cd backend && python -m evals._smoke` | Passed 2026-07-20 |
+| Firebase rules | `npx firebase-tools emulators:exec --only auth,firestore "cd frontend && npm run test:firestore-rules"` | Passed 2026-07-20; owner-only mobile readiness/health-sync/audit access and tombstones asserted |
 | Strict backend auth | signed-in token accepted and anonymous protected requests rejected | Passed 2026-07-17; physical iPhone bearer token accepted over USB private link and anonymous request rejected |
 | Signed-in responsive UI | desktop and mobile browser QA | Passed in prior release gate; rerun after layout changes |
 | Live Firebase hydration | same signed-in account hydrates across independent sessions | Passed 2026-07-09 |
@@ -29,11 +29,12 @@ the next beta checkpoint.
 | Behavior prompt privacy | raw workout notes excluded before AI narration | Covered by backend deterministic gates |
 | Final runbook review | hosted preflight, rollback, triage, and protected-artifact handling documented | Passed 2026-07-09 |
 | Mobile phase scope | [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md) defines iOS MVP, privacy boundary, phases, and gates | Selected 2026-07-10 |
-| Mobile Mac handoff | [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md) defines the macOS/Xcode execution checklist and records the physical-device proof | Completed 2026-07-16 |
+| Mobile Mac handoff | [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md) records the completed Phase 1 and Phase 2A macOS/Xcode physical-device proof | Completed 2026-07-17 |
 | iOS HealthKit permissions | denied, partial, granted, and unavailable states handled; stale background delivery remains later hardening | Read-only grant and bounded partial/unavailable code paths passed; background delivery not yet implemented |
 | iOS readiness sync | [MOBILE_READINESS_SCHEMA.md](./MOBILE_READINESS_SCHEMA.md) contract followed; bounded daily summaries only; no raw HealthKit samples in Firestore | Passed 2026-07-16 on physical iPhone with web readback |
 | Mobile Today shared contract | [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md), `smoke-mobile-today-contract.ts`, and the shared JSON fixture validate request, response, privacy, cache, and failure semantics | Passed TypeScript, 21-test Swift package, and signed-device gates 2026-07-17 |
 | Mobile calendar awareness | Today decisions consume existing calendar availability/freshness, preserve explicit zero-minute windows, use a labeled planned-duration fallback, and lower confidence on stale/missing calendar data | Passed 2026-07-17; physical zero-minute input produced live calendar conflict and rest action |
+| Mobile Phase 2.5 scope | [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md) defines the Windows-first shared intake contract, Mac stop line, safety boundary, and acceptance gates | Active 2026-07-20 |
 | Mobile NLP intake | schedule/availability/travel/goal/preference notes create review-only drafts; recovery, pain, missed-workout, and reflection notes open bounded flows; strict-auth rejection when anonymous; deterministic confirm/apply; malformed/ambiguous fallback | Required before mobile beta |
 | Mobile perceived-recovery flow | NLP recovery notes open explicit perceived-recovery capture; captured fields coexist with HealthKit summaries; AI never fabricates readiness values from text | Required before mobile beta |
 | Behavior pattern result contract | every surfaced pattern has a bounded response; confirmed schedule patterns can update preferred-day inputs for deterministic plan generation; pain patterns route to caution only | Required before mobile beta |

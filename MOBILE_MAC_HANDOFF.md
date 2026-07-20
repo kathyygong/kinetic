@@ -1,8 +1,10 @@
 # Kinetic Mobile Mac Handoff
 
-This is the execution checklist for the first macOS/Xcode session. It starts
-from the Windows preflight state and turns it into a real iOS HealthKit/Firebase
-sync spike. Do not use this checklist to broaden scope into a full native app.
+This is the completed execution record for the Phase 1 and Phase 2A
+macOS/Xcode sessions. It began from the Windows preflight state and produced a
+real iOS HealthKit/Firebase sync spike plus the native Today surface. The work
+was integrated into `main` on 2026-07-20. Do not rerun this as an active
+handoff unless a regression specifically requires it.
 
 ## Current Starting Point
 
@@ -21,10 +23,10 @@ Already complete on Windows:
 - `/mobile-companion` is a browser prototype only; it is not the production
   mobile surface.
 
-## Stop Line For Non-Mac Work
+## Historical Stop Line For Non-Mac Work — Closed
 
-The next meaningful product risk is native execution. Before adding more
-Windows-only mobile behavior, run these Mac gates:
+This was the stop line before Phase 1 native execution. All five gates are now
+closed:
 
 1. `swift test` in `ios/KineticCompanion`.
 2. Xcode app target compiles with the scaffold files.
@@ -32,8 +34,9 @@ Windows-only mobile behavior, run these Mac gates:
 4. HealthKit permission request runs on simulator/device where supported.
 5. A bounded daily summary writes to Firestore and is readable by web.
 
-Without those gates, additional Windows-only mobile features risk becoming
-parallel product fiction instead of implementation proof.
+Phase 2.5 now starts on Windows with the shared intake contract in
+[MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md). Return to macOS only
+after that contract and its fixtures are stable.
 
 ## Mac Prerequisites
 
@@ -333,8 +336,9 @@ Signed-device rerun completed on July 17, 2026:
   repeatable policy proof.
 
 Remaining blocker: none for the Phase 2A Native Today handoff. Fresh/stale and
-prior-day cache timing remain deterministic automated gates; later mobile
-intake, check-ins, notifications, and calendar ingestion remain out of scope.
+prior-day cache timing remain deterministic automated gates. Mobile intake is
+now the separately scoped active Phase 2.5 milestone; check-ins, notifications,
+and calendar ingestion remain later work.
 
 ## Do Not Add Yet
 
@@ -348,5 +352,4 @@ intake, check-ins, notifications, and calendar ingestion remain out of scope.
 - Autonomous AI plan mutation.
 - Raw HealthKit cloud sync.
 
-These are deferred until the HealthKit/Firebase sync spike proves the core
-mobile loop.
+These remain deferred after the HealthKit/Firebase and Native Today proofs.

@@ -147,21 +147,10 @@ calendar fallback, a real zero-minute window, response rejection, optional-AI
 fallback, privacy rejection, cache aging, live/cache/fallback priority, and
 stable HTTP failure mapping.
 
-## Next macOS handoff
+## Completed macOS proof
 
-1. Pull the Windows contract commit and run `swift test`.
-2. Add Swift Codable request, response, snapshot, cache, and failure models
-   that consume `mobile-today-contract.json`.
-3. Read the authenticated Firestore domains and local cache needed by Today.
-4. Call `POST /decision` with the Firebase ID token and the exact request
-   contract above.
-5. Build the SwiftUI Today surface for live, cached, stale, missing-readiness,
-   signed-out, offline, timeout, and invalid-response states.
-6. Add native observability transport and prove `/qa/mobile` readback.
-7. Run simulator, signed device, calendar conflict, offline cache, and
-   prior-day cache-expiry QA; record the evidence in `MOBILE_MAC_HANDOFF.md`.
-
-Implementation result, 2026-07-17:
+The former seven-step macOS handoff is complete. Implementation result,
+2026-07-17:
 
 - Steps 1 through 7 pass native fixture/package, Xcode simulator/device,
   authenticated backend, and frontend readback gates.
@@ -177,3 +166,8 @@ Implementation result, 2026-07-17:
   A separate timeout used the fresh same-day cache; prior-day expiry remains a
   deterministic clock-controlled Swift gate because device time was not
   changed.
+
+The completed Phase 2A work was integrated into `main` on 2026-07-20. New
+mobile work should follow [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md)
+for the Windows-first Phase 2.5 contract; this document remains the stable
+Today boundary.

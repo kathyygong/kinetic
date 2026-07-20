@@ -9,8 +9,8 @@ Product requirements live in [PRD.md](./PRD.md), and the execution plan lives in
 For a fast technical review, see [ARCHITECTURE.md](./ARCHITECTURE.md), the
 [five-minute demo script](./DEMO_SCRIPT.md), and the generated
 [deterministic AI eval report](./EVAL_REPORT.md). For beta handoff, see the
-[beta runbook](./BETA_RUNBOOK.md) and [QA matrix](./QA_MATRIX.md). The selected
-next product phase is the iOS [Mobile Companion Plan](./MOBILE_COMPANION_PLAN.md),
+[beta runbook](./BETA_RUNBOOK.md) and [QA matrix](./QA_MATRIX.md). The active
+product roadmap is the iOS [Mobile Companion Plan](./MOBILE_COMPANION_PLAN.md),
 with the sync contract in [Mobile Readiness Schema](./MOBILE_READINESS_SCHEMA.md)
 and the authenticated Today boundary in
 [Mobile Today Contract](./MOBILE_TODAY_CONTRACT.md).
@@ -20,8 +20,11 @@ live in [`ios/KineticCompanion`](./ios/KineticCompanion/README.md); physical
 iPhone sync, web readback, retry, and deletion-tombstone behavior were proven on
 2026-07-16. The mobile audit surface lives at `/qa/mobile`. The shared
 Windows-side Native Today request, response, cache, failure, privacy, and
-observability contract completed on 2026-07-16; SwiftUI implementation is the
-next bounded macOS task.
+observability contract completed on 2026-07-16. The SwiftUI implementation and
+signed physical-device proof completed on 2026-07-17 and were integrated into
+`main` on 2026-07-20. The active milestone is
+[Mobile Phase 2.5 bounded intake](./MOBILE_INTAKE_HANDOFF.md), beginning with
+the shared Windows contract before another native Mac pass.
 
 ## 🏃 The Problem
 Most running apps provide static plans that exist in a vacuum. When life happens (e.g. a late-night meeting, poor sleep, or an unexpected trip) the plan breaks. Users are left to manually adjust their training or, more often, lose consistency and abandon the plan entirely.
@@ -81,13 +84,16 @@ Runtime modes are explicit:
   read-only HealthKit permission, bounded local summarization, Firestore sync,
   same-user web readback, retry behavior, and deletion tombstones passed on a
   physical iPhone.
-- [ ] **Mobile Phase 2 — Native Today:** The shared authenticated data,
-  decision, cache, failure, privacy, and observability contract is complete on
-  Windows. Next, render the real calendar-aware deterministic recommendation
-  in SwiftUI with cached/offline/stale states and physical-device proof.
-- [ ] **Mobile Phases 2.5–3:** Add bounded NLP intent routing,
-  perceived-recovery capture, completion/skipped/effort check-ins, and shared
-  web QA/eval observability.
+- [X] **Mobile Phase 2 — Native Today:** The shared authenticated contract,
+  SwiftUI live/cache/failure surfaces, owner-only audit readback, and signed
+  physical-device proof are complete.
+- [ ] **Mobile Phase 2.5 — Bounded Intake:** Add authenticated NLP intent
+  routing, review-only drafts, deterministic confirm/apply, and privacy-safe
+  lifecycle observability. Start with the shared Windows contract in
+  [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md).
+- [ ] **Mobile Phase 3 — Recovery/Check-In:** Add perceived-recovery capture
+  and completion/skipped/effort check-ins after the Phase 2.5 routing contract
+  is stable.
 - [ ] **Later Integrations:** Garmin/Oura ingestion, hosted AI provider option, coach sharing, broad push notifications, and full native plan editing.
 
 Optional live-model verification (requires Ollama and the configured intake

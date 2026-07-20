@@ -33,6 +33,9 @@ native companion app.
 
 The app does not include plan editing, onboarding, notifications, calendar
 ingestion, mobile intake/check-ins, AI mutation, or raw HealthKit cloud sync.
+Phase 2.5 mobile intake begins with the Windows/shared contract in
+[`MOBILE_INTAKE_HANDOFF.md`](../../MOBILE_INTAKE_HANDOFF.md) before this target
+receives more SwiftUI work.
 
 ## Firebase Scope Decisions
 

@@ -740,8 +740,8 @@ Demo packaging is complete.
    are closed; dependency posture, final QA matrix, hosted preflight, and
    rollback guidance are complete.
 7. Apple Health CSV readiness import is implemented as a web-beta bridge.
-   Native/background HealthKit sync and native mobile are now selected as the
-   next product phase, scoped specifically as Mobile Companion Proof in
+   Native/background HealthKit sync and native mobile are the selected mobile
+   product direction, scoped specifically as Mobile Companion Proof in
    [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md). Garmin/Oura, hosted
    AI, broad notifications, coach sharing, and autonomous plan mutation remain
    out of scope.
@@ -803,9 +803,10 @@ Completed.
 - Apple Health CSV import is implemented from Profile as a privacy-minimized
   readiness input path. It accepts bounded sleep, HRV, resting-heart-rate,
   fatigue, and soreness fields, drops unsupported columns/notes, and writes
-  through the existing readiness store. Native/background HealthKit sync is the
-  selected next phase, but only as a thin iOS companion that summarizes locally
-  and syncs bounded daily readiness records. Garmin and Oura remain deferred.
+  through the existing readiness store. Native HealthKit sync and the
+  calendar-aware Today surface are implemented as a thin iOS companion that
+  summarizes locally and syncs bounded daily readiness records. Phase 2.5
+  bounded mobile intake is active; Garmin and Oura remain deferred.
 - Final operational polish is complete: [BETA_RUNBOOK.md](./BETA_RUNBOOK.md),
   [QA_MATRIX.md](./QA_MATRIX.md), and [DEPLOY.md](./DEPLOY.md) document hosted
   preflight, strict-auth posture, rollback, triage, protected artifact handling,
@@ -825,7 +826,7 @@ Completed.
 
 ## Mobile Companion Proof - Selected 2026-07-10
 
-The next strategic product phase is Mobile Companion Proof, documented in
+The selected mobile product direction is Mobile Companion Proof, documented in
 [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md).
 
 Build sequence:
@@ -872,8 +873,10 @@ Firebase sign-in, read-only HealthKit summarization, Firestore sync, same-user
 web readback, retry, and authoritative deletion-tombstone proof. Phase 2A also
 completed on Windows on 2026-07-16: authenticated Native Today data, decision,
 cache, failure, privacy, and observability contracts now pass shared frontend
-and backend gates. The next bounded Mac session implements those stable
-contracts in Swift and SwiftUI.
+and backend gates. The SwiftUI implementation and signed-device proof completed
+on 2026-07-17 and were integrated into `main` on 2026-07-20. Phase 2.5 bounded
+mobile intake is now active, beginning with the Windows/shared contract in
+[MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md).
 
 ### Mobile Phase 2A Shared Today Contract - Completed 2026-07-16
 
@@ -955,10 +958,10 @@ contracts in Swift and SwiftUI.
   permission proof, on-device web readback, retry behavior, and tombstone
   handling passed on macOS/physical iPhone on 2026-07-16. Windows remains the
   source of truth for shared contracts, deterministic engine behavior,
-  frontend/backend gates, Firebase rule coverage, and web QA. Return to Mac
-  after the Phase 2A Native Today contract is stable. That contract completed
-  on 2026-07-16; the next return to Mac is now authorized for Swift
-  implementation and device proof.
+  frontend/backend gates, Firebase rule coverage, and web QA. The Phase 2A Mac
+  implementation and device proof completed on 2026-07-17. Start Phase 2.5 on
+  Windows; return to Mac only after its intake contract and canonical fixtures
+  are stable.
 
 ### Mobile Phase 1 Native Proof - Completed 2026-07-16
 
