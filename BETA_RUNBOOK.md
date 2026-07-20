@@ -95,8 +95,8 @@ npm run beta:audit
 ```
 
 The audit command is intentionally separate from the offline demo path. It
-passes with no moderate/high/critical npm advisories as of the 2026-07-09 beta
-hardening checkpoint. A future blocked registry lookup is not proof of safety;
+passes with no moderate/high/critical npm advisories as of the 2026-07-20
+dependency-hardening checkpoint. A future blocked registry lookup is not proof of safety;
 rerun it from a connected shell before broader beta exposure.
 
 Firebase rule checks:
@@ -226,10 +226,19 @@ The current dependency posture is beta-checkpoint ready:
   changes;
 - direct frontend dependencies are exact-pinned in `package.json` and
   `package-lock.json`;
+- Next.js and `eslint-config-next` are aligned at `16.2.10`. Until a stable
+  Next release bundles patched PostCSS, a Next-only override pins PostCSS
+  `8.5.14`; do not replace it with npm audit's breaking Next downgrade;
 - direct backend requirements are exact-pinned in `backend/requirements.txt`.
 
 Use `npm run beta:readiness` for the local posture report and
 `npm run beta:audit` for the connected advisory gate.
+
+After Phase 2.5 Part B, rerun `npm ci`, the connected audit, lint, TypeScript,
+smoke, production build, and the Auth/Firestore emulator suite before the beta
+checkpoint. Also check the current stable Next manifest: remove the PostCSS
+override only after Next itself depends on PostCSS `8.5.10` or newer and the
+same gates pass without the override.
 
 ## Rollback and triage
 

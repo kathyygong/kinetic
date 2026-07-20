@@ -792,7 +792,12 @@ Completed.
 - Direct frontend and backend dependencies are pinned to the currently
   verified versions. `npm run beta:audit` passes with no moderate/high/critical
   npm advisories, and `npm run beta:readiness` reports no dependency pinning
-  warnings. Re-run both after package changes before broader beta exposure.
+  warnings. The 2026-07-20 hardening checkpoint pins Next.js and
+  `eslint-config-next` at `16.2.10`, refreshes patched Firebase/tooling
+  transitives, and uses a Next-only PostCSS `8.5.14` override until stable Next
+  bundles PostCSS `8.5.10` or newer. Re-run the connected audit and full
+  frontend/Firebase gates after Phase 2.5 Part B, and remove the override only
+  when those gates pass against a patched Next manifest.
 - Telemetry QA now exercises every typed product event family, sensitive-key
   rejection, numeric/enum bounding, log capping, and write/remove failure
   isolation through `smoke-instrumentation.ts`.

@@ -163,6 +163,15 @@ the documented connected advisory-audit skip warning. Firestore emulator
 `PERMISSION_DENIED` log lines were the expected cross-user/guest assertions,
 and the rule suite exited successfully.
 
+Before Part B native edits, the connected audit found newly published
+advisories. The dependency-hardening checkpoint updated Next.js and
+`eslint-config-next` from `16.2.5` to `16.2.10`, refreshed vulnerable Firebase
+and tooling transitives without a forced or major upgrade, and added a
+Next-only PostCSS `8.5.14` override because the latest stable Next release
+still pins `8.4.31`. `npm ci`, `beta:audit`, lint, TypeScript, smoke, build,
+beta-readiness, and the Auth/Firestore emulator suite pass on the hardened
+tree with no reported npm vulnerabilities.
+
 ## Mac Continuation Instructions
 
 Part A is ready for macOS/SwiftUI continuation. The full Part B procedure lives
@@ -294,6 +303,15 @@ screenshots containing identity, or disposable test-user details.
   limitations.
 - Review the diff and confirm it contains only intended native Part B,
   shared-test, and documentation work.
+- After native implementation, rerun `npm ci`, `npm run beta:audit`, lint,
+  TypeScript, smoke, build, beta-readiness, and the Auth/Firestore emulator
+  suite. Repeat signed-in browser hydration, strict-auth, and `/qa/mobile`
+  readback alongside the native device matrix.
+- Check whether the current stable Next release now bundles PostCSS `8.5.10`
+  or newer. If it does, update Next and `eslint-config-next` together, remove
+  the scoped override, and rerun all dependency/frontend/Firebase gates. If it
+  does not, keep the verified override; do not accept npm audit's breaking
+  downgrade or use `--force`.
 - Commit and push `codex/mobile-intake-contract`.
 - Do not merge to `main` unless explicitly requested.
 

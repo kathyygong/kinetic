@@ -5,16 +5,16 @@ the next beta checkpoint.
 
 | Area | Required check | Current status |
 | --- | --- | --- |
-| Frontend lint | `cd frontend && npm run lint` | Passed 2026-07-20 on integrated `main` |
-| Frontend production build | `cd frontend && npm run build` | Passed 2026-07-20 on integrated `main` |
-| Frontend deterministic smoke | `cd frontend && npm run smoke` | Passed 2026-07-20 on `codex/mobile-intake-contract`; mobile readiness/Today/intake contracts, every intake route/failure class, deterministic confirmation, and canonical plan/calendar paths asserted |
+| Frontend lint | `cd frontend && npm run lint` | Passed 2026-07-20 on the hardened `codex/mobile-intake-contract` dependency baseline |
+| Frontend production build | `cd frontend && npm run build` | Passed 2026-07-20 with Next.js 16.2.10 and the scoped patched PostCSS resolution |
+| Frontend deterministic smoke | `cd frontend && npm run smoke` | Passed 2026-07-20 after dependency hardening; mobile readiness/Today/intake contracts, every intake route/failure class, deterministic confirmation, and canonical plan/calendar paths asserted |
 | Frontend beta posture | `cd frontend && npm run beta:readiness` | Passed 2026-07-20; default audit skip warning expected |
-| Frontend advisory audit | `cd frontend && npm run beta:audit` | Passed 2026-07-13; no moderate/high/critical findings |
-| Dependency pin review | direct frontend/backend dependencies exact-pinned | Passed 2026-07-09 |
+| Frontend advisory audit | `cd frontend && npm run beta:audit` | Passed 2026-07-20 after remediation; no moderate/high/critical findings |
+| Dependency pin review | direct frontend/backend dependencies exact-pinned | Passed 2026-07-20; Next.js and its ESLint config are pinned at 16.2.10 and the Next-only PostCSS resolution is pinned at 8.5.14 |
 | Backend compile | `cd backend && python -m compileall app evals` | Passed 2026-07-20 on integrated `main` |
 | Backend deterministic gates | `cd backend && python -m evals._gates` | Passed 2026-07-20, including project-scoped token claims, all mobile intake routes, strict context, strict-auth rejection, and AI failure fallback |
 | Backend smoke | `cd backend && python -m evals._smoke` | Passed 2026-07-20 with the expanded mobile intake gates |
-| Firebase rules | `npx firebase-tools emulators:exec --only auth,firestore "cd frontend && npm run test:firestore-rules"` | Passed 2026-07-20; owner-only mobile readiness/health-sync/audit access, bounded intake lifecycle readback, cross-user denial, and tombstones asserted |
+| Firebase rules | `npx firebase-tools emulators:exec --only auth,firestore "cd frontend && npm run test:firestore-rules"` | Passed 2026-07-20 after Firebase transitive remediation; owner-only mobile readiness/health-sync/audit access, bounded intake lifecycle readback, cross-user denial, and tombstones asserted |
 | Strict backend auth | signed-in token accepted and anonymous protected requests rejected | Passed 2026-07-17; physical iPhone bearer token accepted over USB private link and anonymous request rejected |
 | Signed-in responsive UI | desktop and mobile browser QA | Passed in prior release gate; rerun after layout changes |
 | Live Firebase hydration | same signed-in account hydrates across independent sessions | Passed 2026-07-09 |
