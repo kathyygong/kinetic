@@ -32,13 +32,17 @@ enum TodayExperienceLevel: String, Codable {
 
 struct TodayGoal: Codable, Equatable {
     var raceDistance: TodayRaceDistance
+    var targetDate: String? = nil
     var experienceLevel: TodayExperienceLevel
     var currentPersonalRecords: [String: Double]
+    var weeklyMileage: Double? = nil
 
     enum CodingKeys: String, CodingKey {
         case raceDistance = "race_distance"
+        case targetDate = "target_date"
         case experienceLevel = "experience_level"
         case currentPersonalRecords = "current_prs"
+        case weeklyMileage = "weekly_mileage"
     }
 }
 

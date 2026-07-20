@@ -16,6 +16,7 @@ enum FirestoreTodayError: Error {
 
 struct MobileTodaySharedState {
     var profilePresent: Bool
+    var intakeProfile: MobileIntakeProfileSnapshot?
     var goal: TodayGoal?
     var plan: TodaySavedPlan?
     var readiness: ReadinessLog?
@@ -36,6 +37,36 @@ struct MobileTodaySharedState {
             workoutLog: workouts,
             now: now
         )
+    }
+}
+
+struct MobileIntakeProfileSnapshot: Codable, Equatable {
+    var experienceLevel: MobileIntakeExperience?
+    var preferredTrainingDays: [MobileIntakeDay]
+
+    enum CodingKeys: String, CodingKey {
+        case experienceLevel = "experience_level"
+        case preferredTrainingDays = "preferred_training_days"
+    }
+
+    init(
+        experienceLevel: MobileIntakeExperience?,
+        preferredTrainingDays: [MobileIntakeDay]
+    ) {
+        self.experienceLevel = experienceLevel
+        self.preferredTrainingDays = preferredTrainingDays
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        experienceLevel = try container.decodeIfPresent(
+            MobileIntakeExperience.self,
+            forKey: .experienceLevel
+        )
+        preferredTrainingDays = try container.decodeIfPresent(
+            [MobileIntakeDay].self,
+            forKey: .preferredTrainingDays
+        ) ?? []
     }
 }
 
@@ -86,9 +117,14 @@ final class FirestoreMobileTodayStateReader: MobileTodayStateReading {
             workouts.data(),
             domain: "workouts"
         )
+        let intakeProfile: MobileIntakeProfileSnapshot? = try decodePayload(
+            profile.data(),
+            domain: "profile"
+        )
 
         return MobileTodaySharedState(
-            profilePresent: try hasPayload(profile.data(), domain: "profile"),
+            profilePresent: intakeProfile != nil,
+            intakeProfile: intakeProfile,
             goal: try decodePayload(goal.data(), domain: "goal"),
             plan: try decodePayload(plan.data(), domain: "plan"),
             readiness: try decodePayload(readiness.data(), domain: "readiness"),

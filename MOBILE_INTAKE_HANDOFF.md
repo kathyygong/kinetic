@@ -1,7 +1,10 @@
 # Kinetic Mobile Phase 2.5 Intake Handoff
 
-Status: Part A Windows/shared contract completed and validated on 2026-07-20.
-Part B macOS/native implementation is the next task and has not started.
+Status: Part A Windows/shared contract and Part B macOS/native implementation
+completed on 2026-07-20. Automated, simulator, signed generic-device,
+strict-auth backend, shared regression, dependency, and Firestore rules gates
+pass. Physical-device install/interaction and native `/qa/mobile` readback are
+the remaining evidence because the connected iPhone was unavailable.
 
 Phase 1 HealthKit/Firebase sync and Phase 2A Native Today are complete,
 device-validated, integrated into `main`, and pushed to `origin/main`. This
@@ -174,8 +177,8 @@ tree with no reported npm vulnerabilities.
 
 ## Mac Continuation Instructions
 
-Part A is ready for macOS/SwiftUI continuation. The full Part B procedure lives
-here so a future task needs only the short prompt at the end of this section.
+Part B used the following procedure. Keep it as the rerun checklist for the
+remaining physical-device evidence or future native regressions.
 
 ### 1. Check out the shared-contract branch
 
@@ -318,10 +321,11 @@ screenshots containing identity, or disposable test-user details.
 ### Simple continuation prompt
 
 ```text
-Continue Kinetic Mobile Phase 2.5 Part B on Mac. Follow the “Mac Continuation
-Instructions” in MOBILE_INTAKE_HANDOFF.md completely, starting from the clean
-tip of origin/codex/mobile-intake-contract. Do not redo Part A, change the
-shared mobile-intake.v1 vocabulary, or broaden the documented scope.
+Finish Kinetic Mobile Phase 2.5 Part B physical-device evidence on Mac. Follow
+the remaining proof in MOBILE_INTAKE_HANDOFF.md from the clean tip of
+origin/codex/mobile-intake-contract. Do not redo Part A or the completed native
+implementation, change the shared mobile-intake.v1 vocabulary, or broaden the
+documented scope.
 ```
 
 ## Starting State
@@ -329,7 +333,7 @@ shared mobile-intake.v1 vocabulary, or broaden the documented scope.
 - Shared-contract branch: `codex/mobile-intake-contract`
 - Part A implementation commit: `25cb769`
 - Integrated Phase 2A commit: `7139dcd`
-- Working tree must be clean before Part B.
+- Part B implementation and repeatable Mac gates: completed 2026-07-20.
 - Source-of-truth roadmap:
   [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md)
 - Shared intake contract:
@@ -338,3 +342,68 @@ shared mobile-intake.v1 vocabulary, or broaden the documented scope.
   [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md)
 - Stable Today contract:
   [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md)
+
+## Part B Mac Evidence
+
+Implemented and validated on 2026-07-20:
+
+- Mac: macOS 26.5.2 build 25F84, x86_64.
+- Xcode 26.3 build 17C529; Swift 6.2.4 toolchain in Swift 5.9 package mode.
+- Simulator: iPhone 17 / iOS 26.3.
+- Connected device detected as iPhone 17, but CoreDevice reported it
+  `unavailable`; its prior Phase 2A OS record is iOS 26.5.2.
+- Node 25.9.0, npm 11.12.1, Python 3.12.13, and OpenJDK 21.0.11.
+
+Implemented:
+
+- Strict Codable request, parser, failure, outcome, draft, and fixture models
+  for all eight routes and all six draft kinds.
+- Exact-key response validation, privacy-key rejection, transient bounded
+  request construction, authenticated finite-deadline networking, stable
+  failure mapping, and no draft cache.
+- Native Today entry point plus review draft, perceived recovery, caution,
+  missed workout, reflection, explanation, clarification, and refusal
+  destinations.
+- Explicit confirmation through one owner-scoped Firestore transaction.
+  Grounding, target-date, plan-presence, availability, race-day, unique-day,
+  weekly-load, and hard-workout-spacing validation reruns at confirmation.
+  Goal/experience changes invalidate the stale plan instead of partially
+  editing it; check-in destinations remain non-persisting.
+- Fixed privacy-safe `mobile_intake_lifecycle` audit properties through the
+  existing capped native transport.
+
+Passed commands and results:
+
+```text
+swift test: 32 passed
+xcodebuild generic iOS Simulator, signing disabled: passed
+xcodebuild signed generic iOS device: passed
+iPhone 17 / iOS 26.3 simulator install and signed-out launch: passed
+npm ci: passed, 0 vulnerabilities
+npm run beta:audit: passed, 0 failures/warnings and no reported advisories
+npm run lint: passed
+npx tsc --noEmit: passed
+npm run smoke: passed
+npm run build: passed
+Python 3.12 compileall, evals._gates, and evals._smoke: passed
+Auth + Firestore emulator rules: passed with expected denial assertions
+strict local backend: anonymous 401; disposable Firebase bearer token 200;
+  review_draft; mutation_performed=false; disposable user deletion 200
+```
+
+The npm registry reported stable Next.js `16.2.10` still depends on PostCSS
+`8.4.31`, so the verified Next-only `8.5.14` override remains.
+
+Remaining physical proof:
+
+- Reconnect the unavailable iPhone, then install and launch the already
+  signing-clean build.
+- Exercise authenticated native intake, one practical route from each outcome
+  family, a valid confirmation, an invalid/unsafe swap rejection, and native
+  audit transport.
+- Read that device event through `/qa/mobile` and repeat Today zero-minute
+  calendar, same-day cache, HealthKit sync, reconnect, and tombstone checks.
+
+No Part A vocabulary or fixture changes were made, no native mutation endpoint
+was added, and no Phase 3 check-in persistence or broader mobile scope was
+introduced.

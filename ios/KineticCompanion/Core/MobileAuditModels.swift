@@ -66,9 +66,77 @@ enum DeterministicValidationState: String, Codable {
 }
 
 enum MobileIntakeAction: String, Codable {
+    case routed
     case reviewed
     case confirmed
     case discarded
+    case failed
+}
+
+enum MobileIntakeAuditRoute: String, Codable {
+    case reviewDraft = "review_draft"
+    case perceivedRecovery = "perceived_recovery"
+    case caution
+    case missedWorkout = "missed_workout"
+    case reflection
+    case explanation
+    case clarification
+    case refusal
+    case none
+
+    init(_ route: MobileIntakeRoute?) {
+        self = route.flatMap { MobileIntakeAuditRoute(rawValue: $0.rawValue) } ?? .none
+    }
+}
+
+enum MobileIntakeAuditDraftKind: String, Codable {
+    case schedule
+    case availability
+    case travel
+    case workoutSwap = "workout_swap"
+    case goal
+    case preferredDay = "preferred_day"
+    case multiple
+    case none
+
+    init(_ kinds: [MobileIntakeDraftKind]) {
+        if kinds.count > 1 {
+            self = .multiple
+        } else if let kind = kinds.first {
+            self = MobileIntakeAuditDraftKind(rawValue: kind.rawValue) ?? .none
+        } else {
+            self = .none
+        }
+    }
+}
+
+enum MobileIntakeAuditFailureState: String, Codable {
+    case none
+    case authRequired = "auth_required"
+    case offline
+    case timeout
+    case backendUnavailable = "backend_unavailable"
+    case invalidResponse = "invalid_response"
+    case unknown
+    case aiUnavailable = "ai_unavailable"
+    case malformedAI = "malformed_ai"
+    case ambiguous
+    case unsupported
+    case unsafe
+}
+
+enum MobileIntakeAuditParserSource: String, Codable {
+    case deterministic
+    case ollama
+    case deterministicRouter = "deterministic_router"
+    case none
+}
+
+enum MobileIntakeMutationState: String, Codable {
+    case notRequested = "not_requested"
+    case reviewOnly = "review_only"
+    case applied
+    case rejected
 }
 
 enum MobileCheckinStatus: String, Codable {
@@ -189,27 +257,25 @@ struct MobileIntakeLifecycleAudit: MobileAuditPayload {
     var platform = MobilePlatform.ios
     var action: MobileIntakeAction
     var outcome: MobileDecisionOutcome
-    var status: String?
-    var source: String?
-    var fallbackUsed: Bool?
-    var latencyMs: Int?
-    var timedOut: Bool?
-    var changeCount: Int?
-    var warningCount: Int?
+    var route: MobileIntakeAuditRoute
+    var draftKind: MobileIntakeAuditDraftKind
+    var failureState: MobileIntakeAuditFailureState
+    var parserSource: MobileIntakeAuditParserSource
+    var mutationState: MobileIntakeMutationState
     var deterministicValidation: DeterministicValidationState
+    var latencyMs: Int
 
     enum CodingKeys: String, CodingKey {
         case platform
         case action
         case outcome
-        case status
-        case source
-        case fallbackUsed = "fallback_used"
-        case latencyMs = "latency_ms"
-        case timedOut = "timed_out"
-        case changeCount = "change_count"
-        case warningCount = "warning_count"
+        case route
+        case draftKind = "draft_kind"
+        case failureState = "failure_state"
+        case parserSource = "parser_source"
+        case mutationState = "mutation_state"
         case deterministicValidation = "deterministic_validation"
+        case latencyMs = "latency_ms"
     }
 }
 

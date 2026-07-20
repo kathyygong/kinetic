@@ -60,6 +60,11 @@ final class TodayViewModel: ObservableObject {
     @Published private(set) var todayLoading = false
     @Published private(set) var todayResult: MobileTodayLoadResult?
     @Published private(set) var todayBuildFailure: MobileTodayBuildFailure?
+    @Published private(set) var intakeLoading = false
+    @Published private(set) var intakeApplying = false
+    @Published private(set) var intakeResponse: MobileIntakeResponse?
+    @Published private(set) var intakeFailure: MobileIntakeFailureCode?
+    @Published private(set) var intakeMessage: String?
 
     private let firebaseConfigured: Bool
     private let healthStore: ReadinessProviding
@@ -68,6 +73,10 @@ final class TodayViewModel: ObservableObject {
     private let decisionClient: MobileTodayDecisionNetworking
     private let cache: MobileTodayCaching
     private let audit: MobileAuditTransporting
+    private let intakeClient: MobileIntakeNetworking
+    private let intakeApplyClient: MobileIntakeApplying
+    private var latestSharedState: MobileTodaySharedState?
+    private var pendingIntakeNote: String?
 
     init(
         firebaseConfigured: Bool,
@@ -76,7 +85,9 @@ final class TodayViewModel: ObservableObject {
         stateReader: MobileTodayStateReading = FirestoreMobileTodayStateReader(),
         decisionClient: MobileTodayDecisionNetworking = URLSessionMobileTodayDecisionClient(),
         cache: MobileTodayCaching = UserDefaultsMobileTodayCache(),
-        audit: MobileAuditTransporting = FirestoreMobileAuditTransport()
+        audit: MobileAuditTransporting = FirestoreMobileAuditTransport(),
+        intakeClient: MobileIntakeNetworking = URLSessionMobileIntakeClient(),
+        intakeApplyClient: MobileIntakeApplying = FirestoreMobileIntakeApplyClient()
     ) {
         self.firebaseConfigured = firebaseConfigured
         self.healthStore = healthStore
@@ -85,6 +96,8 @@ final class TodayViewModel: ObservableObject {
         self.decisionClient = decisionClient
         self.cache = cache
         self.audit = audit
+        self.intakeClient = intakeClient
+        self.intakeApplyClient = intakeApplyClient
         authState = firebaseConfigured ? .signedOut : .missingConfiguration
     }
 
@@ -119,6 +132,8 @@ final class TodayViewModel: ObservableObject {
         dailySummary = nil
         todayResult = nil
         todayBuildFailure = nil
+        latestSharedState = nil
+        resetIntake()
         cache.clear()
     }
 
@@ -131,6 +146,7 @@ final class TodayViewModel: ObservableObject {
 
         do {
             let shared = try await stateReader.readTodayState(now: Date())
+            latestSharedState = shared
             let contract: MobileTodayRequestContract
             do {
                 contract = try MobileTodayRequestBuilder.build(shared.buildContext())
@@ -228,6 +244,146 @@ final class TodayViewModel: ObservableObject {
                 validation: .notRun
             )
         }
+    }
+
+    func routeIntake(note: String) async {
+        guard isSignedIn, let user = Auth.auth().currentUser, !intakeLoading else { return }
+        intakeLoading = true
+        intakeApplying = false
+        intakeResponse = nil
+        intakeFailure = nil
+        intakeMessage = nil
+        pendingIntakeNote = nil
+        let startedAt = Date()
+        do {
+            let shared: MobileTodaySharedState
+            if let latestSharedState {
+                shared = latestSharedState
+            } else {
+                shared = try await stateReader.readTodayState(now: Date())
+                self.latestSharedState = shared
+            }
+            let context = MobileIntakeContextBuilder.build(
+                shared: shared,
+                snapshot: todayResult?.snapshot
+            )
+            let request = try MobileIntakeRequestBuilder.build(text: note, context: context)
+            let token = try await user.getIDToken()
+            let response = try await intakeClient.route(request: request, idToken: token)
+            intakeResponse = response
+            pendingIntakeNote = response.outcome.draft == nil ? nil : request.text
+            intakeLoading = false
+            emitIntakeAudit(
+                action: response.outcome.route == .reviewDraft ? .reviewed : .routed,
+                response: response,
+                failure: nil,
+                mutation: response.outcome.route == .reviewDraft ? .reviewOnly : .notRequested,
+                validation: .notRun,
+                startedAt: startedAt
+            )
+        } catch let error as MobileIntakeRequestError {
+            intakeFailure = error.code
+            intakeLoading = false
+            emitIntakeAudit(
+                action: .failed,
+                response: nil,
+                failure: error.code,
+                mutation: .notRequested,
+                validation: error.code == .invalidResponse ? .failed : .notRun,
+                startedAt: startedAt
+            )
+        } catch let error as MobileIntakeValidationError {
+            intakeFailure = .invalidResponse
+            intakeMessage = error.localizedDescription
+            intakeLoading = false
+            emitIntakeAudit(
+                action: .failed,
+                response: nil,
+                failure: .invalidResponse,
+                mutation: .notRequested,
+                validation: .failed,
+                startedAt: startedAt
+            )
+        } catch {
+            intakeFailure = .unknown
+            intakeLoading = false
+            emitIntakeAudit(
+                action: .failed,
+                response: nil,
+                failure: .unknown,
+                mutation: .notRequested,
+                validation: .notRun,
+                startedAt: startedAt
+            )
+        }
+    }
+
+    func confirmIntakeDraft() async {
+        guard
+            !intakeApplying,
+            let response = intakeResponse,
+            let draft = response.outcome.draft,
+            let sourceText = pendingIntakeNote
+        else { return }
+        intakeApplying = true
+        intakeMessage = nil
+        let startedAt = Date()
+        do {
+            let count = try await intakeApplyClient.confirm(
+                draft: draft,
+                sourceText: sourceText,
+                today: MobileTodayDate.localDay(Date())
+            )
+            intakeApplying = false
+            pendingIntakeNote = nil
+            intakeResponse = nil
+            intakeMessage = "\(count) confirmed change\(count == 1 ? "" : "s") applied."
+            emitIntakeAudit(
+                action: .confirmed,
+                response: response,
+                failure: nil,
+                mutation: .applied,
+                validation: .passed,
+                startedAt: startedAt
+            )
+            await loadToday()
+        } catch {
+            intakeApplying = false
+            intakeMessage = error.localizedDescription.isEmpty
+                ? "The draft failed deterministic confirmation. No changes were made."
+                : error.localizedDescription
+            emitIntakeAudit(
+                action: .confirmed,
+                response: response,
+                failure: nil,
+                mutation: .rejected,
+                validation: .failed,
+                startedAt: startedAt
+            )
+        }
+    }
+
+    func discardIntake() {
+        if let response = intakeResponse {
+            emitIntakeAudit(
+                action: .discarded,
+                response: response,
+                failure: nil,
+                mutation: .notRequested,
+                validation: .notRun,
+                startedAt: Date()
+            )
+        }
+        resetIntake()
+    }
+
+    func resetIntake() {
+        intakeLoading = false
+        intakeApplying = false
+        intakeResponse = nil
+        intakeFailure = nil
+        intakeMessage = nil
+        pendingIntakeNote = nil
     }
 
     func readAndSyncToday() async {
@@ -350,6 +506,75 @@ final class TodayViewModel: ObservableObject {
         }
     }
 
+    private func emitIntakeAudit(
+        action: MobileIntakeAction,
+        response: MobileIntakeResponse?,
+        failure: MobileIntakeFailureCode?,
+        mutation: MobileIntakeMutationState,
+        validation: DeterministicValidationState,
+        startedAt: Date
+    ) {
+        let draftKinds: [MobileIntakeDraftKind]
+        if case .reviewDraft(let review) = response?.outcome {
+            draftKinds = review.draftKinds
+        } else {
+            draftKinds = []
+        }
+        let failureState = Self.intakeFailureState(response: response, failure: failure)
+        let outcome: MobileDecisionOutcome
+        if failure == .timeout || response?.parser.failure == .aiTimeout {
+            outcome = .timeout
+        } else if validation == .failed {
+            outcome = .invalid
+        } else if failure != nil {
+            outcome = .failed
+        } else {
+            outcome = .success
+        }
+        let properties = MobileIntakeLifecycleAudit(
+            action: action,
+            outcome: outcome,
+            route: MobileIntakeAuditRoute(response?.outcome.route),
+            draftKind: MobileIntakeAuditDraftKind(draftKinds),
+            failureState: failureState,
+            parserSource: response.flatMap {
+                MobileIntakeAuditParserSource(rawValue: $0.parser.source.rawValue)
+            } ?? .none,
+            mutationState: mutation,
+            deterministicValidation: validation,
+            latencyMs: min(
+                MobileIntakeContract.maximumLatencyMs,
+                max(0, Int(Date().timeIntervalSince(startedAt) * 1000))
+            )
+        )
+        Task {
+            await audit.send(MobileAuditEnvelope(properties: properties))
+        }
+    }
+
+    private static func intakeFailureState(
+        response: MobileIntakeResponse?,
+        failure: MobileIntakeFailureCode?
+    ) -> MobileIntakeAuditFailureState {
+        if let failure {
+            return MobileIntakeAuditFailureState(rawValue: failure.rawValue) ?? .unknown
+        }
+        if let parser = response?.parser.failure {
+            switch parser {
+            case .aiTimeout: return .timeout
+            case .aiDisabled, .aiUnavailable, .parserError: return .aiUnavailable
+            case .malformedAI, .ungroundedAI: return .malformedAI
+            case .none: break
+            }
+        }
+        switch response?.outcome {
+        case .clarification: return .ambiguous
+        case .refusal(let refusal):
+            return refusal.reason == .unsafe ? .unsafe : .unsupported
+        default: return .none
+        }
+    }
+
     private static func confidenceBucket(_ value: Double?) -> ConfidenceBucket {
         guard let value else { return .low }
         if value >= 0.75 { return .high }
@@ -390,6 +615,7 @@ struct TodayView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var showingReconnectConfirmation = false
+    @State private var showingIntake = false
 
     var body: some View {
         NavigationStack {
@@ -466,6 +692,7 @@ struct TodayView: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 16) {
                 todayCard
+                intakeCard
                 healthCard
                 privacyCard
             }
@@ -475,6 +702,34 @@ struct TodayView: View {
         .refreshable {
             await viewModel.loadToday()
         }
+    }
+
+    private var intakeCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("Tell Kinetic what changed", systemImage: "text.bubble")
+                .font(.headline)
+            Text(
+                "Route one short note to a reviewable change, guided check-in, explanation, clarification, or safe stop."
+            )
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            Button {
+                viewModel.resetIntake()
+                showingIntake = true
+            } label: {
+                Label("Tell Kinetic what changed", systemImage: "square.and.pencil")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .sheet(isPresented: $showingIntake) {
+                MobileIntakeView(viewModel: viewModel)
+            }
+            Text("Routing never writes. Mutable drafts require review and confirmation.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(20)
+        .kineticCard()
     }
 
     @ViewBuilder

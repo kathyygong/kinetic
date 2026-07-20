@@ -194,8 +194,22 @@ Phase 2.5 shared-contract status, 2026-07-20:
   ambiguous, and unsupported behavior.
 - Privacy-safe lifecycle fields are readable through `/qa/mobile` and the
   existing owner-only `mobile_audit` envelope.
-- Part B native Codable/SwiftUI/device proof is next. The contract is
+- Part B native implementation and repeatable Mac proof completed the same
+  day; final physical-device interaction/readback remains. The contract is
   documented in [MOBILE_INTAKE_CONTRACT.md](./MOBILE_INTAKE_CONTRACT.md).
+
+Phase 2.5 native status, 2026-07-20:
+
+- Swift consumes the fixed canonical fixture for every route and draft kind,
+  rejects unknown/extra/privacy-forbidden response data, builds bounded
+  requests, and maps authenticated finite-deadline failures.
+- Native Today renders every bounded destination. Mutable drafts remain
+  review-only until explicit confirmation reruns grounding and deterministic
+  plan validation inside the existing owner-scoped domain transaction.
+- Package, simulator, signed generic-device, strict-auth backend,
+  frontend/backend, advisory, and Firestore rules gates pass.
+- Physical iPhone install/interaction and native `/qa/mobile` readback remain
+  pending because the connected iPhone was unavailable during this session.
 
 ## Phase 1: HealthKit/Firebase Sync Spike
 
@@ -487,8 +501,9 @@ Safety proof:
 ## Execution Sequence
 
 Current checkpoint: steps 1 through 5 are implemented, device-validated,
-integrated into `main`, and pushed. Step 6 Part A is complete and validated on
-Windows; Step 6 Part B native implementation is active next.
+integrated into `main`, and pushed. Step 6 Parts A and B are implemented and
+repeatable gates pass; Part B still needs its final physical-device
+interaction and native audit readback before integration.
 The Phase 1 Mac proof is recorded in
 [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md), and the stable Today contract
 is in [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md). Work can continue

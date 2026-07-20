@@ -30,12 +30,23 @@ native companion app.
   backend-unavailable, and invalid-response states.
 - Capped privacy-safe native decision audit transport and `/qa/mobile`
   Firebase readback.
+- Exact Swift parity with `Tests/Fixtures/mobile-intake-contract.json` for all
+  eight routes and all six review-draft kinds.
+- Strict bounded intake request/response/privacy validation plus authenticated
+  finite-deadline `POST /ai/parse-intake` networking.
+- Native Today entry point and concrete review, recovery, caution,
+  missed-workout, reflection, explanation, clarification, and refusal
+  destinations.
+- Explicit deterministic confirmation through the existing owner-scoped
+  goal/profile/plan envelopes, including workout-swap race-day, unique-day,
+  load, and hard-spacing protections.
+- Fixed privacy-safe native intake audit transport.
 
-The app does not include plan editing, onboarding, notifications, calendar
-ingestion, mobile intake/check-ins, AI mutation, or raw HealthKit cloud sync.
-Phase 2.5 mobile intake begins with the Windows/shared contract in
-[`MOBILE_INTAKE_HANDOFF.md`](../../MOBILE_INTAKE_HANDOFF.md) before this target
-receives more SwiftUI work.
+The app does not include general plan editing, onboarding, notifications,
+calendar ingestion, Phase 3 check-in persistence, AI mutation, or raw
+HealthKit cloud sync. The fixed Phase 2.5 boundary and current physical-device
+evidence limitation are in
+[`MOBILE_INTAKE_HANDOFF.md`](../../MOBILE_INTAKE_HANDOFF.md).
 
 ## Firebase Scope Decisions
 
@@ -125,9 +136,11 @@ xcodebuild \
   build
 ```
 
-The Swift suite covers canonical request/snapshot/cache parity, missing
-context, explicit zero availability, stale/prior-day cache behavior, privacy
-rejection, malformed optional AI, and stable HTTP failure mapping.
+The 32-test Swift suite covers readiness/Today/intake canonical fixtures,
+every intake route and draft kind, bounded request construction, strict
+response/privacy rejection, authenticated networking, stable failure mapping,
+confirmation grounding, availability/preferred-day transforms, and
+workout-swap invariants.
 
 Device auth, HealthKit interaction, authenticated decisions, Firestore audit
 write/readback, and web readback require the untracked Firebase configuration,

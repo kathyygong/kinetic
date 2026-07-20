@@ -13,6 +13,12 @@
 		B10000000000000000000004 /* FirestoreTodayClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000004 /* FirestoreTodayClient.swift */; };
 		B10000000000000000000005 /* MobileTodayDecisionClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000005 /* MobileTodayDecisionClient.swift */; };
 		B10000000000000000000006 /* MobileAuditTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000006 /* MobileAuditTransport.swift */; };
+		B20000000000000000000001 /* MobileIntakeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* MobileIntakeModels.swift */; };
+		B20000000000000000000002 /* MobileIntakeConfirmation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* MobileIntakeConfirmation.swift */; };
+		B20000000000000000000003 /* MobileIntakeContextBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* MobileIntakeContextBuilder.swift */; };
+		B20000000000000000000004 /* MobileIntakeClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* MobileIntakeClient.swift */; };
+		B20000000000000000000005 /* FirestoreMobileIntakeApplyClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* FirestoreMobileIntakeApplyClient.swift */; };
+		B20000000000000000000006 /* MobileIntakeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* MobileIntakeView.swift */; };
 		0D12F96022DCA9EF3C28C083 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 6985C3D2B62E235EA17E146B /* FirebaseAuth */; };
 		19A41C44B7B7EAC0027B8530 /* KineticCompanionApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88DE97D168A7D0850DD4C339 /* KineticCompanionApp.swift */; };
 		3C51B6B1E9756E35B77D4245 /* HealthKitReadinessStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC5EA145914F61B82E2A2012 /* HealthKitReadinessStore.swift */; };
@@ -35,6 +41,12 @@
 		A10000000000000000000004 /* FirestoreTodayClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreTodayClient.swift; sourceTree = "<group>"; };
 		A10000000000000000000005 /* MobileTodayDecisionClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileTodayDecisionClient.swift; sourceTree = "<group>"; };
 		A10000000000000000000006 /* MobileAuditTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileAuditTransport.swift; sourceTree = "<group>"; };
+		A20000000000000000000001 /* MobileIntakeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileIntakeModels.swift; sourceTree = "<group>"; };
+		A20000000000000000000002 /* MobileIntakeConfirmation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileIntakeConfirmation.swift; sourceTree = "<group>"; };
+		A20000000000000000000003 /* MobileIntakeContextBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileIntakeContextBuilder.swift; sourceTree = "<group>"; };
+		A20000000000000000000004 /* MobileIntakeClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileIntakeClient.swift; sourceTree = "<group>"; };
+		A20000000000000000000005 /* FirestoreMobileIntakeApplyClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreMobileIntakeApplyClient.swift; sourceTree = "<group>"; };
+		A20000000000000000000006 /* MobileIntakeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileIntakeView.swift; sourceTree = "<group>"; };
 		48A776192600D3C0D26B0392 /* KineticCompanion.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KineticCompanion.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		548BC69A4C8329E046EC1A47 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		70ED0161ECBE4358A3ED7DE2 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
@@ -67,6 +79,9 @@
 			isa = PBXGroup;
 			children = (
 				918FAE71321C37EDF1A06DCC /* MobileAuditModels.swift */,
+				A20000000000000000000002 /* MobileIntakeConfirmation.swift */,
+				A20000000000000000000003 /* MobileIntakeContextBuilder.swift */,
+				A20000000000000000000001 /* MobileIntakeModels.swift */,
 				908B50C06FD5584FFD315761 /* MobileReadinessModels.swift */,
 				A10000000000000000000002 /* MobileTodayBuilder.swift */,
 				A10000000000000000000003 /* MobileTodayCacheStore.swift */,
@@ -82,6 +97,8 @@
 				A10000000000000000000004 /* FirestoreTodayClient.swift */,
 				907C219820289BDCF0D6DFCD /* FirestoreSyncClient.swift */,
 				A10000000000000000000006 /* MobileAuditTransport.swift */,
+				A20000000000000000000005 /* FirestoreMobileIntakeApplyClient.swift */,
+				A20000000000000000000004 /* MobileIntakeClient.swift */,
 				A10000000000000000000005 /* MobileTodayDecisionClient.swift */,
 			);
 			path = Sync;
@@ -121,6 +138,7 @@
 			children = (
 				548BC69A4C8329E046EC1A47 /* DesignTokens.swift */,
 				88DE97D168A7D0850DD4C339 /* KineticCompanionApp.swift */,
+				A20000000000000000000006 /* MobileIntakeView.swift */,
 				70ED0161ECBE4358A3ED7DE2 /* TodayView.swift */,
 			);
 			path = App;
@@ -230,14 +248,20 @@
 				3C51B6B1E9756E35B77D4245 /* HealthKitReadinessStore.swift in Sources */,
 				19A41C44B7B7EAC0027B8530 /* KineticCompanionApp.swift in Sources */,
 				60F59186E31A61833C459459 /* MobileAuditModels.swift in Sources */,
+				B20000000000000000000002 /* MobileIntakeConfirmation.swift in Sources */,
+				B20000000000000000000003 /* MobileIntakeContextBuilder.swift in Sources */,
+				B20000000000000000000001 /* MobileIntakeModels.swift in Sources */,
 				DC41590601804C8EC704EA58 /* MobileReadinessModels.swift in Sources */,
 				B10000000000000000000006 /* MobileAuditTransport.swift in Sources */,
+				B20000000000000000000005 /* FirestoreMobileIntakeApplyClient.swift in Sources */,
+				B20000000000000000000004 /* MobileIntakeClient.swift in Sources */,
 				B10000000000000000000002 /* MobileTodayBuilder.swift in Sources */,
 				B10000000000000000000003 /* MobileTodayCacheStore.swift in Sources */,
 				B10000000000000000000005 /* MobileTodayDecisionClient.swift in Sources */,
 				B10000000000000000000001 /* MobileTodayModels.swift in Sources */,
 				EE112860137408B029252B5E /* ReadinessConflictResolver.swift in Sources */,
 				6ECFA54D2AD8C9D0D545DFAE /* TodayView.swift in Sources */,
+				B20000000000000000000006 /* MobileIntakeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

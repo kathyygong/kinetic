@@ -77,6 +77,42 @@ final class MobileAuditModelsTests: XCTestCase {
         )
     }
 
+    func testIntakeAuditUsesOnlyFixedPrivacySafeVocabulary() throws {
+        let envelope = MobileAuditEnvelope(
+            properties: MobileIntakeLifecycleAudit(
+                action: .routed,
+                outcome: .success,
+                route: .reviewDraft,
+                draftKind: .availability,
+                failureState: .none,
+                parserSource: .deterministic,
+                mutationState: .reviewOnly,
+                deterministicValidation: .notRun,
+                latencyMs: 512
+            )
+        )
+        let data = try JSONEncoder().encode(envelope)
+        let object = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: data) as? [String: Any]
+        )
+        let properties = try XCTUnwrap(object["properties"] as? [String: Any])
+        XCTAssertEqual(
+            Set(properties.keys),
+            [
+                "platform", "action", "outcome", "route", "draft_kind",
+                "failure_state", "parser_source", "mutation_state",
+                "deterministic_validation", "latency_ms"
+            ]
+        )
+        let serialized = String(decoding: data, as: UTF8.self)
+        for forbidden in [
+            "text", "note", "source_text", "generated_prose", "uid", "email",
+            "token", "sleep_hours", "hrv", "fatigue", "soreness", "pain_severity"
+        ] {
+            XCTAssertFalse(serialized.contains("\"\(forbidden)\""))
+        }
+    }
+
     private func encodedJson<Payload: Encodable>(_ payload: Payload) throws -> [String: Any] {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601

@@ -17,9 +17,11 @@ proved Firebase sign-in, read-only HealthKit summarization, bounded Firestore
 sync, same-user web readback, retry behavior, and deletion tombstones. The
 shared authenticated contract for calendar-aware Native Today completed on
 Windows on 2026-07-16, and its SwiftUI/signed-device implementation completed
-on 2026-07-17. That work was integrated into `main` on 2026-07-20. The active
-milestone is Phase 2.5 bounded mobile natural-language intake, followed by the
-recovery/check-in loop. Do not expand into a full native app,
+on 2026-07-17. That work was integrated into `main` on 2026-07-20. Phase 2.5
+shared and native implementation plus repeatable Mac gates completed on
+2026-07-20; final physical-device intake and native audit readback remain
+before integration. The recovery/check-in loop follows. Do not expand into a
+full native app,
 Garmin/Oura ingestion, hosted AI, broad push notifications, coach sharing, or
 autonomous AI plan mutation without another explicit product decision.
 
@@ -27,8 +29,8 @@ The mobile phase plan lives in
 [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md). The completed native
 execution record lives in [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md), and
 the stable Today request/cache/failure boundary lives in
-[MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md). The active Windows-first
-Phase 2.5 scope and future Mac handoff are in
+[MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md). The fixed Phase 2.5
+scope and native evidence are in
 [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md).
 
 ## Environment posture
@@ -169,11 +171,13 @@ Before inviting mobile beta users:
 15. Confirm existing deterministic backend gates still pass after any mobile
    schema or decision-input changes.
 
-Windows Part A passed these checks on 2026-07-20. Do not invite native mobile
-beta users until Part B consumes `mobile-intake.v1`, passes the same canonical
-fixture in Swift, and completes simulator/device/auth/failure/mutation/readback
-proof. Part A does not implement perceived-recovery, caution, missed-workout,
-or reflection persistence; those routes remain bounded destinations.
+Part A and the Part B native implementation passed the repeatable contract,
+simulator-build/launch, signed generic-device, strict-auth backend,
+failure/mutation, dependency, backend, and Firestore gates on 2026-07-20. Do
+not invite native mobile beta users until the unavailable physical iPhone is
+reconnected and completes install/interaction plus native `/qa/mobile`
+readback. Perceived-recovery, caution, missed-workout, and reflection
+persistence remains deferred; these are bounded destinations in Phase 2.5.
 
 ## Live Firebase persistence QA
 

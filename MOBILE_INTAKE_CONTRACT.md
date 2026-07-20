@@ -1,7 +1,10 @@
 # Mobile Intake Contract
 
-Status: Windows/shared Part A complete and validated on 2026-07-20. Native
-Swift/Codable/SwiftUI consumption remains Part B.
+Status: Windows/shared Part A and macOS/native Part B implementation completed
+on 2026-07-20. Swift package, simulator build/launch, signed generic-device
+build, strict-auth backend, shared web/backend, advisory, and Firestore rules
+gates pass. Physical-device install/interaction and native `/qa/mobile`
+readback remain pending because the connected iPhone was unavailable.
 
 This contract defines the bounded mobile request and routing response carried
 by the existing authenticated `POST /ai/parse-intake` endpoint. Its schema is
@@ -118,9 +121,32 @@ On 2026-07-20 the Windows suite passed:
 - Auth + Firestore emulator rules, including owner read/write and cross-user
   denial for bounded mobile intake lifecycle audit events.
 
-Part A is ready for the macOS/SwiftUI handoff. Part B must consume this exact
-schema and fixture; it must not add a native mutation endpoint or implement the
-deferred Phase 3 persistence loop. The complete Mac execution and validation
-procedure, plus the short continuation prompt, lives under **Mac Continuation
-Instructions** in
-[MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md).
+## Native consumption
+
+The native implementation consumes this exact schema and fixture:
+
+- Swift exact-key validation rejects unknown enums, extra structure,
+  malformed JSON, mutation claims, and privacy-forbidden response fields.
+- The request builder includes only the transient trimmed note, local day,
+  bounded goal/profile context, and optional Today decision buckets.
+- The authenticated client uses the existing `/ai/parse-intake` endpoint with
+  a 30-second deadline and stable auth/offline/timeout/backend/invalid-response
+  failures. Drafts are never cached.
+- Native Today exposes the short entry point and renders all eight bounded
+  destinations. Recovery, caution, missed-workout, and reflection remain
+  non-persisting Phase 2.5 destinations.
+- Confirmation keeps the note only in volatile memory, re-reads the existing
+  owner-scoped `goal`, `profile`, and `plan` envelopes in one transaction, and
+  reruns grounding and plan validation before any write.
+- Preferred-day, availability/travel, and workout-swap changes transform the
+  existing plan deterministically. Workout swaps preserve unique days and
+  weekly load, reject race-day movement, and cannot worsen adjacent hard-day
+  spacing. Goal or experience changes update their existing domain and
+  tombstone the now-stale saved plan for deterministic regeneration.
+- Native audit transport uses only the fixed action/outcome/route/draft-kind/
+  failure/parser/mutation/validation/platform/latency vocabulary.
+
+The dated command and device evidence is in
+[MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md). The implementation
+does not add a native mutation endpoint or the deferred Phase 3 persistence
+loop.

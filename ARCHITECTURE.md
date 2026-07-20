@@ -185,6 +185,16 @@ bounded product flow, and keep deterministic confirmation authoritative. Its
 Windows-first contract is scoped in
 [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md).
 
+The Phase 2.5 native implementation consumes the same fixed fixture with
+strict exact-key Codable validation, builds only bounded context, and calls
+the existing authenticated intake endpoint with a finite deadline. The note
+exists only in the editor/request and volatile confirmation state. Routing
+never writes. Explicit confirmation re-reads and updates the existing
+owner-scoped goal/profile/plan envelopes in one transaction after rerunning
+grounding and deterministic plan checks. There is no mobile-only domain or
+mutation endpoint. Guided recovery, caution, missed-workout, and reflection
+destinations still do not persist until Phase 3.
+
 ## Readiness integration boundary
 
 The web beta supports two readiness inputs: manual Recovery entry and Apple
@@ -268,4 +278,6 @@ values, and medical data are not accepted by this event family.
   suite on 2026-07-20. The canonical fixture covers all eight tagged routes,
   six review-draft kinds, strict auth, timeout, unavailable/malformed AI,
   malformed response, ambiguity, unsupported/unsafe input, deterministic
-  confirmation, audit privacy, and owner-only readback. Native Part B remains.
+  confirmation, audit privacy, and owner-only readback. Native Part B
+  implementation and repeatable Mac gates pass; physical-device interaction
+  and native audit readback remain.
