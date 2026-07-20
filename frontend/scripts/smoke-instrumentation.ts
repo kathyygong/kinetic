@@ -275,8 +275,12 @@ async function main(): Promise<void> {
       name: "mobile_checkin_synced",
       properties: {
         platform: "ios",
+        checkin_kind: "perceived_recovery",
         status: "checked_in",
         outcome: "success",
+        failure_state: "none",
+        write_scope: "readiness",
+        deterministic_validation: "passed",
         has_effort: false,
         has_user_reflection: false,
         update_succeeded: true,

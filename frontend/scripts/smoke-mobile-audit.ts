@@ -105,8 +105,12 @@ async function main(): Promise<void> {
   });
   trackProductEvent("mobile_checkin_synced", {
     platform: "ios",
+    checkin_kind: "perceived_recovery",
     status: "checked_in",
     outcome: "success",
+    failure_state: "none",
+    write_scope: "readiness",
+    deterministic_validation: "passed",
     has_effort: false,
     has_user_reflection: false,
     update_succeeded: true,
@@ -138,9 +142,12 @@ async function main(): Promise<void> {
     mobileEvents.some(
       (event) =>
         event.name === "mobile_checkin_synced" &&
-        event.properties.status === "checked_in",
+        event.properties.status === "checked_in" &&
+        event.properties.checkin_kind === "perceived_recovery" &&
+        event.properties.write_scope === "readiness" &&
+        event.properties.deterministic_validation === "passed",
     ),
-    "mobile QA should expose check-in outcomes",
+    "mobile QA should expose bounded check-in lifecycle outcomes",
   );
   expect(
     mobileEvents.some(

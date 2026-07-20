@@ -63,8 +63,12 @@ const SAFE_KEYS: Record<string, ReadonlySet<string>> = {
   ]),
   mobile_checkin_synced: new Set([
     "platform",
+    "checkin_kind",
     "status",
     "outcome",
+    "failure_state",
+    "write_scope",
+    "deterministic_validation",
     "has_effort",
     "has_user_reflection",
     "update_succeeded",
@@ -105,6 +109,9 @@ const SAFE_ENUM_VALUES: Record<string, ReadonlySet<string>> = {
     "ambiguous",
     "unsupported",
     "unsafe",
+    "invalid_payload",
+    "state_conflict",
+    "permission_denied",
     "unknown",
   ]),
   cache_state: new Set(["fresh", "stale", "expired", "missing"]),
@@ -160,6 +167,8 @@ const SAFE_ENUM_VALUES: Record<string, ReadonlySet<string>> = {
     "unsupported",
   ]),
   source: new Set(["ollama", "deterministic", "cache", "client", "unknown", "other"]),
+  checkin_kind: new Set(["perceived_recovery", "workout_outcome"]),
+  write_scope: new Set(["readiness", "workouts_recommendations", "none"]),
 };
 const SAFE_NUMBER_LIMITS: Record<string, readonly [number, number]> = {
   latency_ms: [0, 120_000],

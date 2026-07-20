@@ -58,6 +58,13 @@ export type RecommendationEvent = {
     durationMinutes?: number;
     /** Subjective effort 1-10. */
     perceivedEffort?: number;
+    /** Bounded reflection category; never raw prose. */
+    reflectionCategory?:
+      | "easier_than_expected"
+      | "as_expected"
+      | "harder_than_expected";
+    /** Bounded reason for a skipped workout; never raw prose. */
+    skipReason?: "schedule" | "recovery" | "pain_or_discomfort" | "other";
     note?: string;
   };
   /** Environmental context at recommendation time. */

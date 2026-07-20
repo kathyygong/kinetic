@@ -13,7 +13,10 @@ export type AppleHealthImportResult = {
 };
 
 type ReadinessPatch = Omit<Partial<ManualReadiness>, "date" | "updated_at">;
-type CsvReadinessField = Exclude<keyof ReadinessPatch, "source">;
+type CsvReadinessField = Exclude<
+  keyof ReadinessPatch,
+  "source" | "perceived_recovery"
+>;
 
 const HEADER_ALIASES: Record<CsvReadinessField, string[]> = {
   sleep_hours: ["sleep_hours", "sleep", "asleep_hours", "time_asleep_hours"],

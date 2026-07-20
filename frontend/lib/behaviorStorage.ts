@@ -30,7 +30,7 @@ export const LEARNED_PREFERENCE_KEY = "kinetic_learned_preferences";
 export const DISMISSED_PREFERENCE_KEY = "kinetic_dismissed_preferences";
 const BEHAVIOR_LOG_VERSION = 1;
 
-type RecommendationLog = {
+export type RecommendationLog = {
   version: number;
   /** event id -> RecommendationEvent. */
   events: Record<string, RecommendationEvent>;

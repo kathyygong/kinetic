@@ -20,6 +20,8 @@ export const READINESS_STORAGE_KEY = "kinetic_readiness";
 export type FatigueLevel = 1 | 2 | 3 | 4 | 5;
 /** 1 = none, 5 = very sore. */
 export type SorenessLevel = 1 | 2 | 3 | 4 | 5;
+/** 1 = very poor, 5 = excellent. Explicit self-report only. */
+export type PerceivedRecoveryLevel = 1 | 2 | 3 | 4 | 5;
 
 /**
  * One day's manually-entered readiness. All metric fields are optional
@@ -33,6 +35,7 @@ export type ManualReadiness = {
   resting_hr?: number;
   fatigue_level?: FatigueLevel;
   soreness_level?: SorenessLevel;
+  perceived_recovery?: PerceivedRecoveryLevel;
   /** Advisory provenance for cross-device conflict handling. */
   source?: "manual" | "apple_health_csv" | "healthkit" | "demo" | "mixed";
   /** ISO timestamp of the most recent edit. */
@@ -251,6 +254,9 @@ function isManualReadiness(value: unknown): value is ManualReadiness {
   if (v.resting_hr !== undefined && !isNonNegFinite(v.resting_hr)) return false;
   if (v.fatigue_level !== undefined && !isLevel1to5(v.fatigue_level)) return false;
   if (v.soreness_level !== undefined && !isLevel1to5(v.soreness_level)) return false;
+  if (v.perceived_recovery !== undefined && !isLevel1to5(v.perceived_recovery)) {
+    return false;
+  }
   if (v.source !== undefined && !isReadinessSource(v.source)) return false;
   return true;
 }

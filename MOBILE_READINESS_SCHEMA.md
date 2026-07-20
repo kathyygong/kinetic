@@ -54,6 +54,7 @@ Allowed readiness entry fields:
 | `resting_hr` | number | `20..220` | Daily resting heart rate in bpm. |
 | `fatigue_level` | integer | `1..5` | Manual/self-report only. |
 | `soreness_level` | integer | `1..5` | Manual/self-report only. |
+| `perceived_recovery` | integer | `1..5` | Explicit Phase 3 self-report only; never inferred from HealthKit or text. |
 | `source` | enum | see below | Advisory provenance for conflict handling. |
 | `updated_at` | ISO timestamp | required | Time this daily entry was last changed. |
 
@@ -177,8 +178,8 @@ The iOS companion must summarize on device before writing Firestore:
 - HRV: bounded daily summary in milliseconds, rounded to two decimals.
 - Resting HR: bounded daily summary in bpm, rounded to the nearest sensible
   value from HealthKit's statistics.
-- Fatigue and soreness: never inferred from HealthKit. These remain manual
-  self-reports.
+- Perceived recovery, fatigue, and soreness: never inferred from HealthKit or
+  free text. These remain explicit manual self-reports.
 
 If a metric is missing, not permitted, or too sparse, omit that metric from the
 readiness entry and mark the coverage state in `health_sync`.
@@ -201,12 +202,20 @@ For each local day:
 5. If the existing entry has no source, treat it as user-authored and do not
    overwrite it. Record `manual_wins` until the web app stamps source metadata
    everywhere.
-6. If HealthKit supplies only some metrics for a day, merge only HealthKit-owned
+6. If the existing entry is `mixed`, preserve it as an explicit user-authored
+   correction and record `manual_wins`.
+7. If HealthKit supplies only some metrics for a day, merge only HealthKit-owned
    fields and mark partial coverage.
 
 Manual web edits remain the highest-priority freshness source because they are
 explicit user intent. HealthKit improves default coverage; it does not erase a
 runner's correction.
+
+Phase 3 perceived-recovery capture follows
+[MOBILE_CHECKIN_CONTRACT.md](./MOBILE_CHECKIN_CONTRACT.md): it preserves the
+existing local-day HealthKit metrics, overlays only explicit bounded
+subjective fields (and an explicit sleep correction when supplied), and stamps
+`source: "mixed"`. Routing text is never persisted as readiness data.
 
 ## Delete And Disconnect
 
@@ -230,8 +239,9 @@ Before mobile beta, verify:
 - Firestore contains no per-sample timestamps.
 - Firestore contains no raw workout notes, calendar text, device identifier,
   email, UID in payload, token, or secret.
-- Product telemetry does not log sleep, HRV, resting HR, fatigue, soreness, or
-  HealthKit permission details beyond coarse event outcomes.
+- Product telemetry does not log sleep, HRV, resting HR, perceived recovery,
+  fatigue, soreness, or HealthKit permission details beyond coarse event
+  outcomes.
 
 ## Mobile Observability Contract
 

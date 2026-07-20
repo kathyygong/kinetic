@@ -195,6 +195,17 @@ grounding and deterministic plan checks. There is no mobile-only domain or
 mutation endpoint. Guided recovery, caution, missed-workout, and reflection
 destinations still do not persist until Phase 3.
 
+Phase 3 Part A makes that persistence boundary concrete through
+`mobile-checkin.v1`. Perceived recovery is an explicit user-authored merge into
+the existing `readiness` envelope, preserving HealthKit biometrics unless the
+runner explicitly corrects bounded sleep. Completed/skipped workout outcomes
+replace the matching slot in `workouts` and the stable same-day event in
+`recommendations`; native Part B must commit those payloads atomically. The
+pure shared validator performs no I/O, and no backend mutation endpoint or
+mobile-only history domain was added. See
+[MOBILE_CHECKIN_CONTRACT.md](./MOBILE_CHECKIN_CONTRACT.md) and
+[MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
+
 ## Readiness integration boundary
 
 The web beta supports two readiness inputs: manual Recovery entry and Apple
@@ -242,6 +253,13 @@ envelope. Raw intake text, grounding evidence, generated prose, identity,
 tokens, readiness/biometric values, recovery values, pain severity, completion
 values, and medical data are not accepted by this event family.
 
+For `mobile_checkin_synced`, the vocabulary is limited to platform, check-in
+kind, bounded status/outcome/failure, write scope, deterministic validation,
+effort/reflection presence booleans, update success, and bounded latency.
+Captured recovery, effort, reflection, skip-reason, HealthKit, identity,
+token, note, and medical values are excluded. `/qa/mobile` reads these bounded
+fields from the existing owner-only audit envelope.
+
 ## Verification
 
 - Frontend lint, production build, and deterministic smoke suites.
@@ -271,7 +289,8 @@ values, and medical data are not accepted by this event family.
   Windows frontend/backend plus Swift fixture, cache, response, observability,
   simulator-build, and signed physical-device gates, including strict live
   decision, zero-minute conflict, same-day cache fallback, and `/qa/mobile`
-  readback. Later phases add bounded mobile intake, check-ins, and stale
+  readback. Phase 2.5 adds bounded mobile intake, Phase 3 Part A defines the
+  check-in contract, and later native work adds check-in persistence and stale
   background-delivery recovery. See
   [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md).
 - Mobile Phase 2.5 Part A passed the full Windows frontend/backend/Firestore

@@ -2,6 +2,10 @@ import {
   assertHealthSyncEnvelope,
   assertReadinessEnvelope,
 } from "../mobileReadinessContract";
+import {
+  assertRecommendationLog,
+  assertWorkoutLog,
+} from "../mobileCheckinContract";
 import type {
   PersistedEnvelope,
   PersistenceDomain,
@@ -20,6 +24,12 @@ export function coerceRemoteEnvelope(
   try {
     if (domain === "readiness") assertReadinessEnvelope(value);
     if (domain === "health_sync") assertHealthSyncEnvelope(value);
+    if (domain === "workouts" && !value.deleted) {
+      assertWorkoutLog(value.payload);
+    }
+    if (domain === "recommendations" && !value.deleted) {
+      assertRecommendationLog(value.payload);
+    }
   } catch {
     return null;
   }

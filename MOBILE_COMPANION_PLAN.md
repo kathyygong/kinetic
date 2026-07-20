@@ -320,6 +320,12 @@ Acceptance:
 
 Goal: close the daily habit loop.
 
+Status: Part A Windows/shared `mobile-checkin.v1` contract completed
+2026-07-20. The canonical fixture, deterministic application, existing-domain
+payloads, privacy-safe lifecycle audit, web readback, backend compatibility,
+and owner-only rules coverage are ready for Part B Mac/SwiftUI. See
+[MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
+
 Build:
 
 - Manual perceived-recovery capture for days where HealthKit is missing,

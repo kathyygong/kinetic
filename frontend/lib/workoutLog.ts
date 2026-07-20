@@ -44,7 +44,7 @@ export type WorkoutLogEntry = {
   acceptedAdjustment?: boolean;
 };
 
-type WorkoutLog = {
+export type WorkoutLog = {
   /** `goalSignature(goal)` from `lib/storage` — invalidates on goal change. */
   goalSig: string;
   entries: WorkoutLogEntry[];

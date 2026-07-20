@@ -166,10 +166,16 @@ export function assertReadinessEntry(
   assertOptionalRange(value.resting_hr, 20, 220, `${label}.resting_hr`);
   assertOptionalLevel(value.fatigue_level, `${label}.fatigue_level`);
   assertOptionalLevel(value.soreness_level, `${label}.soreness_level`);
+  assertOptionalLevel(
+    value.perceived_recovery,
+    `${label}.perceived_recovery`,
+  );
   if (value.source !== undefined) assertSetValue(value.source, readinessSources, `${label}.source`);
   if (
     value.source === "healthkit" &&
-    (value.fatigue_level !== undefined || value.soreness_level !== undefined)
+    (value.fatigue_level !== undefined ||
+      value.soreness_level !== undefined ||
+      value.perceived_recovery !== undefined)
   ) {
     throw new Error(`${label} cannot attribute subjective levels to HealthKit`);
   }

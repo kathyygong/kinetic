@@ -188,7 +188,16 @@ iOS 26.5.2 physical matrix passed install, authenticated route interaction,
 confirmed availability mutation, unsafe/ungrounded swap rejection, bounded
 `/qa/mobile` readback, Today/cache, HealthKit, reconnect, and tombstone checks.
 Perceived-recovery, caution, missed-workout, and reflection persistence remains
-deferred; these are bounded destinations in Phase 2.5.
+absent from the integrated native app; these are bounded Phase 2.5
+destinations until Phase 3 Part B.
+
+Phase 3 Part A now defines that persistence boundary without enabling native
+writes yet. Use [MOBILE_CHECKIN_CONTRACT.md](./MOBILE_CHECKIN_CONTRACT.md) and
+the canonical `mobile-checkin-contract.json` fixture. Recovery writes may
+merge only explicit bounded subjective fields into `readiness`; workout
+outcomes must update existing `workouts` and `recommendations` atomically.
+No free text, inferred readiness, raw HealthKit sample, pain severity, injury,
+or medical field may cross this boundary.
 
 ## Live Firebase persistence QA
 
@@ -226,6 +235,12 @@ For `mobile_intake_lifecycle`, also verify that `/qa/mobile` contains only
 action, outcome, route, draft kind, failure, parser, mutation, validation,
 platform, and bounded latency fields. It must not contain the note, grounding
 text, generated prose, recovery/pain/completion values, or medical data.
+
+For `mobile_checkin_synced`, verify that `/qa/mobile` contains only platform,
+check-in kind, status, outcome, failure, write scope, deterministic-validation
+state, effort/reflection presence, update success, and bounded latency. It
+must not contain captured values, notes, prose, identity, tokens, biometrics,
+HealthKit samples, pain/injury, or medical data.
 
 Run `npm run smoke` and confirm `smoke-instrumentation.ts` passes before
 shipping telemetry changes. The smoke covers every typed event family,

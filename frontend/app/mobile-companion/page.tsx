@@ -171,8 +171,12 @@ export default function MobileCompanionPrototype() {
     setStatus("checked_in");
     trackProductEvent("mobile_checkin_synced", {
       platform: "ios",
+      checkin_kind: "perceived_recovery",
       status: "checked_in",
       outcome: "success",
+      failure_state: "none",
+      write_scope: "readiness",
+      deterministic_validation: "passed",
       has_effort: false,
       has_user_reflection: false,
       update_succeeded: true,
@@ -184,8 +188,12 @@ export default function MobileCompanionPrototype() {
     setStatus("completed");
     trackProductEvent("mobile_checkin_synced", {
       platform: "ios",
+      checkin_kind: "workout_outcome",
       status: "completed",
       outcome: "success",
+      failure_state: "none",
+      write_scope: "workouts_recommendations",
+      deterministic_validation: "passed",
       has_effort: true,
       has_user_reflection: false,
       update_succeeded: true,
@@ -197,8 +205,12 @@ export default function MobileCompanionPrototype() {
     setStatus("skipped");
     trackProductEvent("mobile_checkin_synced", {
       platform: "ios",
+      checkin_kind: "workout_outcome",
       status: "skipped",
       outcome: "success",
+      failure_state: "none",
+      write_scope: "workouts_recommendations",
+      deterministic_validation: "passed",
       has_effort: false,
       has_user_reflection: false,
       update_succeeded: true,

@@ -204,11 +204,23 @@ type ProductEventProperties = {
   };
   mobile_checkin_synced: {
     platform: "ios";
+    checkin_kind: "perceived_recovery" | "workout_outcome";
     status: "completed" | "skipped" | "checked_in";
-    outcome: "success" | "failed" | "timeout";
+    outcome: "success" | "failed" | "invalid" | "timeout";
+    failure_state:
+      | "none"
+      | "auth_required"
+      | "offline"
+      | "timeout"
+      | "invalid_payload"
+      | "state_conflict"
+      | "permission_denied"
+      | "unknown";
+    write_scope: "readiness" | "workouts_recommendations" | "none";
+    deterministic_validation: "passed" | "failed" | "not_run";
     has_effort: boolean;
     has_user_reflection: boolean;
-    update_succeeded?: boolean;
+    update_succeeded: boolean;
     latency_ms: number;
   };
 };
@@ -391,8 +403,12 @@ const EVENT_KEYS: {
   ],
   mobile_checkin_synced: [
     "platform",
+    "checkin_kind",
     "status",
     "outcome",
+    "failure_state",
+    "write_scope",
+    "deterministic_validation",
     "has_effort",
     "has_user_reflection",
     "update_succeeded",
@@ -488,6 +504,9 @@ const ENUM_VALUES: Record<string, readonly string[]> = {
     "ambiguous",
     "unsupported",
     "unsafe",
+    "invalid_payload",
+    "state_conflict",
+    "permission_denied",
     "unknown",
     "other",
   ],
@@ -535,6 +554,8 @@ const ENUM_VALUES: Record<string, readonly string[]> = {
     "rejected",
     "other",
   ],
+  checkin_kind: ["perceived_recovery", "workout_outcome", "other"],
+  write_scope: ["readiness", "workouts_recommendations", "none", "other"],
   preference_type: [
     "busy_day_preference",
     "rest_day_preference",

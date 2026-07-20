@@ -927,6 +927,21 @@ integration rerun and were fast-forwarded into `main`; see
 - Kept `mobile-intake.v1` and its canonical fixture unchanged; Phase 3
   persistence and broader native scope remain deferred.
 
+### Mobile Phase 3 Shared Check-In Contract - Part A Completed 2026-07-20
+
+- Added strict `mobile-checkin.v1` requests for explicit perceived recovery
+  and completed/skipped workout outcomes, with a canonical cross-platform
+  fixture and pure deterministic validation/application.
+- Reused the existing `readiness`, `workouts`, and `recommendations` domains;
+  added no backend mutation endpoint or mobile-only history.
+- Preserved HealthKit biometrics during subjective recovery merge and defined
+  atomic workout/recommendation application with stable idempotent event IDs.
+- Added bounded failure taxonomy, privacy-safe `mobile_checkin_synced`
+  telemetry, `/qa/mobile` readback, strict-auth backend compatibility, and
+  owner-only Firestore coverage.
+- Deferred SwiftUI/native persistence and device proof to Part B in
+  [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
+
 ### Mobile Phase 2A Shared Today Contract - Completed 2026-07-16
 
 - Added `MOBILE_TODAY_CONTRACT.md` and a canonical fixture shared from

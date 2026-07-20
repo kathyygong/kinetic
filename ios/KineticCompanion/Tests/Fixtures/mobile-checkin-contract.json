@@ -1,0 +1,286 @@
+{
+  "schema_version": "mobile-checkin-fixture.v1",
+  "contract_schema": "mobile-checkin.v1",
+  "now": "2026-07-20T18:00:00Z",
+  "state": {
+    "goal_signature": "10k|2026-10-18|24|intermediate",
+    "plan_slots": [
+      {
+        "week_number": 3,
+        "day": "Mon",
+        "scheduled_date": "2026-07-20",
+        "workout": "tempo"
+      }
+    ],
+    "readiness": {
+      "entries": {
+        "2026-07-20": {
+          "date": "2026-07-20",
+          "sleep_hours": 7.25,
+          "hrv": 55,
+          "resting_hr": 49,
+          "source": "healthkit",
+          "updated_at": "2026-07-20T10:00:00Z"
+        }
+      }
+    },
+    "workouts": {
+      "goalSig": "10k|2026-10-18|24|intermediate",
+      "entries": []
+    },
+    "recommendations": {
+      "version": 1,
+      "events": {}
+    }
+  },
+  "success_cases": [
+    {
+      "id": "recovery_preserves_healthkit",
+      "request": {
+        "schema_version": "mobile-checkin.v1",
+        "platform": "ios",
+        "kind": "perceived_recovery",
+        "local_day": "2026-07-20",
+        "captured_at": "2026-07-20T17:45:00Z",
+        "recovery": {
+          "perceived_recovery": 2,
+          "fatigue_level": 4,
+          "soreness_level": 3,
+          "sleep_hours_correction": null
+        }
+      },
+      "expected_write_domains": ["readiness"],
+      "expected_readiness": {
+        "date": "2026-07-20",
+        "sleep_hours": 7.25,
+        "hrv": 55,
+        "resting_hr": 49,
+        "perceived_recovery": 2,
+        "fatigue_level": 4,
+        "soreness_level": 3,
+        "source": "mixed",
+        "updated_at": "2026-07-20T17:45:00Z"
+      }
+    },
+    {
+      "id": "completed_modified_workout",
+      "request": {
+        "schema_version": "mobile-checkin.v1",
+        "platform": "ios",
+        "kind": "workout_outcome",
+        "local_day": "2026-07-20",
+        "captured_at": "2026-07-20T17:50:00Z",
+        "workout": {
+          "week_number": 3,
+          "day": "Mon",
+          "scheduled_date": "2026-07-20",
+          "status": "completed",
+          "perceived_effort": 7,
+          "reflection": "harder_than_expected",
+          "skip_reason": null,
+          "selected_action": "modify",
+          "confidence_bucket": "moderate",
+          "planned_workout": "tempo",
+          "recommended_workout": "easy",
+          "adjustment_response": "accepted"
+        }
+      },
+      "expected_write_domains": ["workouts", "recommendations"],
+      "expected_event_id": "mobile:2026-07-20:3:mon",
+      "expected_status": "completed",
+      "expected_effort": 7,
+      "expected_reflection": "harder_than_expected"
+    },
+    {
+      "id": "skipped_rest_recommendation",
+      "request": {
+        "schema_version": "mobile-checkin.v1",
+        "platform": "ios",
+        "kind": "workout_outcome",
+        "local_day": "2026-07-20",
+        "captured_at": "2026-07-20T17:55:00Z",
+        "workout": {
+          "week_number": 3,
+          "day": "Mon",
+          "scheduled_date": "2026-07-20",
+          "status": "skipped",
+          "perceived_effort": null,
+          "reflection": null,
+          "skip_reason": "recovery",
+          "selected_action": "rest",
+          "confidence_bucket": "high",
+          "planned_workout": "tempo",
+          "recommended_workout": "rest",
+          "adjustment_response": "accepted"
+        }
+      },
+      "expected_write_domains": ["workouts", "recommendations"],
+      "expected_event_id": "mobile:2026-07-20:3:mon",
+      "expected_status": "skipped",
+      "expected_skip_reason": "recovery"
+    }
+  ],
+  "failure_cases": [
+    {
+      "id": "forbidden_raw_note",
+      "request": {
+        "schema_version": "mobile-checkin.v1",
+        "platform": "ios",
+        "kind": "perceived_recovery",
+        "local_day": "2026-07-20",
+        "captured_at": "2026-07-20T17:45:00Z",
+        "recovery": {
+          "perceived_recovery": 2,
+          "fatigue_level": 4,
+          "soreness_level": 3,
+          "sleep_hours_correction": null,
+          "note": "private prose"
+        }
+      },
+      "expected_failure": "invalid_payload"
+    },
+    {
+      "id": "hidden_biometric",
+      "request": {
+        "schema_version": "mobile-checkin.v1",
+        "platform": "ios",
+        "kind": "perceived_recovery",
+        "local_day": "2026-07-20",
+        "captured_at": "2026-07-20T17:45:00Z",
+        "recovery": {
+          "perceived_recovery": 2,
+          "fatigue_level": 4,
+          "soreness_level": 3,
+          "sleep_hours_correction": null,
+          "hrv": 42
+        }
+      },
+      "expected_failure": "invalid_payload"
+    },
+    {
+      "id": "invalid_recovery_level",
+      "request": {
+        "schema_version": "mobile-checkin.v1",
+        "platform": "ios",
+        "kind": "perceived_recovery",
+        "local_day": "2026-07-20",
+        "captured_at": "2026-07-20T17:45:00Z",
+        "recovery": {
+          "perceived_recovery": 6,
+          "fatigue_level": 4,
+          "soreness_level": 3,
+          "sleep_hours_correction": null
+        }
+      },
+      "expected_failure": "invalid_payload"
+    },
+    {
+      "id": "stale_timestamp",
+      "request": {
+        "schema_version": "mobile-checkin.v1",
+        "platform": "ios",
+        "kind": "perceived_recovery",
+        "local_day": "2026-07-18",
+        "captured_at": "2026-07-18T05:00:00Z",
+        "recovery": {
+          "perceived_recovery": 3,
+          "fatigue_level": 3,
+          "soreness_level": 3,
+          "sleep_hours_correction": null
+        }
+      },
+      "expected_failure": "invalid_payload"
+    },
+    {
+      "id": "completed_missing_effort",
+      "request": {
+        "schema_version": "mobile-checkin.v1",
+        "platform": "ios",
+        "kind": "workout_outcome",
+        "local_day": "2026-07-20",
+        "captured_at": "2026-07-20T17:50:00Z",
+        "workout": {
+          "week_number": 3,
+          "day": "Mon",
+          "scheduled_date": "2026-07-20",
+          "status": "completed",
+          "perceived_effort": null,
+          "reflection": "as_expected",
+          "skip_reason": null,
+          "selected_action": "proceed",
+          "confidence_bucket": "high",
+          "planned_workout": "tempo",
+          "recommended_workout": "tempo",
+          "adjustment_response": null
+        }
+      },
+      "expected_failure": "invalid_payload"
+    },
+    {
+      "id": "skipped_missing_reason",
+      "request": {
+        "schema_version": "mobile-checkin.v1",
+        "platform": "ios",
+        "kind": "workout_outcome",
+        "local_day": "2026-07-20",
+        "captured_at": "2026-07-20T17:50:00Z",
+        "workout": {
+          "week_number": 3,
+          "day": "Mon",
+          "scheduled_date": "2026-07-20",
+          "status": "skipped",
+          "perceived_effort": null,
+          "reflection": null,
+          "skip_reason": null,
+          "selected_action": "proceed",
+          "confidence_bucket": "high",
+          "planned_workout": "tempo",
+          "recommended_workout": "tempo",
+          "adjustment_response": null
+        }
+      },
+      "expected_failure": "invalid_payload"
+    },
+    {
+      "id": "plan_slot_conflict",
+      "request": {
+        "schema_version": "mobile-checkin.v1",
+        "platform": "ios",
+        "kind": "workout_outcome",
+        "local_day": "2026-07-20",
+        "captured_at": "2026-07-20T17:50:00Z",
+        "workout": {
+          "week_number": 3,
+          "day": "Tue",
+          "scheduled_date": "2026-07-20",
+          "status": "completed",
+          "perceived_effort": 5,
+          "reflection": "as_expected",
+          "skip_reason": null,
+          "selected_action": "proceed",
+          "confidence_bucket": "high",
+          "planned_workout": "tempo",
+          "recommended_workout": "tempo",
+          "adjustment_response": null
+        }
+      },
+      "expected_failure": "state_conflict"
+    }
+  ],
+  "privacy_forbidden_keys": [
+    "uid",
+    "email",
+    "token",
+    "note",
+    "raw_note",
+    "hrv",
+    "resting_hr",
+    "sleep_hours",
+    "fatigue_level",
+    "soreness_level",
+    "perceived_recovery",
+    "pain_severity",
+    "injury",
+    "medical_data"
+  ]
+}

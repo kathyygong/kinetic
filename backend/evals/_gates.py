@@ -685,6 +685,72 @@ def check_mobile_intake_failure_contract() -> None:
             os.environ["KINETIC_AUTH_REQUIRED"] = original_auth
 
 
+def check_mobile_checkin_compatibility() -> None:
+    fixture_path = (
+        Path(__file__).resolve().parents[2]
+        / "ios"
+        / "KineticCompanion"
+        / "Tests"
+        / "Fixtures"
+        / "mobile-checkin-contract.json"
+    )
+    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+    _assert(
+        fixture["contract_schema"] == "mobile-checkin.v1",
+        "mobile check-in fixture schema drifted",
+    )
+    workout_cases = [
+        case
+        for case in fixture["success_cases"]
+        if case["request"]["kind"] == "workout_outcome"
+    ]
+    events = [
+        {
+            "date": case["request"]["local_day"],
+            "completed": case["request"]["workout"]["status"] == "completed",
+            "perceived_effort": case["request"]["workout"]["perceived_effort"],
+        }
+        for case in workout_cases
+    ]
+    payload = {
+        "period": "weekly",
+        "as_of": fixture["state"]["plan_slots"][0]["scheduled_date"],
+        "events": events,
+        "confirmed_preferences": [],
+    }
+    before = copy.deepcopy(payload)
+    response = client.post("/ai/training-summary", json=payload)
+    _assert(
+        response.status_code == 200,
+        f"mobile check-in training summary HTTP {response.status_code}",
+    )
+    body = response.json()
+    _assert(body["grounding"]["read_only"], "mobile check-in review is not read-only")
+    _assert(
+        body["grounding"]["raw_notes_excluded"],
+        "mobile check-in review does not exclude raw notes",
+    )
+    _assert(body["metrics"]["logged_sessions"] == 2, "check-in history count drifted")
+    _assert(body["metrics"]["completed_sessions"] == 1, "completion count drifted")
+    _assert(body["metrics"]["missed_sessions"] == 1, "skip count drifted")
+    _assert(body["metrics"]["average_effort"] == 7, "bounded effort was lost")
+    _assert(payload == before, "training review mutated mobile check-in input")
+
+    original_auth = os.environ.get("KINETIC_AUTH_REQUIRED")
+    os.environ["KINETIC_AUTH_REQUIRED"] = "true"
+    try:
+        anonymous = client.post("/ai/training-summary", json=payload)
+        _assert(
+            anonymous.status_code == 401,
+            f"strict-auth mobile check-in review returned {anonymous.status_code}",
+        )
+    finally:
+        if original_auth is None:
+            os.environ.pop("KINETIC_AUTH_REQUIRED", None)
+        else:
+            os.environ["KINETIC_AUTH_REQUIRED"] = original_auth
+
+
 def check_training_summary() -> None:
     payload = {
         "period": "weekly",
@@ -918,6 +984,7 @@ def main() -> None:
         ("intake failure fallbacks", check_intake_failure_fallbacks),
         ("mobile intake contract", check_mobile_intake_contract),
         ("mobile intake failures and strict auth", check_mobile_intake_failure_contract),
+        ("mobile check-in compatibility and strict auth", check_mobile_checkin_compatibility),
         ("behavior insights", check_behavior_insights),
         ("behavior prompt privacy", check_behavior_prompt_privacy),
         ("training summary", check_training_summary),

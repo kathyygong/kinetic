@@ -19,6 +19,7 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { loadMobileContractFixtures } from "./smoke-mobile-readiness-contract";
+import { loadMobileCheckinFixture } from "./smoke-mobile-checkin-contract";
 
 const projectId = "kinetic-rules-test";
 const config = { apiKey: "demo-key", authDomain: "localhost", projectId };
@@ -50,6 +51,7 @@ async function expectDenied(action: () => Promise<unknown>, label: string) {
 
 async function main() {
   const fixtures = loadMobileContractFixtures();
+  const checkinFixture = loadMobileCheckinFixture();
   const appA = initializeApp(config, "rules-a");
   const appB = initializeApp(config, "rules-b");
   const appGuest = initializeApp(config, "rules-guest");
@@ -104,6 +106,14 @@ async function main() {
       "kinetic",
       "mobile_audit",
     );
+    const ownWorkouts = doc(dbA, "users", userA.uid, "kinetic", "workouts");
+    const ownRecommendations = doc(
+      dbA,
+      "users",
+      userA.uid,
+      "kinetic",
+      "recommendations",
+    );
     const foreignReadinessFromB = doc(
       dbB,
       "users",
@@ -125,6 +135,20 @@ async function main() {
       "kinetic",
       "mobile_audit",
     );
+    const foreignWorkoutsFromB = doc(
+      dbB,
+      "users",
+      userA.uid,
+      "kinetic",
+      "workouts",
+    );
+    const foreignRecommendationsFromB = doc(
+      dbB,
+      "users",
+      userA.uid,
+      "kinetic",
+      "recommendations",
+    );
     const unknownDomainA = doc(
       dbA,
       "users",
@@ -143,6 +167,18 @@ async function main() {
       ownHealthSync,
       asDocument(fixtures.health_sync_envelope, "health sync envelope"),
     );
+    await setDoc(ownWorkouts, {
+      schemaVersion: 1,
+      payload: checkinFixture.state.workouts,
+      deleted: false,
+      clientUpdatedAt: checkinFixture.now,
+    });
+    await setDoc(ownRecommendations, {
+      schemaVersion: 1,
+      payload: checkinFixture.state.recommendations,
+      deleted: false,
+      clientUpdatedAt: checkinFixture.now,
+    });
     await setDoc(ownMobileAudit, {
       schemaVersion: 1,
       payload: {
@@ -157,6 +193,25 @@ async function main() {
               platform: "ios",
               outcome: "success",
               decision_source: "live",
+            },
+          },
+          {
+            schemaVersion: 2,
+            id: "native-checkin-1",
+            name: "mobile_checkin_synced",
+            at: "2026-07-20T17:45:00.000Z",
+            properties: {
+              platform: "ios",
+              checkin_kind: "perceived_recovery",
+              status: "checked_in",
+              outcome: "success",
+              failure_state: "none",
+              write_scope: "readiness",
+              deterministic_validation: "passed",
+              has_effort: false,
+              has_user_reflection: false,
+              update_succeeded: true,
+              latency_ms: 160,
             },
           },
           {
@@ -187,15 +242,33 @@ async function main() {
       (await getDoc(ownHealthSync)).exists(),
       "owner A should read their mobile health sync document",
     );
+    const auditEvents =
+      (await getDoc(ownMobileAudit)).data()?.payload?.events ?? [];
     expect(
-      (await getDoc(ownMobileAudit)).data()?.payload?.events?.[0]?.properties
-        ?.decision_source === "live",
+      auditEvents.find(
+        (event: { name?: string }) =>
+          event.name === "mobile_decision_validated",
+      )?.properties?.decision_source === "live",
       "owner A should read privacy-safe native audit events",
     );
     expect(
-      (await getDoc(ownMobileAudit)).data()?.payload?.events?.[1]?.properties
-        ?.route === "review_draft",
+      auditEvents.find(
+        (event: { name?: string }) =>
+          event.name === "mobile_intake_lifecycle",
+      )?.properties?.route === "review_draft",
       "owner A should read bounded mobile intake lifecycle outcomes",
+    );
+    expect(
+      auditEvents.find(
+        (event: { name?: string }) =>
+          event.name === "mobile_checkin_synced",
+      )?.properties?.write_scope === "readiness",
+      "owner A should read bounded mobile check-in lifecycle outcomes",
+    );
+    expect((await getDoc(ownWorkouts)).exists(), "owner A should read workouts");
+    expect(
+      (await getDoc(ownRecommendations)).exists(),
+      "owner A should read recommendations",
     );
     const readinessSnapshot = await getDoc(ownReadiness);
     expect(readinessSnapshot.exists(), "owner A should read mobile readiness");
@@ -228,6 +301,34 @@ async function main() {
     await expectDenied(
       () => getDoc(foreignMobileAuditFromB),
       "cross-user mobile audit read",
+    );
+    await expectDenied(
+      () => getDoc(foreignWorkoutsFromB),
+      "cross-user workouts read",
+    );
+    await expectDenied(
+      () => getDoc(foreignRecommendationsFromB),
+      "cross-user recommendations read",
+    );
+    await expectDenied(
+      () =>
+        setDoc(foreignWorkoutsFromB, {
+          schemaVersion: 1,
+          payload: checkinFixture.state.workouts,
+          deleted: false,
+          clientUpdatedAt: checkinFixture.now,
+        }),
+      "cross-user workouts write",
+    );
+    await expectDenied(
+      () =>
+        setDoc(foreignRecommendationsFromB, {
+          schemaVersion: 1,
+          payload: checkinFixture.state.recommendations,
+          deleted: false,
+          clientUpdatedAt: checkinFixture.now,
+        }),
+      "cross-user recommendations write",
     );
     await expectDenied(
       () =>
@@ -272,7 +373,7 @@ async function main() {
     );
 
     console.log(
-      "OK - Firestore rules preserve owner-only mobile readiness, health sync, audit data, and tombstones",
+      "OK - Firestore rules preserve owner-only mobile readiness, check-ins, health sync, audit data, and tombstones",
     );
   } finally {
     await Promise.all([deleteApp(appA), deleteApp(appB), deleteApp(appGuest)]);
