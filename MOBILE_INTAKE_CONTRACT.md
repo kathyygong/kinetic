@@ -3,8 +3,8 @@
 Status: Windows/shared Part A and macOS/native Part B implementation completed
 on 2026-07-20. Swift package, simulator build/launch, signed generic-device
 build, strict-auth backend, shared web/backend, advisory, and Firestore rules
-gates pass. Physical-device install/interaction and native `/qa/mobile`
-readback remain pending because the connected iPhone was unavailable.
+gates pass. Signed iPhone intake, deterministic confirmation/rejection, and
+native `/qa/mobile` readback also pass.
 
 This contract defines the bounded mobile request and routing response carried
 by the existing authenticated `POST /ai/parse-intake` endpoint. Its schema is

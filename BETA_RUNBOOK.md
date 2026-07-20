@@ -19,8 +19,9 @@ shared authenticated contract for calendar-aware Native Today completed on
 Windows on 2026-07-16, and its SwiftUI/signed-device implementation completed
 on 2026-07-17. That work was integrated into `main` on 2026-07-20. Phase 2.5
 shared and native implementation plus repeatable Mac gates completed on
-2026-07-20; final physical-device intake and native audit readback remain
-before integration. The recovery/check-in loop follows. Do not expand into a
+2026-07-20; signed physical-device intake, deterministic confirmation and
+rejection, native audit readback, and Phase 1/2A regressions also passed that
+day. The recovery/check-in loop follows. Do not expand into a
 full native app,
 Garmin/Oura ingestion, hosted AI, broad push notifications, coach sharing, or
 autonomous AI plan mutation without another explicit product decision.
@@ -174,10 +175,13 @@ Before inviting mobile beta users:
 Part A and the Part B native implementation passed the repeatable contract,
 simulator-build/launch, signed generic-device, strict-auth backend,
 failure/mutation, dependency, backend, and Firestore gates on 2026-07-20. Do
-not invite native mobile beta users until the unavailable physical iPhone is
-reconnected and completes install/interaction plus native `/qa/mobile`
-readback. Perceived-recovery, caution, missed-workout, and reflection
-persistence remains deferred; these are bounded destinations in Phase 2.5.
+not invite native mobile beta users without rerunning these gates after a
+change to the fixed contract or native safety boundary. The iPhone 17 /
+iOS 26.5.2 physical matrix passed install, authenticated route interaction,
+confirmed availability mutation, unsafe/ungrounded swap rejection, bounded
+`/qa/mobile` readback, Today/cache, HealthKit, reconnect, and tombstone checks.
+Perceived-recovery, caution, missed-workout, and reflection persistence remains
+deferred; these are bounded destinations in Phase 2.5.
 
 ## Live Firebase persistence QA
 

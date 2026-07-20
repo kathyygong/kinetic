@@ -45,7 +45,7 @@ native companion app.
 The app does not include general plan editing, onboarding, notifications,
 calendar ingestion, Phase 3 check-in persistence, AI mutation, or raw
 HealthKit cloud sync. The fixed Phase 2.5 boundary and current physical-device
-evidence limitation are in
+evidence are in
 [`MOBILE_INTAKE_HANDOFF.md`](../../MOBILE_INTAKE_HANDOFF.md).
 
 ## Firebase Scope Decisions

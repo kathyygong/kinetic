@@ -3,8 +3,9 @@
 Status: Part A Windows/shared contract and Part B macOS/native implementation
 completed on 2026-07-20. Automated, simulator, signed generic-device,
 strict-auth backend, shared regression, dependency, and Firestore rules gates
-pass. Physical-device install/interaction and native `/qa/mobile` readback are
-the remaining evidence because the connected iPhone was unavailable.
+pass. Signed physical-device intake, deterministic confirmation/rejection,
+native `/qa/mobile` readback, Today/cache, HealthKit, reconnect, and tombstone
+regressions also pass.
 
 Phase 1 HealthKit/Firebase sync and Phase 2A Native Today are complete,
 device-validated, integrated into `main`, and pushed to `origin/main`. This
@@ -350,8 +351,7 @@ Implemented and validated on 2026-07-20:
 - Mac: macOS 26.5.2 build 25F84, x86_64.
 - Xcode 26.3 build 17C529; Swift 6.2.4 toolchain in Swift 5.9 package mode.
 - Simulator: iPhone 17 / iOS 26.3.
-- Connected device detected as iPhone 17, but CoreDevice reported it
-  `unavailable`; its prior Phase 2A OS record is iOS 26.5.2.
+- Physical device: iPhone 17 / iOS 26.5.2.
 - Node 25.9.0, npm 11.12.1, Python 3.12.13, and OpenJDK 21.0.11.
 
 Implemented:
@@ -375,7 +375,7 @@ Implemented:
 Passed commands and results:
 
 ```text
-swift test: 32 passed
+swift test: 41 passed
 xcodebuild generic iOS Simulator, signing disabled: passed
 xcodebuild signed generic iOS device: passed
 iPhone 17 / iOS 26.3 simulator install and signed-out launch: passed
@@ -394,15 +394,26 @@ strict local backend: anonymous 401; disposable Firebase bearer token 200;
 The npm registry reported stable Next.js `16.2.10` still depends on PostCSS
 `8.4.31`, so the verified Next-only `8.5.14` override remains.
 
-Remaining physical proof:
+Physical-device proof completed 2026-07-20:
 
-- Reconnect the unavailable iPhone, then install and launch the already
-  signing-clean build.
-- Exercise authenticated native intake, one practical route from each outcome
-  family, a valid confirmation, an invalid/unsafe swap rejection, and native
-  audit transport.
-- Read that device event through `/qa/mobile` and repeat Today zero-minute
-  calendar, same-day cache, HealthKit sync, reconnect, and tombstone checks.
+- Installed and launched the signed build on iPhone 17 / iOS 26.5.2, signed
+  in, and exercised the bounded review-draft, perceived-recovery, caution,
+  missed-workout, reflection, explanation, clarification, and refusal
+  destinations.
+- Confirmed a grounded availability change through the existing owner-scoped
+  apply path. Moving Sunday was rejected because no planned Sunday workout
+  existed; no ungrounded plan mutation occurred.
+- Native `mobile_intake_lifecycle` events appeared in `/qa/mobile` with only
+  the fixed bounded fields.
+- Native Today live loading, same-day cache fallback, HealthKit sync,
+  reconnect, and deletion-tombstone behavior passed. Without a QA availability
+  override, the missing calendar correctly used
+  `planned_workout_fallback`; this phase does not ingest Apple Calendar.
+- Apple Health Time Asleep for the verified day displayed as `11h 7m` in the
+  native app and persisted as 11 hours / 7 minutes in the web Recovery
+  readback. Sleep calculation uses only asleep-stage samples, normalizes each
+  sample to Apple's 30-second display epoch, assigns an overnight episode to
+  its wake day, and never persists raw HealthKit samples.
 
 No Part A vocabulary or fixture changes were made, no native mutation endpoint
 was added, and no Phase 3 check-in persistence or broader mobile scope was

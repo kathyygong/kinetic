@@ -279,5 +279,5 @@ values, and medical data are not accepted by this event family.
   six review-draft kinds, strict auth, timeout, unavailable/malformed AI,
   malformed response, ambiguity, unsupported/unsafe input, deterministic
   confirmation, audit privacy, and owner-only readback. Native Part B
-  implementation and repeatable Mac gates pass; physical-device interaction
-  and native audit readback remain.
+  implementation, repeatable Mac gates, signed physical-device interaction,
+  deterministic confirmation/rejection, and native audit readback pass.

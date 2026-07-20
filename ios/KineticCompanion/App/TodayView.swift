@@ -875,7 +875,7 @@ struct TodayView: View {
             if let summary = viewModel.dailySummary {
                 Divider()
                 LabeledContent("Date", value: summary.date)
-                metricLine("Sleep", value: summary.entry?.sleepHours, unit: "h")
+                sleepMetricLine(summary.entry?.sleepHours)
                 metricLine("HRV", value: summary.entry?.hrv, unit: "ms")
                 metricLine("Resting HR", value: summary.entry?.restingHeartRate, unit: "bpm")
                 LabeledContent(
@@ -973,6 +973,16 @@ struct TodayView: View {
             title,
             value: value.map {
                 "\(Self.metricFormatter.string(from: NSNumber(value: $0)) ?? "-") \(unit)"
+            } ?? "Missing"
+        )
+    }
+
+    private func sleepMetricLine(_ value: Double?) -> some View {
+        LabeledContent(
+            "Sleep",
+            value: value.map { decimalHours in
+                let totalMinutes = Int((decimalHours * 60).rounded())
+                return "\(totalMinutes / 60)h \(totalMinutes % 60)m"
             } ?? "Missing"
         )
     }

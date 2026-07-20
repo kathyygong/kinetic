@@ -49,7 +49,7 @@ Allowed readiness entry fields:
 | Field | Type | Bounds | Notes |
 | --- | --- | --- | --- |
 | `date` | `YYYY-MM-DD` string | required | Local user day, not UTC day. |
-| `sleep_hours` | number | `0..24` | Daily sleep duration summary. |
+| `sleep_hours` | number | `0..24` | Decimal hours for HealthKit's daily Time Asleep total, with each episode assigned to the local day on which it ends. |
 | `hrv` | number | `1..300` | Daily HRV summary in ms. |
 | `resting_hr` | number | `20..220` | Daily resting heart rate in bpm. |
 | `fatigue_level` | integer | `1..5` | Manual/self-report only. |
@@ -162,7 +162,18 @@ Allowed `conflict` values:
 
 The iOS companion must summarize on device before writing Firestore:
 
-- Sleep: total sleep duration for the local day, rounded to two decimals.
+- Sleep: select the supported HealthKit asleep-stage intervals, group intervals
+  separated by no more than two hours into sleep episodes, and total every
+  episode ending on the local day so the result matches HealthKit's daily Time
+  Asleep value, including naps. Look back one full local day so an overnight
+  episode is assigned in full to its wake day instead of being split at
+  midnight. Normalize each asleep-stage sample to the nearest 30-second epoch
+  to match Apple Health's displayed Time Asleep total. Compute each source
+  independently and use the source with the greatest covered duration so
+  overlapping sources are never double-counted. Awake intervals are not
+  included. Persist the decimal-hour value without intermediate decimal
+  rounding; presentation may round only after converting the final duration to
+  whole minutes.
 - HRV: bounded daily summary in milliseconds, rounded to two decimals.
 - Resting HR: bounded daily summary in bpm, rounded to the nearest sensible
   value from HealthKit's statistics.

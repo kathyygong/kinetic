@@ -23,6 +23,84 @@ protocol ReadinessProviding {
     func summarizeLocalDay(_ date: Date) async throws -> HealthKitReadinessSummary
 }
 
+enum HealthKitSleepAggregator {
+    static let maximumEpisodeGap: TimeInterval = 2 * 60 * 60
+
+    static func queryWindow(
+        dayStart: Date,
+        dayEnd: Date,
+        calendar: Calendar
+    ) -> DateInterval {
+        DateInterval(
+            start: calendar.date(byAdding: .day, value: -1, to: dayStart)
+                ?? dayStart.addingTimeInterval(-24 * 60 * 60),
+            end: dayEnd
+        )
+    }
+
+    static func appleDisplayedDailySleepHours(
+        intervalsBySource: [[DateInterval]],
+        dayStart: Date,
+        dayEnd: Date,
+        calendar: Calendar,
+        maximumGap: TimeInterval = maximumEpisodeGap,
+        epoch: TimeInterval = 30
+    ) -> Double? {
+        guard epoch > 0 else { return nil }
+        let window = queryWindow(
+            dayStart: dayStart,
+            dayEnd: dayEnd,
+            calendar: calendar
+        )
+        let sourceTotals = intervalsBySource.compactMap { sourceIntervals -> TimeInterval? in
+            let sorted = clipped(sourceIntervals, to: window)
+                .sorted { $0.start < $1.start }
+            guard !sorted.isEmpty else { return nil }
+
+            var unique: [DateInterval] = []
+            for interval in sorted where !unique.contains(interval) {
+                unique.append(interval)
+            }
+
+            var episodes: [[DateInterval]] = []
+            for interval in unique {
+                if
+                    let latest = episodes.last?.last,
+                    interval.start.timeIntervalSince(latest.end) <= maximumGap
+                {
+                    episodes[episodes.count - 1].append(interval)
+                } else {
+                    episodes.append([interval])
+                }
+            }
+
+            let seconds = episodes
+                .filter { episode in
+                    guard let end = episode.last?.end else { return false }
+                    return end >= dayStart && end < dayEnd
+                }
+                .flatMap { $0 }
+                .reduce(0) { total, interval in
+                    total + (interval.duration / epoch).rounded() * epoch
+                }
+            return seconds > 0 ? seconds : nil
+        }
+        guard let seconds = sourceTotals.max() else { return nil }
+        return seconds / 3600.0
+    }
+
+    private static func clipped(
+        _ intervals: [DateInterval],
+        to window: DateInterval
+    ) -> [DateInterval] {
+        intervals.compactMap { interval in
+            let start = max(interval.start, window.start)
+            let end = min(interval.end, window.end)
+            return end > start ? DateInterval(start: start, end: end) : nil
+        }
+    }
+}
+
 final class HealthKitReadinessStore: ReadinessProviding {
     #if canImport(HealthKit)
     private let store = HKHealthStore()
@@ -72,7 +150,11 @@ final class HealthKitReadinessStore: ReadinessProviding {
         }
 
         async let sleep = readMetric(validRange: 0...24) {
-            try await self.sleepHours(start: start, end: end)
+            try await self.sleepHours(
+                dayStart: start,
+                dayEnd: end,
+                calendar: calendar
+            )
         }
         async let hrv = readMetric(validRange: 1...300) {
             try await self.averageQuantity(
@@ -118,7 +200,7 @@ final class HealthKitReadinessStore: ReadinessProviding {
         let now = Date()
         let entry: ReadinessEntry? = completeCount == 0 ? nil : ReadinessEntry(
             date: dateKey,
-            sleepHours: results[.sleep]?.value.map { Self.round($0, places: 2) },
+            sleepHours: results[.sleep]?.value,
             hrv: results[.hrv]?.value.map { Self.round($0, places: 2) },
             restingHeartRate: results[.restingHeartRate]?.value.map { Self.round($0, places: 0) },
             fatigueLevel: nil,
@@ -215,12 +297,24 @@ final class HealthKitReadinessStore: ReadinessProviding {
         return types
     }
 
-    private func sleepHours(start: Date, end: Date) async throws -> Double? {
+    private func sleepHours(
+        dayStart: Date,
+        dayEnd: Date,
+        calendar: Calendar
+    ) async throws -> Double? {
         guard let type = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) else {
             return nil
         }
 
-        let predicate = HKQuery.predicateForSamples(withStart: start, end: end)
+        let queryWindow = HealthKitSleepAggregator.queryWindow(
+            dayStart: dayStart,
+            dayEnd: dayEnd,
+            calendar: calendar
+        )
+        let predicate = HKQuery.predicateForSamples(
+            withStart: queryWindow.start,
+            end: queryWindow.end
+        )
         return try await withCheckedThrowingContinuation { continuation in
             let query = HKSampleQuery(
                 sampleType: type,
@@ -233,22 +327,32 @@ final class HealthKitReadinessStore: ReadinessProviding {
                     return
                 }
 
-                let intervals = (samples as? [HKCategorySample] ?? [])
-                    .filter { sample in
-                        sample.value == HKCategoryValueSleepAnalysis.asleepCore.rawValue ||
-                            sample.value == HKCategoryValueSleepAnalysis.asleepDeep.rawValue ||
-                            sample.value == HKCategoryValueSleepAnalysis.asleepREM.rawValue ||
-                            sample.value == HKCategoryValueSleepAnalysis.asleepUnspecified.rawValue
+                let asleepValues = Set(
+                    HKCategoryValueSleepAnalysis.allAsleepValues.map(\.rawValue)
+                )
+                let categorySamples = samples as? [HKCategorySample] ?? []
+                let intervalsBySource = Dictionary(
+                    grouping: categorySamples.filter {
+                        asleepValues.contains($0.value)
+                    },
+                    by: { $0.sourceRevision.source.bundleIdentifier }
+                )
+                .values
+                .map { samples in
+                    samples.map {
+                        DateInterval(start: $0.startDate, end: $0.endDate)
                     }
-                    .compactMap { sample -> DateInterval? in
-                        let intervalStart = max(sample.startDate, start)
-                        let intervalEnd = min(sample.endDate, end)
-                        guard intervalEnd > intervalStart else { return nil }
-                        return DateInterval(start: intervalStart, end: intervalEnd)
-                    }
-
-                let seconds = Self.unionDuration(intervals)
-                continuation.resume(returning: seconds > 0 ? seconds / 3600.0 : nil)
+                }
+                let calculated =
+                    HealthKitSleepAggregator.appleDisplayedDailySleepHours(
+                    intervalsBySource: intervalsBySource,
+                    dayStart: dayStart,
+                    dayEnd: dayEnd,
+                    calendar: calendar
+                )
+                continuation.resume(
+                    returning: calculated
+                )
             }
             store.execute(query)
         }
@@ -282,21 +386,6 @@ final class HealthKitReadinessStore: ReadinessProviding {
         }
     }
 
-    private static func unionDuration(_ intervals: [DateInterval]) -> TimeInterval {
-        let sorted = intervals.sorted { $0.start < $1.start }
-        guard var current = sorted.first else { return 0 }
-
-        var total: TimeInterval = 0
-        for interval in sorted.dropFirst() {
-            if interval.start <= current.end {
-                current = DateInterval(start: current.start, end: max(current.end, interval.end))
-            } else {
-                total += current.duration
-                current = interval
-            }
-        }
-        return total + current.duration
-    }
     #endif
 
     private static func localDateKey(_ date: Date) -> String {
