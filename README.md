@@ -99,7 +99,9 @@ Runtime modes are explicit:
   is stable. Windows/shared Part A completed 2026-07-20; Mac/SwiftUI Part B is
   next. Start it with `Continue Kinetic Mobile Phase 3 Part B`; the complete
   instructions are in
-  [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
+  [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md). Trusted project
+  rules prompt for the scoped Git, Swift/Xcode, Simulator, and device commands
+  that may require approval.
 - [ ] **Later Integrations:** Garmin/Oura ingestion, hosted AI provider option, coach sharing, broad push notifications, and full native plan editing.
 
 Optional live-model verification (requires Ollama and the configured intake

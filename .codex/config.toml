@@ -1,0 +1,3 @@
+# Trusted project configuration for Kinetic.
+# Keep approvals user-mediated; scoped command prompts live in rules/.
+approval_policy = "on-request"

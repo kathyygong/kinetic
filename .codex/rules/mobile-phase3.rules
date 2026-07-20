@@ -1,0 +1,80 @@
+# Phase 3 Mac handoff commands that may need network, simulator/device, or
+# repository-metadata access outside the workspace sandbox. These rules prompt
+# the user; they do not pre-approve execution.
+
+prefix_rule(
+    pattern = ["git", "fetch"],
+    decision = "prompt",
+    justification = "Refresh the Phase 3 branch from origin with user approval.",
+    match = ["git fetch origin"],
+)
+
+prefix_rule(
+    pattern = ["git", "pull"],
+    decision = "prompt",
+    justification = "Fast-forward the checked-out Phase 3 branch with user approval.",
+    match = ["git pull --ff-only origin codex/mobile-checkin-contract"],
+)
+
+prefix_rule(
+    pattern = ["git", "switch"],
+    decision = "prompt",
+    justification = "Switch to the documented Phase 3 branch with user approval.",
+    match = ["git switch codex/mobile-checkin-contract"],
+)
+
+prefix_rule(
+    pattern = ["git", "add"],
+    decision = "prompt",
+    justification = "Stage reviewed Phase 3 files with user approval.",
+    match = ["git add MOBILE_CHECKIN_HANDOFF.md"],
+)
+
+prefix_rule(
+    pattern = ["git", "commit"],
+    decision = "prompt",
+    justification = "Commit reviewed Phase 3 work with user approval.",
+    match = ["git commit -m feat:complete-mobile-phase-3-part-b"],
+)
+
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "prompt",
+    justification = "Push the completed Phase 3 branch with user approval.",
+    match = ["git push origin codex/mobile-checkin-contract"],
+)
+
+prefix_rule(
+    pattern = ["swift", "test"],
+    decision = "prompt",
+    justification = "Run the required Swift package baseline or regression suite with user approval when sandbox escalation is needed.",
+    match = ["swift test"],
+)
+
+prefix_rule(
+    pattern = ["xcodebuild"],
+    decision = "prompt",
+    justification = "Run the documented Xcode simulator or signed-device build with user approval.",
+    match = ["xcodebuild -project KineticCompanion.xcodeproj -scheme KineticCompanion build"],
+)
+
+prefix_rule(
+    pattern = ["xcrun", "simctl"],
+    decision = "prompt",
+    justification = "Control the iOS Simulator for the documented Phase 3 QA with user approval.",
+    match = ["xcrun simctl list devices"],
+)
+
+prefix_rule(
+    pattern = ["xcrun", "devicectl"],
+    decision = "prompt",
+    justification = "Install, launch, or inspect the signed physical-device build with user approval.",
+    match = ["xcrun devicectl list devices"],
+)
+
+prefix_rule(
+    pattern = ["open", "-a", "Simulator"],
+    decision = "prompt",
+    justification = "Open Apple's Simulator for visible Phase 3 QA with user approval.",
+    match = ["open -a Simulator"],
+)

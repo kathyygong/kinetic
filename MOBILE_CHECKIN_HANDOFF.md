@@ -73,6 +73,18 @@ git log -1 --oneline
 The working tree must be clean and the latest commit must include this handoff
 and `mobile-checkin-contract.json`.
 
+The repository includes trusted project approval configuration in
+`.codex/config.toml` and scoped Phase 3 prompt rules in
+`.codex/rules/mobile-phase3.rules`. Codex scans project rules at startup, so
+after first pulling these files on Mac, trust the repository and start or
+restart the Codex task. Matching Git, Swift/Xcode, Simulator, and device
+commands will ask for user approval; the rules do not auto-approve them.
+
+Do not create a repository `requirements.toml`. That filename is reserved for
+administrator-managed system or workspace policy and cannot grant a project
+broader execution authority. Any command outside the checked-in prompt rules
+must use an ordinary one-off approval request.
+
 ### 2. Read the authorities
 
 Read, in order:
