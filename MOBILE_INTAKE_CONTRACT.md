@@ -120,4 +120,7 @@ On 2026-07-20 the Windows suite passed:
 
 Part A is ready for the macOS/SwiftUI handoff. Part B must consume this exact
 schema and fixture; it must not add a native mutation endpoint or implement the
-deferred Phase 3 persistence loop.
+deferred Phase 3 persistence loop. The complete Mac execution and validation
+procedure, plus the short continuation prompt, lives under **Mac Continuation
+Instructions** in
+[MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md).

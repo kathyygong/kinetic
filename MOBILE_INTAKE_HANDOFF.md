@@ -163,25 +163,160 @@ the documented connected advisory-audit skip warning. Firestore emulator
 `PERMISSION_DENIED` log lines were the expected cross-user/guest assertions,
 and the rule suite exited successfully.
 
-## Part B Start Condition
+## Mac Continuation Instructions
 
-Part A is ready for macOS/SwiftUI continuation. Pull the pushed
-`codex/mobile-intake-contract` branch, read
-[MOBILE_INTAKE_CONTRACT.md](./MOBILE_INTAKE_CONTRACT.md), and consume the
-canonical fixture before editing Swift. Do not change the shared outcome
-vocabulary or add a native mutation authority. Native confirmation must call
-the existing authenticated endpoint, render the bounded route, then use the
-same deterministic validation/apply semantics represented by the shared
-contract.
+Part A is ready for macOS/SwiftUI continuation. The full Part B procedure lives
+here so a future task needs only the short prompt at the end of this section.
+
+### 1. Check out the shared-contract branch
+
+From the repository root on Mac:
+
+```bash
+git fetch origin
+git switch codex/mobile-intake-contract
+git pull --ff-only origin codex/mobile-intake-contract
+git status --short --branch
+git log -1 --oneline
+```
+
+The branch must contain Part A commit `25cb769` or a later descendant, track
+`origin/codex/mobile-intake-contract`, and have a clean working tree. Do not
+start from `main` until Part A has been integrated there.
+
+### 2. Read the native and shared authorities
+
+Read these files before editing Swift:
+
+1. `MOBILE_INTAKE_CONTRACT.md`
+2. `MOBILE_INTAKE_HANDOFF.md`
+3. `MOBILE_COMPANION_PLAN.md`
+4. `MOBILE_TODAY_CONTRACT.md`
+5. `MOBILE_READINESS_SCHEMA.md`
+6. `MOBILE_MAC_HANDOFF.md`
+7. `ARCHITECTURE.md`
+8. `QA_MATRIX.md`
+9. `BETA_RUNBOOK.md`
+10. `ios/KineticCompanion/README.md`
+11. `ios/KineticCompanion/Tests/Fixtures/mobile-intake-contract.json`
+
+Treat the JSON fixture and `mobile-intake.v1` vocabulary as fixed
+cross-platform inputs. If a genuine contract defect is found, stop and repair
+Part A with matching TypeScript, Python, fixture, test, and documentation
+changes before continuing native work.
+
+### 3. Implement only Part B
+
+- Add strict Swift `Codable` request, parser, failure, outcome, and draft
+  models for every fixture route and all six draft kinds.
+- Add a fixture-parity Swift test before wiring UI or networking.
+- Add the short **Tell Kinetic what changed** entry point from Native Today.
+- Send the bounded request to the existing authenticated
+  `POST /ai/parse-intake` endpoint using the Firebase ID token and a finite
+  deadline.
+- Reject unknown enum values, extra/unexpected structure, malformed JSON,
+  non-contract responses, and privacy-forbidden fields.
+- Render concrete native destinations for `review_draft`,
+  `perceived_recovery`, `caution`, `missed_workout`, `reflection`,
+  `explanation`, `clarification`, and `refusal`.
+- Keep parsing and routing non-mutating. The parse endpoint must never become
+  an apply endpoint.
+- For mutable drafts, require visible review and an explicit confirmation.
+  Rerun deterministic validation at confirmation time, then use the existing
+  owner-scoped plan/profile/goal persistence boundaries. Do not create a
+  mobile-only plan domain or autonomous AI mutation path.
+- Match the shared deterministic workout-swap protections: existing plan
+  required, race-day movement rejected, unique plan days preserved, weekly
+  load unchanged, and hard-workout spacing not worsened.
+- Emit capped `mobile_intake_lifecycle` audit properties using only the shared
+  action, outcome, route, draft-kind, failure, parser-source, mutation-state,
+  deterministic-validation, platform, and latency vocabulary.
+- Keep raw notes, grounding text, generated prose, identity, tokens,
+  HealthKit/readiness/biometric values, recovery values, pain severity,
+  completion values, and medical data out of telemetry, cache, and Firestore.
+- Preserve all Phase 1 and Phase 2A auth, HealthKit, Today, cache, calendar,
+  audit, reconnect, and deletion-tombstone behavior.
+
+### 4. Preserve the stop lines
+
+Do not add general chat, Phase 3 check-in persistence, notifications, Apple
+Calendar ingestion, full native plan editing, onboarding replacement,
+Garmin/Oura, coach sharing, hosted-AI changes, or autonomous AI mutation.
+Perceived-recovery, caution, missed-workout, and reflection remain bounded
+destinations in this phase; deeper persistence follows only in Phase 3.
+
+### 5. Run Mac validation
+
+Start with the package and unsigned simulator gates:
+
+```bash
+cd ios/KineticCompanion
+swift test
+
+xcodebuild \
+  -project KineticCompanion.xcodeproj \
+  -scheme KineticCompanion \
+  -destination 'generic/platform=iOS Simulator' \
+  CODE_SIGNING_ALLOWED=NO \
+  build
+```
+
+Then complete and record:
+
+1. Swift coverage for every canonical route, all draft kinds, bounded request
+   construction, strict response rejection, and privacy rejection.
+2. Signed-out simulator launch and visible auth-required behavior.
+3. Authenticated success plus anonymous rejection against a strict local
+   backend.
+4. Timeout, offline/backend unavailable, unavailable AI, malformed AI,
+   malformed response, ambiguous, unsupported, and unsafe behavior.
+5. Proof that parsing/routing never mutates any local or Firebase domain.
+6. Explicit-confirmation proof for mutable drafts and deterministic rejection
+   of invalid/ungrounded drafts and unsafe workout swaps.
+7. Native audit transport plus `/qa/mobile` readback with only bounded fields.
+8. Regression proof for Native Today, a real zero-minute calendar window,
+   same-day cache fallback, HealthKit sync, reconnect, and deletion tombstones.
+9. Signed physical-device build, install, launch, authenticated intake, and
+   one bounded route from each outcome family where practical.
+
+Use the existing signing, local-backend, USB/LAN, Firebase configuration,
+`devicectl`, and device-evidence instructions in
+[MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md) and
+[`ios/KineticCompanion/README.md`](./ios/KineticCompanion/README.md). Never
+commit `GoogleService-Info.plist`, credentials, signing material, device logs,
+screenshots containing identity, or disposable test-user details.
+
+### 6. Record and deliver Part B
+
+- Update this handoff, `MOBILE_INTAKE_CONTRACT.md`, `QA_MATRIX.md`,
+  `BETA_RUNBOOK.md`, `ARCHITECTURE.md`, and the mobile roadmap with the exact
+  date, Mac/Xcode/iOS/device versions, commands, results, and remaining
+  limitations.
+- Review the diff and confirm it contains only intended native Part B,
+  shared-test, and documentation work.
+- Commit and push `codex/mobile-intake-contract`.
+- Do not merge to `main` unless explicitly requested.
+
+### Simple continuation prompt
+
+```text
+Continue Kinetic Mobile Phase 2.5 Part B on Mac. Follow the “Mac Continuation
+Instructions” in MOBILE_INTAKE_HANDOFF.md completely, starting from the clean
+tip of origin/codex/mobile-intake-contract. Do not redo Part A, change the
+shared mobile-intake.v1 vocabulary, or broaden the documented scope.
+```
 
 ## Starting State
 
-- Branch: `main`
+- Shared-contract branch: `codex/mobile-intake-contract`
+- Part A implementation commit: `25cb769`
 - Integrated Phase 2A commit: `7139dcd`
-- Working tree should be clean after this documentation checkpoint.
+- Working tree must be clean before Part B.
 - Source-of-truth roadmap:
   [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md)
-- Completed native proof:
+- Shared intake contract:
+  [MOBILE_INTAKE_CONTRACT.md](./MOBILE_INTAKE_CONTRACT.md)
+- Completed Phase 1/2A native proof:
   [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md)
 - Stable Today contract:
   [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md)
