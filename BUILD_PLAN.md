@@ -940,7 +940,9 @@ integration rerun and were fast-forwarded into `main`; see
   telemetry, `/qa/mobile` readback, strict-auth backend compatibility, and
   owner-only Firestore coverage.
 - Deferred SwiftUI/native persistence and device proof to Part B in
-  [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
+  [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md). The continuation
+  trigger is `Continue Kinetic Mobile Phase 3 Part B`; all details remain in
+  the checked-in handoff.
 
 ### Mobile Phase 2A Shared Today Contract - Completed 2026-07-16
 

@@ -324,7 +324,9 @@ Status: Part A Windows/shared `mobile-checkin.v1` contract completed
 2026-07-20. The canonical fixture, deterministic application, existing-domain
 payloads, privacy-safe lifecycle audit, web readback, backend compatibility,
 and owner-only rules coverage are ready for Part B Mac/SwiftUI. See
-[MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
+[MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md). The complete Mac
+continuation prompt is simply `Continue Kinetic Mobile Phase 3 Part B`; the
+handoff supplies all execution and stop-line instructions.
 
 Build:
 

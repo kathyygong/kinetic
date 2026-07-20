@@ -3,6 +3,21 @@
 Status: Part A Windows/shared contract completed and validated 2026-07-20.
 Part B macOS/SwiftUI is the next task.
 
+## Continuation Trigger
+
+The complete copy-ready prompt is:
+
+```text
+Continue Kinetic Mobile Phase 3 Part B
+```
+
+When Codex receives that sentence in this repository, this handoff is the task
+specification. Codex must execute every Part B preparation, implementation,
+validation, documentation, commit, and push instruction below without asking
+the user to restate them or stopping after planning. The short prompt does not
+authorize a merge to `main` or any work outside the stop lines in this
+document.
+
 ## Part A Outcome
 
 Part A defines `mobile-checkin.v1`, a strict cross-platform fixture, pure
@@ -135,25 +150,8 @@ and push the same branch. Do not merge to `main` from the Mac task.
 ## Copy-Ready Mac Continuation Prompt
 
 ```text
-Continue Kinetic Mobile Phase 3 Part B from the pushed
-`codex/mobile-checkin-contract` branch.
-
-Before editing, confirm the branch is clean and synchronized, read
-MOBILE_CHECKIN_CONTRACT.md and MOBILE_CHECKIN_HANDOFF.md plus every authority
-listed in the handoff, and run the documented native baseline. Implement only
-the SwiftUI/native portion of `mobile-checkin.v1` using the fixed canonical
-fixture. Preserve the existing owner-scoped readiness, workouts,
-recommendations, mobile-audit, auth, HealthKit, Today, intake, cache, and
-tombstone boundaries. Check-in values must be explicit, reviewed,
-deterministically validated, idempotent, and atomically persisted; routing or
-free text must never become hidden readiness, biometric, completion, pain,
-injury, or medical data.
-
-Run every Mac, simulator, signed-device, physical-device, cross-device
-readback, privacy, failure, and regression gate in MOBILE_CHECKIN_HANDOFF.md.
-Fix in-scope failures, add dated evidence to the documentation, review and
-commit only intended changes, and push the branch. Do not merge to main and do
-not broaden into notifications, Apple Calendar ingestion, general chat, full
-native plan editing, onboarding, Garmin/Oura, coach sharing, hosted-AI changes,
-or autonomous mutation.
+Continue Kinetic Mobile Phase 3 Part B
 ```
+
+All operational detail intentionally lives above so the continuation prompt
+cannot drift from the checked-in contract.

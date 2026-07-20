@@ -97,7 +97,9 @@ Runtime modes are explicit:
 - [ ] **Mobile Phase 3 — Recovery/Check-In:** Add perceived-recovery capture
   and completion/skipped/effort check-ins after the Phase 2.5 routing contract
   is stable. Windows/shared Part A completed 2026-07-20; Mac/SwiftUI Part B is
-  next. See [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
+  next. Start it with `Continue Kinetic Mobile Phase 3 Part B`; the complete
+  instructions are in
+  [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
 - [ ] **Later Integrations:** Garmin/Oura ingestion, hosted AI provider option, coach sharing, broad push notifications, and full native plan editing.
 
 Optional live-model verification (requires Ollama and the configured intake

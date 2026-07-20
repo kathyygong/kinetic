@@ -2,6 +2,8 @@
 
 Status: `mobile-checkin.v1` Windows/shared contract completed 2026-07-20.
 Native SwiftUI implementation is intentionally deferred to Part B.
+Start Part B with `Continue Kinetic Mobile Phase 3 Part B`; the complete task
+specification is [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
 
 ## Authority And Scope
 

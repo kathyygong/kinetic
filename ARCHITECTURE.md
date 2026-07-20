@@ -193,7 +193,7 @@ never writes. Explicit confirmation re-reads and updates the existing
 owner-scoped goal/profile/plan envelopes in one transaction after rerunning
 grounding and deterministic plan checks. There is no mobile-only domain or
 mutation endpoint. Guided recovery, caution, missed-workout, and reflection
-destinations still do not persist until Phase 3.
+destinations still do not persist until Phase 3 Part B.
 
 Phase 3 Part A makes that persistence boundary concrete through
 `mobile-checkin.v1`. Perceived recovery is an explicit user-authored merge into
