@@ -1,9 +1,9 @@
 # Kinetic iOS Companion
 
 This directory contains the bounded Phase 1 HealthKit/Firebase proof, Phase 2A
-native Today surface, and Phase 2.5 bounded intake implementation described in
-`MOBILE_MAC_HANDOFF.md` and `MOBILE_INTAKE_HANDOFF.md`. It is not a full native
-companion app.
+native Today surface, Phase 2.5 bounded intake implementation, and Phase 3
+check-in implementation described in the mobile handoff documents. It is not a
+full native companion app.
 
 ## Implemented Gates
 
@@ -42,12 +42,17 @@ companion app.
   goal/profile/plan envelopes, including workout-swap race-day, unique-day,
   load, and hard-spacing protections.
 - Fixed privacy-safe native intake audit transport.
+- Exact Swift parity with `Tests/Fixtures/mobile-checkin-contract.json` for all
+  recovery/workout successes and fixed failures.
+- Explicit review-before-save recovery and completed/skipped workout controls.
+- Owner-scoped transactional recovery merge or atomic workout/recommendation
+  persistence with tombstone, conflict, retry, and idempotency protection.
+- Fixed privacy-safe native check-in audit transport.
 
 The app does not include general plan editing, onboarding, notifications,
-calendar ingestion, Phase 3 check-in persistence, AI mutation, or raw
-HealthKit cloud sync. The fixed Phase 2.5 boundary and current physical-device
-evidence are in
-[`MOBILE_INTAKE_HANDOFF.md`](../../MOBILE_INTAKE_HANDOFF.md).
+calendar ingestion, general chat, AI mutation, or raw HealthKit cloud sync. The
+fixed Phase 3 boundary and remaining physical-device/live evidence are in
+[`MOBILE_CHECKIN_HANDOFF.md`](../../MOBILE_CHECKIN_HANDOFF.md).
 
 ## Firebase Scope Decisions
 
@@ -137,11 +142,12 @@ xcodebuild \
   build
 ```
 
-The 41-test Swift suite covers readiness/Today/intake canonical fixtures,
-every intake route and draft kind, bounded request construction, strict
-response/privacy rejection, authenticated networking, stable failure mapping,
-confirmation grounding, availability/preferred-day transforms, and
-workout-swap invariants.
+The 47-test Swift suite covers readiness/Today/intake/check-in canonical
+fixtures, every intake route and draft kind, bounded request construction,
+strict response/privacy rejection, authenticated networking, stable failure
+mapping, confirmation grounding, availability/preferred-day transforms,
+workout-swap invariants, HealthKit-preserving recovery merge, atomic workout
+results, and idempotent check-in retries.
 
 Device auth, HealthKit interaction, authenticated decisions, Firestore audit
 write/readback, and web readback require the untracked Firebase configuration,

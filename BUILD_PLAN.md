@@ -886,6 +886,11 @@ and signed-device suites on 2026-07-20, then passed the final Windows
 integration rerun and were fast-forwarded into `main`; see
 [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md) and
 [MOBILE_INTAKE_CONTRACT.md](./MOBILE_INTAKE_CONTRACT.md).
+Mobile Phase 3 Part A and the native Part B implementation also completed on
+2026-07-20. Swift fixture/simulator/signed generic-device and shared frontend
+gates pass; connected-device interaction and live same-user web/audit readback
+remain before integration. See
+[MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
 
 ### Mobile Phase 2.5 Shared Intake Contract - Completed 2026-07-20
 

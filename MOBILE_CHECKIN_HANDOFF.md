@@ -1,7 +1,9 @@
 # Kinetic Mobile Phase 3 Check-In Handoff
 
-Status: Part A Windows/shared contract completed and validated 2026-07-20.
-Part B macOS/SwiftUI is the next task.
+Status: Part A Windows/shared contract and Part B macOS/SwiftUI implementation
+completed 2026-07-20. Automated native/shared gates pass. The connected
+physical-device interaction and live same-user web/audit readback remain open
+because the paired iPhone was unavailable during the Part B session.
 
 ## Continuation Trigger
 
@@ -167,3 +169,62 @@ Continue Kinetic Mobile Phase 3 Part B
 
 All operational detail intentionally lives above so the continuation prompt
 cannot drift from the checked-in contract.
+
+## Part B Mac Evidence — 2026-07-20
+
+Implementation completed on `codex/mobile-checkin-contract` without changing
+`mobile-checkin.v1` or its canonical fixture:
+
+- Added strict Swift Codable requests for both check-in kinds, exact-key and
+  privacy rejection, bounded validation, all fixed failure states, and pure
+  deterministic application.
+- Added canonical fixture tests for all three successes and seven failures,
+  HealthKit-preserving recovery merge, stable event IDs, idempotent retries,
+  atomic write-domain output, web-compatible goal/workout/recommendation
+  shapes, and privacy-safe audit properties.
+- Added explicit recovery and completed/skipped workout controls with a visible
+  review step. Phase 2.5 recovery, reflection, and missed-workout routes open
+  those controls without transferring values from the note.
+- Added one owner-scoped Firestore transaction that re-reads all current state,
+  rejects conflicts/tombstones, writes readiness alone or workouts plus
+  recommendations together, and never creates a new domain.
+- Added fixed `mobile_checkin_synced` native audit fields only. Failure paths
+  always report `write_scope=none` and `update_succeeded=false`.
+
+Passed:
+
+```text
+pre-edit swift test: 41 passed
+pre-edit unsigned generic iOS Simulator build: passed
+post-edit swift test: 47 passed
+post-edit unsigned generic iOS Simulator build: passed
+iPhone 17 / iOS 26.3 simulator boot, install, signed-out launch: passed
+signed generic iOS device build: passed
+frontend npm run lint: passed
+frontend npx tsc --noEmit: passed
+frontend npm run smoke: passed, including mobile-checkin contract
+frontend npm run build: passed, all 16 routes
+backend compileall: passed
+```
+
+Environment-limited reruns, not product-code failures:
+
+- The connected iPhone 17 was reported `unavailable` by CoreDevice, so
+  perceived-recovery, completed/skipped interaction, HealthKit preservation,
+  live atomic retry, `/qa/mobile`, Recovery, training-review,
+  behavior-memory, reconnect, and tombstone device proof remain to be run when
+  the phone is connected and unlocked.
+- The checked-in Mac backend venv lacks its pinned FastAPI dependencies and
+  restricted network access prevented creating the temporary Python 3.12
+  validation venv. Backend `_gates` and `_smoke` therefore retain the green
+  Part A Windows evidence but were not rerun in this session.
+- The installed JDK is 19 while current Firebase tooling requires JDK 21, so
+  the owner-only Auth/Firestore emulator suite retains the green Part A proof
+  and must be rerun after selecting JDK 21 or newer.
+- `npm run beta:readiness` could not create its local `tsx` IPC socket in the
+  restricted shell. Lint, TypeScript, deterministic smoke, and production
+  build all passed independently.
+
+Do not merge this branch to `main` or invite native Phase 3 beta users until
+the remaining physical-device/live readback and environment-limited regression
+gates are recorded here.

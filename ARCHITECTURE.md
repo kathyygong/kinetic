@@ -192,17 +192,19 @@ exists only in the editor/request and volatile confirmation state. Routing
 never writes. Explicit confirmation re-reads and updates the existing
 owner-scoped goal/profile/plan envelopes in one transaction after rerunning
 grounding and deterministic plan checks. There is no mobile-only domain or
-mutation endpoint. Guided recovery, caution, missed-workout, and reflection
-destinations still do not persist until Phase 3 Part B.
+mutation endpoint. Guided recovery, missed-workout, and reflection destinations
+now open the explicit Phase 3 check-in UI. Caution remains non-persisting and
+no note value crosses into check-in state.
 
 Phase 3 Part A makes that persistence boundary concrete through
 `mobile-checkin.v1`. Perceived recovery is an explicit user-authored merge into
 the existing `readiness` envelope, preserving HealthKit biometrics unless the
 runner explicitly corrects bounded sleep. Completed/skipped workout outcomes
 replace the matching slot in `workouts` and the stable same-day event in
-`recommendations`; native Part B must commit those payloads atomically. The
-pure shared validator performs no I/O, and no backend mutation endpoint or
-mobile-only history domain was added. See
+`recommendations`; native Part B commits those payloads atomically after
+re-reading current owner-scoped state. The pure shared/Swift validators perform
+no I/O, and no backend mutation endpoint or mobile-only history domain was
+added. See
 [MOBILE_CHECKIN_CONTRACT.md](./MOBILE_CHECKIN_CONTRACT.md) and
 [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
 
@@ -219,8 +221,9 @@ The native iOS companion now locally summarizes HealthKit sleep, HRV, and
 resting heart rate into bounded daily readiness records before Firebase sync.
 HealthKit raw samples stay on device. Freshness and confidence metadata travel
 with the summary so stale or partial data lowers certainty without changing the
-deterministic safety rules. Subjective recovery remains a future explicit
-user-authored check-in rather than an inferred HealthKit or AI value.
+deterministic safety rules. Subjective recovery is captured only through the
+explicit user-authored Phase 3 check-in and is never inferred from HealthKit or
+AI output.
 
 The concrete mobile readiness contract is documented in
 [MOBILE_READINESS_SCHEMA.md](./MOBILE_READINESS_SCHEMA.md). Mobile writes
@@ -289,9 +292,9 @@ fields from the existing owner-only audit envelope.
   Windows frontend/backend plus Swift fixture, cache, response, observability,
   simulator-build, and signed physical-device gates, including strict live
   decision, zero-minute conflict, same-day cache fallback, and `/qa/mobile`
-  readback. Phase 2.5 adds bounded mobile intake, Phase 3 Part A defines the
-  check-in contract, and later native work adds check-in persistence and stale
-  background-delivery recovery. See
+  readback. Phase 2.5 adds bounded mobile intake, and Phase 3 Parts A/B define
+  and implement bounded check-in persistence. Stale background-delivery
+  recovery remains later hardening. See
   [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md).
 - Mobile Phase 2.5 Part A passed the full Windows frontend/backend/Firestore
   suite on 2026-07-20. The canonical fixture covers all eight tagged routes,

@@ -23,7 +23,9 @@ shared and native implementation plus repeatable Mac gates completed on
 rejection, native audit readback, and Phase 1/2A regressions also passed that
 day. The complete Phase 2.5 tree then passed the Windows dependency,
 frontend, backend, and Firebase rerun and was fast-forwarded into `main`.
-The recovery/check-in loop follows. Do not expand into a
+Phase 3 Part A and the native Part B recovery/check-in implementation completed
+on the feature branch on 2026-07-20; physical-device interaction and live
+same-user web/audit readback remain before integration. Do not expand into a
 full native app,
 Garmin/Oura ingestion, hosted AI, broad push notifications, coach sharing, or
 autonomous AI plan mutation without another explicit product decision.
@@ -34,7 +36,9 @@ execution record lives in [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md), and
 the stable Today request/cache/failure boundary lives in
 [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md). The fixed Phase 2.5
 scope and native evidence are in
-[MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md).
+[MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md). The fixed Phase 3
+boundary and current evidence are in
+[MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
 
 ## Environment posture
 
@@ -179,25 +183,23 @@ Before inviting mobile beta users:
 15. Confirm existing deterministic backend gates still pass after any mobile
    schema or decision-input changes.
 
-Part A and the Part B native implementation passed the repeatable contract,
-simulator-build/launch, signed generic-device, strict-auth backend,
-failure/mutation, dependency, backend, and Firestore gates on 2026-07-20. Do
-not invite native mobile beta users without rerunning these gates after a
-change to the fixed contract or native safety boundary. The iPhone 17 /
-iOS 26.5.2 physical matrix passed install, authenticated route interaction,
+Phase 2.5 Part A and Part B passed the repeatable contract, physical-device,
+strict-auth backend, dependency, and Firestore gates on 2026-07-20. The iPhone
+17 / iOS 26.5.2 physical matrix passed install, authenticated route interaction,
 confirmed availability mutation, unsafe/ungrounded swap rejection, bounded
 `/qa/mobile` readback, Today/cache, HealthKit, reconnect, and tombstone checks.
-Perceived-recovery, caution, missed-workout, and reflection persistence remains
-absent from the integrated native app; these are bounded Phase 2.5
-destinations until Phase 3 Part B.
 
-Phase 3 Part A now defines that persistence boundary without enabling native
-writes yet. Use [MOBILE_CHECKIN_CONTRACT.md](./MOBILE_CHECKIN_CONTRACT.md) and
-the canonical `mobile-checkin-contract.json` fixture. Recovery writes may
-merge only explicit bounded subjective fields into `readiness`; workout
-outcomes must update existing `workouts` and `recommendations` atomically.
-No free text, inferred readiness, raw HealthKit sample, pain severity, injury,
-or medical field may cross this boundary.
+Phase 3 Parts A and B now implement the fixed `mobile-checkin.v1` boundary on
+the feature branch. Recovery writes merge only explicit bounded subjective
+fields into `readiness`; workout outcomes update existing `workouts` and
+`recommendations` atomically. The canonical fixture, 47-test Swift suite,
+simulator install/launch, signed generic-device build, and shared frontend
+regressions pass. Physical-device interaction and live Recovery,
+training-review, behavior-memory, and `/qa/mobile` readback still require a
+connected iPhone before integration. No free text, inferred readiness, raw
+HealthKit sample, pain severity, injury, or medical field may cross this
+boundary. Use [MOBILE_CHECKIN_CONTRACT.md](./MOBILE_CHECKIN_CONTRACT.md) and
+[MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md) for the exact proof.
 
 ## Live Firebase persistence QA
 

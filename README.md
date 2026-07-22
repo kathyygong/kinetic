@@ -28,6 +28,10 @@ and its [shared contract](./MOBILE_INTAKE_CONTRACT.md) completed on
 confirmation/rejection, signed-device, and `/qa/mobile` evidence. The complete
 Phase 2.5 implementation was integrated into `main` after the final Windows
 frontend/backend/Firebase revalidation passed.
+Phase 3 now has a fixed [check-in contract](./MOBILE_CHECKIN_CONTRACT.md) and a
+native recovery/completed/skipped implementation with green Swift fixture,
+simulator, signed generic-device, and shared frontend gates. Physical-device
+interaction and live same-user web/audit readback remain before integration.
 
 ## 🏃 The Problem
 Most running apps provide static plans that exist in a vacuum. When life happens (e.g. a late-night meeting, poor sleep, or an unexpected trip) the plan breaks. Users are left to manually adjust their training or, more often, lose consistency and abandon the plan entirely.
@@ -94,11 +98,11 @@ Runtime modes are explicit:
   review-only drafts, deterministic confirm/apply, privacy-safe lifecycle
   observability, and signed-device evidence completed on 2026-07-20. See
   [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md).
-- [ ] **Mobile Phase 3 — Recovery/Check-In:** Add perceived-recovery capture
-  and completion/skipped/effort check-ins after the Phase 2.5 routing contract
-  is stable. Windows/shared Part A completed 2026-07-20; Mac/SwiftUI Part B is
-  next. Start it with `Continue Kinetic Mobile Phase 3 Part B`; the complete
-  instructions are in
+- [ ] **Mobile Phase 3 — Recovery/Check-In:** Windows/shared Part A and native
+  SwiftUI Part B implementation completed 2026-07-20. Explicit recovery and
+  completion/skipped/effort capture, deterministic validation, atomic existing-
+  domain persistence, and privacy-safe audit pass automated Mac/shared gates.
+  Physical-device interaction and live same-user web/audit readback remain in
   [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md). Trusted project
   rules prompt for the scoped Git, Swift/Xcode, Simulator, and device commands
   that may require approval.

@@ -85,12 +85,12 @@ struct MobileIntakeView: View {
         case .reviewDraft(let outcome):
             reviewDraft(outcome)
         case .perceivedRecovery(let outcome):
-            routeCard(
+            checkinRouteCard(
                 title: "Perceived recovery capture",
                 icon: "heart.text.square",
-                detail: "Kinetic inferred no recovery value. Capture these explicitly in the Phase 3 check-in:",
+                detail: "Kinetic inferred no recovery value. Capture these explicitly:",
                 items: outcome.fieldsToCapture.map(label),
-                showsDeferredPersistence: true
+                launch: .recovery
             )
         case .caution(let outcome):
             routeCard(
@@ -101,20 +101,20 @@ struct MobileIntakeView: View {
                 showsDeferredPersistence: true
             )
         case .missedWorkout(let outcome):
-            routeCard(
+            checkinRouteCard(
                 title: "Missed-workout choices",
                 icon: "calendar.badge.exclamationmark",
-                detail: "Completion was not inferred. Choose explicitly in the Phase 3 check-in:",
+                detail: "Completion was not inferred. Choose a bounded skipped outcome explicitly:",
                 items: outcome.choices.map(label),
-                showsDeferredPersistence: true
+                launch: .workout(defaultStatus: .skipped)
             )
         case .reflection(let outcome):
-            routeCard(
+            checkinRouteCard(
                 title: "Post-workout capture",
                 icon: "figure.run.circle",
                 detail: "Completion and effort were not inferred. Capture them explicitly:",
                 items: outcome.fieldsToCapture.map(label),
-                showsDeferredPersistence: true
+                launch: .workout(defaultStatus: .completed)
             )
         case .explanation(let outcome):
             explanation(outcome)
@@ -226,10 +226,39 @@ struct MobileIntakeView: View {
                     .font(.footnote)
             }
             if showsDeferredPersistence {
-                Text("This bounded destination does not persist check-in values in Phase 2.5.")
+                Text("This caution route remains non-persisting and never records pain severity or medical data.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+        }
+        .padding(18)
+        .kineticCard()
+    }
+
+    private func checkinRouteCard(
+        title: String,
+        icon: String,
+        detail: String,
+        items: [String],
+        launch: MobileCheckinLaunch
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label(title, systemImage: icon)
+                .font(.headline)
+            Text(detail)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            ForEach(items, id: \.self) {
+                Label($0, systemImage: "chevron.right")
+                    .font(.footnote)
+            }
+            NavigationLink {
+                MobileCheckinView(viewModel: viewModel, launch: launch)
+            } label: {
+                Label("Open explicit check-in", systemImage: "checkmark.circle")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
         }
         .padding(18)
         .kineticCard()

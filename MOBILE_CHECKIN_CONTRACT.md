@@ -1,9 +1,11 @@
 # Kinetic Mobile Phase 3 Check-In Contract
 
-Status: `mobile-checkin.v1` Windows/shared contract completed 2026-07-20.
-Native SwiftUI implementation is intentionally deferred to Part B.
-Start Part B with `Continue Kinetic Mobile Phase 3 Part B`; the complete task
-specification is [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
+Status: `mobile-checkin.v1` Windows/shared contract and native SwiftUI Part B
+implementation completed 2026-07-20. Swift fixture, failure, idempotency,
+privacy, simulator build/install/launch, signed generic-device, and shared
+frontend gates pass. Physical-device interaction and live same-user web/audit
+readback remain the final Part B proof; see
+[MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
 
 ## Authority And Scope
 
@@ -63,6 +65,14 @@ Native Part B must:
 5. atomically persist returned domains through the existing Firebase envelope
    and tombstone conventions.
 
+The native implementation now follows that boundary. `MobileCheckinEngine` is
+pure and consumes the canonical fixture; SwiftUI collects only explicit fixed
+controls and adds a separate review step. The Firestore client re-reads goal,
+plan, readiness, workouts, and recommendations in one owner-scoped transaction.
+Recovery changes only `readiness`; workout outcomes set both existing history
+domains in the same atomic transaction. Routine check-ins reject deletion
+tombstones instead of starting a new data epoch.
+
 Retrying the same request is idempotent. The workout slot and stable
 `mobile:<date>:<week>:<day>` recommendation event are replaced, not appended.
 No backend apply endpoint exists or is needed.
@@ -101,7 +111,7 @@ successful only when both existing envelopes commit.
 
 ## Explicit Exclusions
 
-This contract does not implement SwiftUI, general chat, notifications, Apple
-Calendar ingestion, background HealthKit repair, full native plan editing,
+This contract does not implement general chat, notifications, Apple Calendar
+ingestion, background HealthKit repair, full native plan editing,
 onboarding, Garmin/Oura, coach sharing, hosted-AI changes, autonomous AI
 mutation, a new persistence domain, or a new backend endpoint.

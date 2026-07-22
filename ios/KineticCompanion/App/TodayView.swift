@@ -65,6 +65,9 @@ final class TodayViewModel: ObservableObject {
     @Published private(set) var intakeResponse: MobileIntakeResponse?
     @Published private(set) var intakeFailure: MobileIntakeFailureCode?
     @Published private(set) var intakeMessage: String?
+    @Published private(set) var checkinSaving = false
+    @Published private(set) var checkinFailure: MobileCheckinFailureState?
+    @Published private(set) var checkinMessage: String?
 
     private let firebaseConfigured: Bool
     private let healthStore: ReadinessProviding
@@ -75,6 +78,7 @@ final class TodayViewModel: ObservableObject {
     private let audit: MobileAuditTransporting
     private let intakeClient: MobileIntakeNetworking
     private let intakeApplyClient: MobileIntakeApplying
+    private let checkinClient: MobileCheckinSaving
     private var latestSharedState: MobileTodaySharedState?
     private var pendingIntakeNote: String?
 
@@ -87,7 +91,8 @@ final class TodayViewModel: ObservableObject {
         cache: MobileTodayCaching = UserDefaultsMobileTodayCache(),
         audit: MobileAuditTransporting = FirestoreMobileAuditTransport(),
         intakeClient: MobileIntakeNetworking = URLSessionMobileIntakeClient(),
-        intakeApplyClient: MobileIntakeApplying = FirestoreMobileIntakeApplyClient()
+        intakeApplyClient: MobileIntakeApplying = FirestoreMobileIntakeApplyClient(),
+        checkinClient: MobileCheckinSaving = FirestoreMobileCheckinClient()
     ) {
         self.firebaseConfigured = firebaseConfigured
         self.healthStore = healthStore
@@ -98,6 +103,7 @@ final class TodayViewModel: ObservableObject {
         self.audit = audit
         self.intakeClient = intakeClient
         self.intakeApplyClient = intakeApplyClient
+        self.checkinClient = checkinClient
         authState = firebaseConfigured ? .signedOut : .missingConfiguration
     }
 
@@ -134,6 +140,7 @@ final class TodayViewModel: ObservableObject {
         todayBuildFailure = nil
         latestSharedState = nil
         resetIntake()
+        resetCheckin()
         cache.clear()
     }
 
@@ -386,6 +393,177 @@ final class TodayViewModel: ObservableObject {
         pendingIntakeNote = nil
     }
 
+    var workoutCheckinAvailable: Bool {
+        guard let shared = latestSharedState,
+              let plan = shared.plan,
+              let snapshot = todayResult?.snapshot else { return false }
+        return MobileCheckinPlanResolver.currentSlot(plan: plan, now: Date()) != nil
+            && snapshot.localDay == MobileTodayDate.localDay(Date())
+    }
+
+    var workoutCheckinAction: DecisionActionName? {
+        todayResult?.snapshot?.decision.selectedAction.name
+    }
+
+    func saveRecoveryCheckin(
+        perceivedRecovery: Int,
+        fatigueLevel: Int,
+        sorenessLevel: Int,
+        sleepHoursCorrection: Double?
+    ) async {
+        let startedAt = Date()
+        do {
+            let request = try MobileCheckinRequestBuilder.recovery(
+                perceivedRecovery: perceivedRecovery,
+                fatigueLevel: fatigueLevel,
+                sorenessLevel: sorenessLevel,
+                sleepHoursCorrection: sleepHoursCorrection,
+                now: startedAt
+            )
+            await saveCheckin(request, startedAt: startedAt)
+        } catch {
+            handleCheckinBuildFailure(
+                error,
+                kind: .perceivedRecovery,
+                status: .checkedIn,
+                hasEffort: false,
+                hasReflection: false,
+                startedAt: startedAt
+            )
+        }
+    }
+
+    func saveWorkoutCheckin(
+        status: MobileCheckinWorkoutStatus,
+        perceivedEffort: Int?,
+        reflection: MobileCheckinReflection?,
+        skipReason: MobileCheckinSkipReason?,
+        adjustmentResponse: MobileCheckinAdjustmentResponse?
+    ) async {
+        let startedAt = Date()
+        do {
+            guard let shared = latestSharedState,
+                  let snapshot = todayResult?.snapshot else {
+                throw MobileCheckinValidationError.stateConflict(
+                    "Refresh Today before saving a workout outcome."
+                )
+            }
+            let request = try MobileCheckinRequestBuilder.workout(
+                shared: shared,
+                snapshot: snapshot,
+                status: status,
+                perceivedEffort: perceivedEffort,
+                reflection: reflection,
+                skipReason: skipReason,
+                adjustmentResponse: adjustmentResponse,
+                now: startedAt
+            )
+            await saveCheckin(request, startedAt: startedAt)
+        } catch {
+            handleCheckinBuildFailure(
+                error,
+                kind: .workoutOutcome,
+                status: status == .completed ? .completed : .skipped,
+                hasEffort: perceivedEffort != nil,
+                hasReflection: reflection != nil,
+                startedAt: startedAt
+            )
+        }
+    }
+
+    func resetCheckin() {
+        checkinSaving = false
+        checkinFailure = nil
+        checkinMessage = nil
+    }
+
+    private func saveCheckin(_ request: MobileCheckinRequest, startedAt: Date) async {
+        guard isSignedIn, !checkinSaving else {
+            if !isSignedIn {
+                finishCheckinFailure(
+                    request: request,
+                    failure: .authRequired,
+                    message: "Sign in before saving this protected check-in.",
+                    startedAt: startedAt
+                )
+            }
+            return
+        }
+        checkinSaving = true
+        checkinFailure = nil
+        checkinMessage = nil
+        do {
+            try await checkinClient.save(request, now: Date())
+            checkinSaving = false
+            checkinMessage = request.kind == .perceivedRecovery
+                ? "Recovery check-in saved. Existing HealthKit values were preserved."
+                : "Workout outcome saved atomically to training history."
+            emitCheckinAudit(
+                request: request,
+                failure: .none,
+                validation: .passed,
+                updateSucceeded: true,
+                startedAt: startedAt
+            )
+            latestSharedState = nil
+            await loadToday()
+        } catch {
+            let failure = Self.checkinFailureState(error)
+            let message = (error as? LocalizedError)?.errorDescription
+                ?? "The check-in was not committed. Retry after refreshing Today."
+            finishCheckinFailure(
+                request: request,
+                failure: failure,
+                message: message,
+                startedAt: startedAt
+            )
+        }
+    }
+
+    private func handleCheckinBuildFailure(
+        _ error: Error,
+        kind: MobileCheckinKind,
+        status: MobileCheckinStatus,
+        hasEffort: Bool,
+        hasReflection: Bool,
+        startedAt: Date
+    ) {
+        let failure = Self.checkinFailureState(error)
+        checkinSaving = false
+        checkinFailure = failure
+        checkinMessage = (error as? LocalizedError)?.errorDescription
+            ?? "Refresh Today and review the bounded values before retrying."
+        emitCheckinAudit(
+            kind: kind,
+            status: status,
+            failure: failure,
+            validation: .failed,
+            hasEffort: hasEffort,
+            hasReflection: hasReflection,
+            startedAt: startedAt
+        )
+    }
+
+    private func finishCheckinFailure(
+        request: MobileCheckinRequest,
+        failure: MobileCheckinFailureState,
+        message: String,
+        startedAt: Date
+    ) {
+        checkinSaving = false
+        checkinFailure = failure
+        checkinMessage = message
+        emitCheckinAudit(
+            request: request,
+            failure: failure,
+            validation: failure == .invalidPayload || failure == .stateConflict
+                ? .failed
+                : .notRun,
+            updateSucceeded: false,
+            startedAt: startedAt
+        )
+    }
+
     func readAndSyncToday() async {
         await readAndSyncToday(intent: .routine)
     }
@@ -552,6 +730,72 @@ final class TodayViewModel: ObservableObject {
         }
     }
 
+    private func emitCheckinAudit(
+        request: MobileCheckinRequest,
+        failure: MobileCheckinFailureState,
+        validation: DeterministicValidationState,
+        updateSucceeded: Bool,
+        startedAt: Date
+    ) {
+        let workout: MobileWorkoutCheckin? = if case .workoutOutcome(_, _, let value) = request {
+            value
+        } else {
+            nil
+        }
+        emitCheckinAudit(
+            kind: request.kind,
+            status: request.status,
+            failure: failure,
+            validation: validation,
+            hasEffort: workout?.perceivedEffort != nil,
+            hasReflection: workout?.reflection != nil,
+            startedAt: startedAt,
+            updateSucceeded: updateSucceeded
+        )
+    }
+
+    private func emitCheckinAudit(
+        kind: MobileCheckinKind,
+        status: MobileCheckinStatus,
+        failure: MobileCheckinFailureState,
+        validation: DeterministicValidationState,
+        hasEffort: Bool,
+        hasReflection: Bool,
+        startedAt: Date,
+        updateSucceeded: Bool = false
+    ) {
+        let outcome: MobileDecisionOutcome
+        if failure == .none {
+            outcome = .success
+        } else if failure == .timeout {
+            outcome = .timeout
+        } else if failure == .invalidPayload || failure == .stateConflict {
+            outcome = .invalid
+        } else {
+            outcome = .failed
+        }
+        let properties = MobileCheckinSyncedAudit(
+            checkinKind: kind,
+            status: status,
+            outcome: outcome,
+            failureState: failure,
+            writeScope: updateSucceeded
+                ? (kind == .perceivedRecovery ? .readiness : .workoutsRecommendations)
+                : .none,
+            deterministicValidation: validation,
+            hasEffort: hasEffort,
+            hasUserReflection: hasReflection,
+            updateSucceeded: updateSucceeded,
+            latencyMs: min(
+                MobileCheckinContract.maximumLatencyMs,
+                max(0, Int(Date().timeIntervalSince(startedAt) * 1000))
+            )
+        )
+        Task {
+            await audit.send(MobileAuditEnvelope(properties: properties))
+        }
+    }
+
     private static func intakeFailureState(
         response: MobileIntakeResponse?,
         failure: MobileIntakeFailureCode?
@@ -608,6 +852,10 @@ final class TodayViewModel: ObservableObject {
         }
         return error is FirestoreTodayError ? .invalidResponse : .unknown
     }
+
+    private static func checkinFailureState(_ error: Error) -> MobileCheckinFailureState {
+        FirestoreMobileCheckinClient.failureState(for: error)
+    }
 }
 
 struct TodayView: View {
@@ -616,6 +864,8 @@ struct TodayView: View {
     @State private var password = ""
     @State private var showingReconnectConfirmation = false
     @State private var showingIntake = false
+    @State private var showingCheckin = false
+    @State private var checkinLaunch = MobileCheckinLaunch.recovery
 
     var body: some View {
         NavigationStack {
@@ -692,6 +942,7 @@ struct TodayView: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 16) {
                 todayCard
+                checkinCard
                 intakeCard
                 healthCard
                 privacyCard
@@ -701,6 +952,41 @@ struct TodayView: View {
         .background(KineticColor.canvas.ignoresSafeArea())
         .refreshable {
             await viewModel.loadToday()
+        }
+    }
+
+    private var checkinCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("Daily check-in", systemImage: "checkmark.circle")
+                .font(.headline)
+            Text("Add explicit recovery values or record today’s completed/skipped outcome.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            HStack {
+                Button("Recovery") {
+                    viewModel.resetCheckin()
+                    checkinLaunch = .recovery
+                    showingCheckin = true
+                }
+                .buttonStyle(.bordered)
+                Button("Workout outcome") {
+                    viewModel.resetCheckin()
+                    checkinLaunch = .workout(defaultStatus: .completed)
+                    showingCheckin = true
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(!viewModel.workoutCheckinAvailable)
+            }
+            if !viewModel.workoutCheckinAvailable {
+                Text("Refresh a current planned Today recommendation before recording an outcome.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(20)
+        .kineticCard()
+        .sheet(isPresented: $showingCheckin) {
+            MobileCheckinView(viewModel: viewModel, launch: checkinLaunch)
         }
     }
 

@@ -283,17 +283,25 @@ struct MobileCheckinSyncedAudit: MobileAuditPayload {
     static let eventName = MobileAuditEventName.checkinSynced
 
     var platform = MobilePlatform.ios
+    var checkinKind = MobileCheckinKind.workoutOutcome
     var status: MobileCheckinStatus
     var outcome: MobileDecisionOutcome
+    var failureState = MobileCheckinFailureState.none
+    var writeScope = MobileCheckinWriteScope.none
+    var deterministicValidation = DeterministicValidationState.notRun
     var hasEffort: Bool
     var hasUserReflection: Bool
-    var updateSucceeded: Bool?
+    var updateSucceeded: Bool
     var latencyMs: Int
 
     enum CodingKeys: String, CodingKey {
         case platform
+        case checkinKind = "checkin_kind"
         case status
         case outcome
+        case failureState = "failure_state"
+        case writeScope = "write_scope"
+        case deterministicValidation = "deterministic_validation"
         case hasEffort = "has_effort"
         case hasUserReflection = "has_user_reflection"
         case updateSucceeded = "update_succeeded"

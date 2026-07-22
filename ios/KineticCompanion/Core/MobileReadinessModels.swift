@@ -15,6 +15,7 @@ struct ReadinessEntry: Codable, Equatable {
     var restingHeartRate: Double?
     var fatigueLevel: Int?
     var sorenessLevel: Int?
+    var perceivedRecovery: Int? = nil
     var source: ReadinessSource?
     var updatedAt: Date
 
@@ -25,6 +26,7 @@ struct ReadinessEntry: Codable, Equatable {
         case restingHeartRate = "resting_hr"
         case fatigueLevel = "fatigue_level"
         case sorenessLevel = "soreness_level"
+        case perceivedRecovery = "perceived_recovery"
         case source
         case updatedAt = "updated_at"
     }

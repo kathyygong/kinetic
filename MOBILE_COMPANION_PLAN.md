@@ -320,22 +320,23 @@ Acceptance:
 
 Goal: close the daily habit loop.
 
-Status: Part A Windows/shared `mobile-checkin.v1` contract completed
-2026-07-20. The canonical fixture, deterministic application, existing-domain
-payloads, privacy-safe lifecycle audit, web readback, backend compatibility,
-and owner-only rules coverage are ready for Part B Mac/SwiftUI. See
-[MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md). The complete Mac
-continuation prompt is simply `Continue Kinetic Mobile Phase 3 Part B`; the
-handoff supplies all execution and stop-line instructions.
+Status: Part A Windows/shared `mobile-checkin.v1` contract and Part B native
+SwiftUI implementation completed 2026-07-20. Canonical fixture parity,
+deterministic application, existing-domain atomic persistence, bounded UI,
+failure visibility, privacy-safe audit, simulator launch, signed generic-device
+build, and shared frontend regressions pass. Physical-device interaction and
+live same-user web/audit readback remain before integration; see
+[MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
 
 Build:
 
 - Manual perceived-recovery capture for days where HealthKit is missing,
-  stale, incomplete, or contradicted by how the runner feels. Fields should be
-  bounded and explicit: perceived recovery, fatigue, soreness, optional sleep
-  correction, and a conservative pain/discomfort flag if added.
-- Post-workout check-in: completed/skipped, effort, optional bounded notes
-  policy.
+  stale, incomplete, or contradicted by how the runner feels. Fields are
+  bounded and explicit: perceived recovery, fatigue, soreness, and optional
+  sleep correction. Pain/discomfort remains a caution route, not a persisted
+  recovery field.
+- Post-workout check-in: completed/skipped, bounded effort, bounded reflection
+  choice or skip reason, and no free-text note.
 - Sync to the existing recommendation/workout history shape where possible.
 - Sync mobile outcomes in a way that web training review and behavior-memory
   surfaces can read without a duplicate mobile-only history model.
@@ -538,8 +539,9 @@ step 7 or expand the Phase 2.5 boundary without a separate product decision.
    2026-07-20. Codable/SwiftUI implementation and signed physical-device proof
    also completed that day without changing the shared vocabulary or adding
    mutation authority.
-7. Check-in loop: sync completion/skipped/effort data into existing history
-   contracts.
+7. Check-in loop: native bounded capture and existing-domain persistence are
+   implemented; physical-device interaction and live web/audit readback remain
+   before integration.
 8. QA and beta proof: add iOS manual QA, privacy checklist, schema tests,
    updated demo script, `/qa/mobile` audit coverage, and beta acceptance notes.
 
