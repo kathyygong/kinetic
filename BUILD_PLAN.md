@@ -887,9 +887,11 @@ integration rerun and were fast-forwarded into `main`; see
 [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md) and
 [MOBILE_INTAKE_CONTRACT.md](./MOBILE_INTAKE_CONTRACT.md).
 Mobile Phase 3 Part A and the native Part B implementation also completed on
-2026-07-20. Swift fixture/simulator/signed generic-device and shared frontend
-gates pass; connected-device interaction and live same-user web/audit readback
-remain before integration. See
+2026-07-20. Swift fixture/simulator/signed-device, strict backend, owner-only
+emulator, and shared frontend gates pass; connected-device recovery and
+completed/skipped interaction plus live same-user web/audit readback passed
+2026-07-21. Newly published frontend dependency advisories remain an
+integration blocker. See
 [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
 
 ### Mobile Phase 2.5 Shared Intake Contract - Completed 2026-07-20

@@ -1,9 +1,10 @@
 # Kinetic Mobile Phase 3 Check-In Handoff
 
 Status: Part A Windows/shared contract and Part B macOS/SwiftUI implementation
-completed 2026-07-20. Automated native/shared gates pass. The connected
-physical-device interaction and live same-user web/audit readback remain open
-because the paired iPhone was unavailable during the Part B session.
+completed 2026-07-20. Automated native/shared gates pass. Physical-device
+recovery and completed/skipped workout interaction, strict authenticated
+backend calls, and live same-user Recovery, training-review, memory, and
+`/qa/mobile` readback passed 2026-07-21. The branch is not merged to `main`.
 
 ## Continuation Trigger
 
@@ -207,24 +208,69 @@ frontend npm run build: passed, all 16 routes
 backend compileall: passed
 ```
 
-Environment-limited reruns, not product-code failures:
+## Physical-Device And Live Evidence — 2026-07-21
 
-- The connected iPhone 17 was reported `unavailable` by CoreDevice, so
-  perceived-recovery, completed/skipped interaction, HealthKit preservation,
-  live atomic retry, `/qa/mobile`, Recovery, training-review,
-  behavior-memory, reconnect, and tombstone device proof remain to be run when
-  the phone is connected and unlocked.
-- The checked-in Mac backend venv lacks its pinned FastAPI dependencies and
-  restricted network access prevented creating the temporary Python 3.12
-  validation venv. Backend `_gates` and `_smoke` therefore retain the green
-  Part A Windows evidence but were not rerun in this session.
-- The installed JDK is 19 while current Firebase tooling requires JDK 21, so
-  the owner-only Auth/Firestore emulator suite retains the green Part A proof
-  and must be rerun after selecting JDK 21 or newer.
-- `npm run beta:readiness` could not create its local `tsx` IPC socket in the
-  restricted shell. Lint, TypeScript, deterministic smoke, and production
-  build all passed independently.
+The paired iPhone 17 running iOS 26.5.2 completed the signed build, install,
+launch, Firebase session, and strict authenticated `POST /decision` flow. The
+backend returned HTTP 200 from the phone through the explicit local-network QA
+URL.
 
-Do not merge this branch to `main` or invite native Phase 3 beta users until
-the remaining physical-device/live readback and environment-limited regression
-gates are recorded here.
+Physical recovery proof passed:
+
+- The runner explicitly saved perceived recovery 2/5, fatigue 4/5, soreness
+  3/5, and no sleep correction.
+- Native confirmed the recovery save and stated that existing HealthKit values
+  were preserved.
+- Same-user web Recovery read back sleep 7h51m, HRV 68.71, resting heart rate
+  53, fatigue 4/5, and soreness 3/5.
+- `/qa/mobile` read the success audit with `write_scope=readiness`,
+  `status=checked_in`, validation passed, and no effort or reflection fields.
+
+Physical workout proof passed for both outcomes:
+
+- A completed check-in with effort 7/10, `harder_than_expected`, and accepted
+  adjustment committed `workouts` and `recommendations` together. Same-user
+  `/qa/mobile` reported success, `status=completed`, validation passed,
+  effort/reflection present, and 797 ms latency.
+- A skipped check-in with `schedule_conflict` and accepted adjustment replaced
+  the same stable slot without duplication. `/qa/mobile` reported success,
+  `status=skipped`, validation passed, no effort/reflection fields, and 871 ms
+  latency.
+- The same slot was finally restored to completed with effort 7/10 and
+  `harder_than_expected`; the latest audit again passed both-domain commit at
+  794 ms. This also proved repeated replacement remained idempotent.
+- Web Dashboard read the updated workout status, Plan reported one saved
+  workout and a grounded 1-of-1 training review, and Profile training memory
+  read two history records while correctly withholding a tentative pattern
+  until more history exists.
+- An initial routine check-in against deleted workout history was rejected with
+  `write_scope=none`; the tombstone was not recreated. Fresh history was then
+  created through the supported web workout UI for the successful proof.
+
+Live QA exposed one real cross-client compatibility defect: web-authored goal
+signatures could serialize the same personal-record map in a different JSON
+key order, while native compared the raw string. Native now validates the
+stored signature as an exact semantic goal object and preserves the existing
+web representation. Changed distance, date, experience, PR values, mileage,
+unknown keys, and malformed values still fail closed. Reordered-equivalent,
+changed-PR, and changed-mileage Swift regressions pass in the 47-test suite.
+
+The previously environment-limited gates were rerun successfully:
+
+```text
+swift test: 47 passed
+signed physical-device build/install/launch: passed
+backend compileall, evals._gates, evals._smoke: passed in a temporary Python 3.12 venv
+strict authenticated physical-device POST /decision: HTTP 200
+Firebase Auth/Firestore emulator owner-only and tombstone suite: passed with temporary JDK 21
+frontend lint, TypeScript, smoke, production build: passed
+frontend beta:readiness: 0 failures; expected skipped-audit warning only
+```
+
+The connected `npm run beta:audit` rerun found three newly published high
+advisories affecting `brace-expansion`, `sharp`, and the direct `next`
+dependency through `sharp`. npm's automatic suggestion would downgrade/change
+the direct Next.js major and was not applied as unrelated Phase 3 scope. Do not
+merge this branch to `main` or invite native Phase 3 beta users until those
+dependency advisories are deliberately remediated and the integration suite is
+rerun.

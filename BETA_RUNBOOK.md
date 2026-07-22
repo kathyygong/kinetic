@@ -24,9 +24,11 @@ rejection, native audit readback, and Phase 1/2A regressions also passed that
 day. The complete Phase 2.5 tree then passed the Windows dependency,
 frontend, backend, and Firebase rerun and was fast-forwarded into `main`.
 Phase 3 Part A and the native Part B recovery/check-in implementation completed
-on the feature branch on 2026-07-20; physical-device interaction and live
-same-user web/audit readback remain before integration. Do not expand into a
-full native app,
+on the feature branch on 2026-07-20; physical-device recovery and
+completed/skipped workout interaction plus live same-user Recovery,
+training-review, memory, and audit readback passed 2026-07-21. The branch
+remains outside `main` while newly published dependency advisories are
+remediated. Do not expand into a full native app,
 Garmin/Oura ingestion, hosted AI, broad push notifications, coach sharing, or
 autonomous AI plan mutation without another explicit product decision.
 
@@ -193,13 +195,16 @@ Phase 3 Parts A and B now implement the fixed `mobile-checkin.v1` boundary on
 the feature branch. Recovery writes merge only explicit bounded subjective
 fields into `readiness`; workout outcomes update existing `workouts` and
 `recommendations` atomically. The canonical fixture, 47-test Swift suite,
-simulator install/launch, signed generic-device build, and shared frontend
-regressions pass. Physical-device interaction and live Recovery,
-training-review, behavior-memory, and `/qa/mobile` readback still require a
-connected iPhone before integration. No free text, inferred readiness, raw
+simulator install/launch, signed physical-device build, strict backend,
+owner-only emulator, and shared frontend regressions pass. Physical-device
+recovery/completed/skipped interaction and live Recovery, training-review,
+behavior-memory, and `/qa/mobile` readback passed 2026-07-21. No free text,
+inferred readiness, raw
 HealthKit sample, pain severity, injury, or medical field may cross this
 boundary. Use [MOBILE_CHECKIN_CONTRACT.md](./MOBILE_CHECKIN_CONTRACT.md) and
-[MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md) for the exact proof.
+[MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md) for the exact proof and
+the newly published frontend dependency advisories that remain an integration
+blocker.
 
 ## Live Firebase persistence QA
 

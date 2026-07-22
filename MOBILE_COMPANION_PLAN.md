@@ -324,8 +324,9 @@ Status: Part A Windows/shared `mobile-checkin.v1` contract and Part B native
 SwiftUI implementation completed 2026-07-20. Canonical fixture parity,
 deterministic application, existing-domain atomic persistence, bounded UI,
 failure visibility, privacy-safe audit, simulator launch, signed generic-device
-build, and shared frontend regressions pass. Physical-device interaction and
-live same-user web/audit readback remain before integration; see
+build, and shared frontend regressions pass. Physical-device recovery and
+completed/skipped workout interaction plus live same-user Recovery,
+training-review, memory, and audit readback passed 2026-07-21; see
 [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
 
 Build:
@@ -540,8 +541,9 @@ step 7 or expand the Phase 2.5 boundary without a separate product decision.
    also completed that day without changing the shared vocabulary or adding
    mutation authority.
 7. Check-in loop: native bounded capture and existing-domain persistence are
-   implemented; physical-device interaction and live web/audit readback remain
-   before integration.
+   implemented; physical-device recovery/completed/skipped interaction and
+   live Recovery, training-review, memory, and audit readback passed
+   2026-07-21.
 8. QA and beta proof: add iOS manual QA, privacy checklist, schema tests,
    updated demo script, `/qa/mobile` audit coverage, and beta acceptance notes.
 

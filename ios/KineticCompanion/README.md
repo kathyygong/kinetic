@@ -51,7 +51,7 @@ full native companion app.
 
 The app does not include general plan editing, onboarding, notifications,
 calendar ingestion, general chat, AI mutation, or raw HealthKit cloud sync. The
-fixed Phase 3 boundary and remaining physical-device/live evidence are in
+fixed Phase 3 boundary and completed physical-device/live evidence are in
 [`MOBILE_CHECKIN_HANDOFF.md`](../../MOBILE_CHECKIN_HANDOFF.md).
 
 ## Firebase Scope Decisions

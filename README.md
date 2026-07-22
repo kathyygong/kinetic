@@ -30,8 +30,11 @@ Phase 2.5 implementation was integrated into `main` after the final Windows
 frontend/backend/Firebase revalidation passed.
 Phase 3 now has a fixed [check-in contract](./MOBILE_CHECKIN_CONTRACT.md) and a
 native recovery/completed/skipped implementation with green Swift fixture,
-simulator, signed generic-device, and shared frontend gates. Physical-device
-interaction and live same-user web/audit readback remain before integration.
+simulator, signed-device, strict-backend, owner-only emulator, and shared
+frontend gates. Physical-device recovery/completed/skipped interaction and
+live same-user Recovery, training-review, memory, and audit readback passed on
+2026-07-21. The feature branch remains separate from `main` pending the final
+integration decision and remediation of newly published frontend advisories.
 
 ## 🏃 The Problem
 Most running apps provide static plans that exist in a vacuum. When life happens (e.g. a late-night meeting, poor sleep, or an unexpected trip) the plan breaks. Users are left to manually adjust their training or, more often, lose consistency and abandon the plan entirely.
@@ -98,11 +101,12 @@ Runtime modes are explicit:
   review-only drafts, deterministic confirm/apply, privacy-safe lifecycle
   observability, and signed-device evidence completed on 2026-07-20. See
   [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md).
-- [ ] **Mobile Phase 3 — Recovery/Check-In:** Windows/shared Part A and native
+- [X] **Mobile Phase 3 — Recovery/Check-In:** Windows/shared Part A and native
   SwiftUI Part B implementation completed 2026-07-20. Explicit recovery and
   completion/skipped/effort capture, deterministic validation, atomic existing-
-  domain persistence, and privacy-safe audit pass automated Mac/shared gates.
-  Physical-device interaction and live same-user web/audit readback remain in
+  domain persistence, and privacy-safe audit passed the physical-device and
+  live same-user web proof on 2026-07-21. Evidence and the current dependency-
+  audit integration blocker are in
   [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md). Trusted project
   rules prompt for the scoped Git, Swift/Xcode, Simulator, and device commands
   that may require approval.

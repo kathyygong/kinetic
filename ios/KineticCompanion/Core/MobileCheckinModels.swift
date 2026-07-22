@@ -963,8 +963,10 @@ enum MobileCheckinPlanResolver {
 }
 
 enum MobileCheckinGoalSignature {
+    private static let recordKeys = ["5k", "10k", "half", "marathon"]
+
     static func make(_ goal: TodayGoal) -> String {
-        let records = ["5k", "10k", "half", "marathon"].compactMap { key -> String? in
+        let records = recordKeys.compactMap { key -> String? in
             guard let value = goal.currentPersonalRecords[key] else { return nil }
             return "\(json(key)):\(json(value))"
         }.joined(separator: ",")
@@ -978,6 +980,47 @@ enum MobileCheckinGoalSignature {
             "\"pr\":{\(records)}",
             "\"wm\":\(mileage)"
         ].joined(separator: ",") + "}"
+    }
+
+    static func matches(_ signature: String, goal: TodayGoal) -> Bool {
+        guard let data = signature.data(using: .utf8),
+              let object = try? JSONSerialization.jsonObject(with: data),
+              let value = object as? [String: Any],
+              Set(value.keys) == Set(["v", "g", "rd", "td", "el", "pr", "wm"]),
+              number(value["v"]) == 2,
+              value["g"] as? String == "race",
+              value["rd"] as? String == goal.raceDistance.rawValue,
+              matchesNullableString(value["td"], expected: goal.targetDate),
+              value["el"] as? String == goal.experienceLevel.rawValue,
+              let records = value["pr"] as? [String: Any],
+              Set(records.keys) == Set(goal.currentPersonalRecords.keys),
+              Set(records.keys).isSubset(of: Set(recordKeys)),
+              records.allSatisfy({ key, stored in
+                  number(stored) == goal.currentPersonalRecords[key]
+              }),
+              matchesNullableNumber(value["wm"], expected: goal.weeklyMileage) else {
+            return false
+        }
+        return true
+    }
+
+    private static func matchesNullableString(_ value: Any?, expected: String?) -> Bool {
+        guard let value, !(value is NSNull) else { return expected == nil }
+        guard let string = value as? String else { return false }
+        return string == expected
+    }
+
+    private static func matchesNullableNumber(_ value: Any?, expected: Double?) -> Bool {
+        guard let value, !(value is NSNull) else { return expected == nil }
+        guard let stored = number(value), let expected else { return false }
+        return stored == expected
+    }
+
+    private static func number(_ value: Any?) -> Double? {
+        guard let value, !(value is Bool), let number = value as? NSNumber else {
+            return nil
+        }
+        return number.doubleValue
     }
 
     private static func json(_ value: String) -> String {

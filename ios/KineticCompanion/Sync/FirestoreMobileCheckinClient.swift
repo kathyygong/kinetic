@@ -103,17 +103,34 @@ final class FirestoreMobileCheckinClient: MobileCheckinSaving {
                             "Deleted workout history cannot be recreated by a routine check-in."
                         )
                     }
+                    let workouts: MobileCheckinWorkoutLog? = try Self.decodeOptional(
+                        workoutsDocument,
+                        domain: "workouts"
+                    )
+                    let goalSignature: String
+                    if let workouts {
+                        guard MobileCheckinGoalSignature.matches(
+                            workouts.goalSig,
+                            goal: goal
+                        ) else {
+                            throw FirestoreMobileCheckinError.stateConflict(
+                                "Workout history belongs to a different goal."
+                            )
+                        }
+                        // Keep the web-authored representation so both clients retain
+                        // the same workout-history scope after this transaction.
+                        goalSignature = workouts.goalSig
+                    } else {
+                        goalSignature = MobileCheckinGoalSignature.make(goal)
+                    }
                     let state = MobileCheckinState(
-                        goalSignature: MobileCheckinGoalSignature.make(goal),
+                        goalSignature: goalSignature,
                         planSlots: MobileCheckinPlanResolver.slots(plan: plan),
                         readiness: try Self.decodeOptional(
                             readinessDocument,
                             domain: "readiness"
                         ),
-                        workouts: try Self.decodeOptional(
-                            workoutsDocument,
-                            domain: "workouts"
-                        ),
+                        workouts: workouts,
                         recommendations: try Self.decodeOptional(
                             recommendationsDocument,
                             domain: "recommendations"

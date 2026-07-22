@@ -2,9 +2,10 @@
 
 Status: `mobile-checkin.v1` Windows/shared contract and native SwiftUI Part B
 implementation completed 2026-07-20. Swift fixture, failure, idempotency,
-privacy, simulator build/install/launch, signed generic-device, and shared
-frontend gates pass. Physical-device interaction and live same-user web/audit
-readback remain the final Part B proof; see
+privacy, simulator, signed-device, strict-backend, owner-only emulator, and
+shared frontend gates pass. Physical-device recovery and completed/skipped
+workout flows plus live same-user Recovery, training-review, memory, and audit
+readback passed 2026-07-21; see
 [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
 
 ## Authority And Scope

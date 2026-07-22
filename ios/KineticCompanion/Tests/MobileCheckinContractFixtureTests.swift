@@ -246,6 +246,24 @@ final class MobileCheckinContractFixtureTests: XCTestCase {
             MobileCheckinGoalSignature.make(goal),
             "{\"v\":2,\"g\":\"race\",\"rd\":\"10k\",\"td\":\"2026-10-18\",\"el\":\"intermediate\",\"pr\":{\"5k\":1500,\"10k\":3200},\"wm\":24}"
         )
+        XCTAssertTrue(
+            MobileCheckinGoalSignature.matches(
+                "{\"wm\":24,\"pr\":{\"10k\":3200,\"5k\":1500},\"el\":\"intermediate\",\"td\":\"2026-10-18\",\"rd\":\"10k\",\"g\":\"race\",\"v\":2}",
+                goal: goal
+            )
+        )
+        XCTAssertFalse(
+            MobileCheckinGoalSignature.matches(
+                "{\"v\":2,\"g\":\"race\",\"rd\":\"10k\",\"td\":\"2026-10-18\",\"el\":\"intermediate\",\"pr\":{\"5k\":1500,\"10k\":3201},\"wm\":24}",
+                goal: goal
+            )
+        )
+        XCTAssertFalse(
+            MobileCheckinGoalSignature.matches(
+                "{\"v\":2,\"g\":\"race\",\"rd\":\"10k\",\"td\":\"2026-10-18\",\"el\":\"intermediate\",\"pr\":{\"5k\":1500,\"10k\":3200},\"wm\":25}",
+                goal: goal
+            )
+        )
         let plan = TodaySavedPlan(
             planStart: "2026-07-20",
             weeks: [

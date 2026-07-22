@@ -497,7 +497,7 @@ final class TodayViewModel: ObservableObject {
             checkinSaving = false
             checkinMessage = request.kind == .perceivedRecovery
                 ? "Recovery check-in saved. Existing HealthKit values were preserved."
-                : "Workout outcome saved atomically to training history."
+                : "Workout outcome saved to training history."
             emitCheckinAudit(
                 request: request,
                 failure: .none,
