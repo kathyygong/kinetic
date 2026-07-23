@@ -27,10 +27,11 @@ Phase 3 Part A and the native Part B recovery/check-in implementation completed
 on the feature branch on 2026-07-20; physical-device recovery and
 completed/skipped workout interaction plus live same-user Recovery,
 training-review, memory, and audit readback passed 2026-07-21. The branch
-remains outside `main` pending an explicit integration decision. The July
-dependency blocker was cleared on 2026-07-23. Do not expand into a full native
-app, Garmin/Oura ingestion, hosted AI, broad push notifications, coach sharing,
-or autonomous AI plan mutation without another explicit product decision.
+was fast-forwarded into `main` on 2026-07-23 after the July dependency blocker
+and hosted Windows integration gate were cleared. Do not expand into a full
+native app, Garmin/Oura ingestion, hosted AI, broad push notifications, coach
+sharing, or autonomous AI plan mutation without another explicit product
+decision.
 
 The mobile phase plan lives in
 [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md). The completed native

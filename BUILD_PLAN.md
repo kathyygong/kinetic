@@ -898,7 +898,8 @@ patched Active LTS Next.js `16.2.11`, the clean connected audit, and the full
 GitHub-hosted Windows integration rerun passed on 2026-07-23. No dependency
 advisory remains an integration blocker; the managed workstation proxy's
 remaining `E404` is recorded as an environment limitation. See
-[MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
+[MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md). The completed Phase 3
+branch was fast-forwarded into `main` on 2026-07-23.
 
 ### Mobile Phase 2.5 Shared Intake Contract - Completed 2026-07-20
 

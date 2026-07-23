@@ -4,7 +4,9 @@ Status: Part A Windows/shared contract and Part B macOS/SwiftUI implementation
 completed 2026-07-20. Automated native/shared gates pass. Physical-device
 recovery and completed/skipped workout interaction, strict authenticated
 backend calls, and live same-user Recovery, training-review, memory, and
-`/qa/mobile` readback passed 2026-07-21. The branch is not merged to `main`.
+`/qa/mobile` readback passed 2026-07-21. The completed Phase 3 branch was
+fast-forwarded into `main` on 2026-07-23 after the patched dependency and
+hosted Windows integration gates passed.
 
 ## Continuation Trigger
 
@@ -297,5 +299,5 @@ The managed local Windows package proxy still returns `E404` for the
 product or lockfile failure; the checked-in hosted Windows gate uses the
 official registry and must remain green for `main`.
 
-The feature branch remains separate from `main` pending the explicit
-integration decision; no dependency advisory remains an integration blocker.
+The completed feature branch was fast-forwarded into `main` on 2026-07-23; no
+dependency advisory remains an integration blocker.

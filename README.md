@@ -35,9 +35,9 @@ frontend gates. Physical-device recovery/completed/skipped interaction and
 live same-user Recovery, training-review, memory, and audit readback passed on
 2026-07-21. The July dependency blocker was cleared on 2026-07-23 with patched
 Next.js `16.2.11`, a clean connected audit, and a complete GitHub-hosted
-Windows integration rerun. The feature branch remains separate from `main`
-pending the final integration decision; the managed workstation proxy's stale
-tarball mirror is documented as a local environment limitation.
+Windows integration rerun. The completed Phase 3 branch was fast-forwarded
+into `main` on 2026-07-23; the managed workstation proxy's stale tarball mirror
+is documented as a local environment limitation.
 
 ## 🏃 The Problem
 Most running apps provide static plans that exist in a vacuum. When life happens (e.g. a late-night meeting, poor sleep, or an unexpected trip) the plan breaks. Users are left to manually adjust their training or, more often, lose consistency and abandon the plan entirely.
