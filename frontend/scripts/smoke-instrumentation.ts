@@ -287,6 +287,19 @@ async function main(): Promise<void> {
         latency_ms: 180,
       },
     },
+    {
+      name: "mobile_pattern_result_lifecycle",
+      properties: {
+        platform: "web",
+        action: "confirmed",
+        outcome: "success",
+        pattern_family: "specific_day_skips",
+        result_kind: "preferred_day_review",
+        mutation_state: "applied",
+        deterministic_validation: "passed",
+        source: "deterministic",
+      },
+    },
   ] as const;
 
   const unsafeExtras = {

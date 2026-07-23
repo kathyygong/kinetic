@@ -74,10 +74,20 @@ const SAFE_KEYS: Record<string, ReadonlySet<string>> = {
     "update_succeeded",
     "latency_ms",
   ]),
+  mobile_pattern_result_lifecycle: new Set([
+    "platform",
+    "action",
+    "outcome",
+    "pattern_family",
+    "result_kind",
+    "mutation_state",
+    "deterministic_validation",
+    "source",
+  ]),
 };
 const SENSITIVE_KEY = /uid|email|full_?name|note|description|calendar_?event|event_?text|biometric|sleep|hrv|heart|soreness|fatigue|workout_?text|raw|token|secret/i;
 const SAFE_ENUM_VALUES: Record<string, ReadonlySet<string>> = {
-  platform: new Set(["ios"]),
+  platform: new Set(["web", "ios"]),
   sync_type: new Set([
     "healthkit_readiness",
     "calendar_context",
@@ -124,7 +134,16 @@ const SAFE_ENUM_VALUES: Record<string, ReadonlySet<string>> = {
   calendar_state: new Set(["clear", "conflict", "stale", "missing"]),
   readiness_state: new Set(["ready", "caution", "unknown", "stale"]),
   deterministic_validation: new Set(["passed", "failed", "not_run"]),
-  action: new Set(["routed", "reviewed", "confirmed", "discarded", "failed"]),
+  action: new Set([
+    "routed",
+    "reviewed",
+    "confirmed",
+    "discarded",
+    "dismissed",
+    "prompted",
+    "caution",
+    "failed",
+  ]),
   route: new Set([
     "review_draft",
     "perceived_recovery",
@@ -157,6 +176,21 @@ const SAFE_ENUM_VALUES: Record<string, ReadonlySet<string>> = {
     "review_only",
     "applied",
     "rejected",
+  ]),
+  pattern_family: new Set([
+    "heavy_calendar_misses",
+    "specific_day_skips",
+    "long_run_day_preference",
+    "rest_override",
+    "adjustment_tolerance",
+    "stale_data_or_checkin_gap",
+    "pain_or_discomfort_recurrence",
+  ]),
+  result_kind: new Set([
+    "scoring_preference_review",
+    "preferred_day_review",
+    "checkin_prompt",
+    "caution",
   ]),
   status: new Set([
     "completed",

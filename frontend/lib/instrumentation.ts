@@ -223,6 +223,37 @@ type ProductEventProperties = {
     update_succeeded: boolean;
     latency_ms: number;
   };
+  mobile_pattern_result_lifecycle: {
+    platform: "web" | "ios";
+    action:
+      | "reviewed"
+      | "confirmed"
+      | "dismissed"
+      | "prompted"
+      | "caution"
+      | "failed";
+    outcome: "success" | "failed" | "invalid";
+    pattern_family:
+      | "heavy_calendar_misses"
+      | "specific_day_skips"
+      | "long_run_day_preference"
+      | "rest_override"
+      | "adjustment_tolerance"
+      | "stale_data_or_checkin_gap"
+      | "pain_or_discomfort_recurrence";
+    result_kind:
+      | "scoring_preference_review"
+      | "preferred_day_review"
+      | "checkin_prompt"
+      | "caution";
+    mutation_state:
+      | "not_requested"
+      | "review_only"
+      | "applied"
+      | "rejected";
+    deterministic_validation: "passed" | "failed" | "not_run";
+    source: "deterministic" | "ollama";
+  };
 };
 
 export type ProductEventName = keyof ProductEventProperties;
@@ -414,6 +445,16 @@ const EVENT_KEYS: {
     "update_succeeded",
     "latency_ms",
   ],
+  mobile_pattern_result_lifecycle: [
+    "platform",
+    "action",
+    "outcome",
+    "pattern_family",
+    "result_kind",
+    "mutation_state",
+    "deterministic_validation",
+    "source",
+  ],
 };
 
 const ENUM_VALUES: Record<string, readonly string[]> = {
@@ -473,6 +514,8 @@ const ENUM_VALUES: Record<string, readonly string[]> = {
     "reviewed",
     "discarded",
     "routed",
+    "prompted",
+    "caution",
     "failed",
     "other",
   ],
@@ -552,6 +595,23 @@ const ENUM_VALUES: Record<string, readonly string[]> = {
     "review_only",
     "applied",
     "rejected",
+    "other",
+  ],
+  pattern_family: [
+    "heavy_calendar_misses",
+    "specific_day_skips",
+    "long_run_day_preference",
+    "rest_override",
+    "adjustment_tolerance",
+    "stale_data_or_checkin_gap",
+    "pain_or_discomfort_recurrence",
+    "other",
+  ],
+  result_kind: [
+    "scoring_preference_review",
+    "preferred_day_review",
+    "checkin_prompt",
+    "caution",
     "other",
   ],
   checkin_kind: ["perceived_recovery", "workout_outcome", "other"],

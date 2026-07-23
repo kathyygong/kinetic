@@ -116,6 +116,16 @@ async function main(): Promise<void> {
     update_succeeded: true,
     latency_ms: 160,
   });
+  trackProductEvent("mobile_pattern_result_lifecycle", {
+    platform: "web",
+    action: "reviewed",
+    outcome: "success",
+    pattern_family: "specific_day_skips",
+    result_kind: "preferred_day_review",
+    mutation_state: "review_only",
+    deterministic_validation: "not_run",
+    source: "deterministic",
+  });
 
   const mobileEvents = selectMobileAuditEvents(listProductEvents());
   const summary = summarizeMobileAuditEvents(mobileEvents);
@@ -127,8 +137,8 @@ async function main(): Promise<void> {
   for (const name of MOBILE_EVENT_NAMES) {
     expect(summary.names.get(name) === 1, `${name} should appear once in mobile QA`);
   }
-  expect(summary.total === 4, `expected mobile QA total 4, got ${summary.total}`);
-  expect(summary.outcomes.get("success") === 3, "expected three successful mobile events");
+  expect(summary.total === 5, `expected mobile QA total 5, got ${summary.total}`);
+  expect(summary.outcomes.get("success") === 4, "expected four successful mobile events");
   expect(summary.outcomes.get("partial") === 1, "expected one partial sync event");
   expect(
     mobileEvents.some(
@@ -159,6 +169,16 @@ async function main(): Promise<void> {
         event.properties.mutation_state === "review_only",
     ),
     "mobile QA should expose bounded intake route and mutation state",
+  );
+  expect(
+    mobileEvents.some(
+      (event) =>
+        event.name === "mobile_pattern_result_lifecycle" &&
+        event.properties.pattern_family === "specific_day_skips" &&
+        event.properties.result_kind === "preferred_day_review" &&
+        event.properties.mutation_state === "review_only",
+    ),
+    "mobile QA should expose bounded behavior-pattern result outcomes",
   );
   expect(summary.latest !== null, "mobile QA should expose latest event freshness");
 

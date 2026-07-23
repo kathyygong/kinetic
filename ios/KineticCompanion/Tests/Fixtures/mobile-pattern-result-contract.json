@@ -1,0 +1,219 @@
+{
+  "contract_schema": "behavior-pattern-result.v1",
+  "response": {
+    "contract_version": "behavior-pattern-result.v1",
+    "analysis": {
+      "source": "deterministic",
+      "fallback_used": false,
+      "failure": "none"
+    },
+    "patterns": [
+      {
+        "id": "pattern_heavy_calendar_misses",
+        "family": "heavy_calendar_misses",
+        "title": "Heavy calendar",
+        "description": "Observed.",
+        "confidence": "moderate",
+        "suggested_adjustment": "Review.",
+        "preference_type": "busy_day_preference",
+        "support_count": 2,
+        "why_it_matters": "A smaller option may make training more feasible on constrained days.",
+        "result": {
+          "review_required": true,
+          "confirmation_required": true,
+          "kind": "scoring_preference_review",
+          "mutation": "confirmed_preference",
+          "action_label": "Review busy-day preference",
+          "will_change_if_confirmed": "Shorter or easier candidates may receive a small bounded score nudge on heavy-calendar days.",
+          "will_never_change": "Safety state, available candidates, mileage, and the saved plan.",
+          "preference_type": "busy_day_preference",
+          "adjustment_direction": "shorter_or_easier"
+        }
+      },
+      {
+        "id": "pattern_specific_day_skips_tue",
+        "family": "specific_day_skips",
+        "title": "Tuesday skips",
+        "description": "Observed.",
+        "confidence": "moderate",
+        "suggested_adjustment": "Review.",
+        "preference_type": "schedule_preference",
+        "support_count": 2,
+        "why_it_matters": "A reviewed schedule input can make future deterministic plans easier to follow.",
+        "result": {
+          "review_required": true,
+          "confirmation_required": true,
+          "kind": "preferred_day_review",
+          "mutation": "preferred_training_days",
+          "action_label": "Review preferred training days",
+          "will_change_if_confirmed": "Preferred-day inputs and the deterministically regenerated saved plan.",
+          "will_never_change": "Weekly load, workout validity, phase structure, taper, or safety spacing.",
+          "strategy": "avoid_day",
+          "observed_day": "tue"
+        }
+      },
+      {
+        "id": "pattern_long_run_day_preference_sat",
+        "family": "long_run_day_preference",
+        "title": "Saturday long runs",
+        "description": "Observed.",
+        "confidence": "moderate",
+        "suggested_adjustment": "Review.",
+        "preference_type": "schedule_preference",
+        "support_count": 2,
+        "why_it_matters": "A reviewed long-run day can improve fit without changing load or spacing rules.",
+        "result": {
+          "review_required": true,
+          "confirmation_required": true,
+          "kind": "preferred_day_review",
+          "mutation": "preferred_training_days",
+          "action_label": "Review preferred training days",
+          "will_change_if_confirmed": "Preferred-day inputs and the deterministically regenerated saved plan.",
+          "will_never_change": "Weekly load, workout validity, phase structure, taper, or safety spacing.",
+          "strategy": "prefer_long_run_day",
+          "observed_day": "sat"
+        }
+      },
+      {
+        "id": "pattern_rest_override",
+        "family": "rest_override",
+        "title": "Rest override",
+        "description": "Observed.",
+        "confidence": "moderate",
+        "suggested_adjustment": "Review.",
+        "preference_type": "rest_day_preference",
+        "support_count": 2,
+        "why_it_matters": "A recovery alternative may be more usable than full rest when safety allows.",
+        "result": {
+          "review_required": true,
+          "confirmation_required": true,
+          "kind": "scoring_preference_review",
+          "mutation": "confirmed_preference",
+          "action_label": "Review recovery-alternative preference",
+          "will_change_if_confirmed": "A recovery-run style modify option may receive a small bounded nudge.",
+          "will_never_change": "At-risk safety decisions, mileage, and the saved plan.",
+          "preference_type": "rest_day_preference",
+          "adjustment_direction": "recovery_alternative"
+        }
+      },
+      {
+        "id": "pattern_adjustment_tolerance_too_hard",
+        "family": "adjustment_tolerance",
+        "title": "Too hard",
+        "description": "Observed.",
+        "confidence": "moderate",
+        "suggested_adjustment": "Review.",
+        "preference_type": "intensity_tolerance",
+        "support_count": 2,
+        "why_it_matters": "A small confirmed nudge can better match adjustment difficulty.",
+        "result": {
+          "review_required": true,
+          "confirmation_required": true,
+          "kind": "scoring_preference_review",
+          "mutation": "confirmed_preference",
+          "action_label": "Review adjustment preference",
+          "will_change_if_confirmed": "Adjustment candidates may receive a small bounded score nudge.",
+          "will_never_change": "At-risk safety decisions, workout validity, mileage, and the saved plan.",
+          "preference_type": "intensity_tolerance",
+          "adjustment_direction": "reduce_intensity"
+        }
+      },
+      {
+        "id": "pattern_stale_data_or_checkin_gap_sync_readiness",
+        "family": "stale_data_or_checkin_gap",
+        "title": "Stale",
+        "description": "Observed.",
+        "confidence": "moderate",
+        "suggested_adjustment": "Prompt.",
+        "preference_type": "none",
+        "support_count": 2,
+        "why_it_matters": "Fresh bounded inputs make Today explanations more complete.",
+        "result": {
+          "review_required": false,
+          "confirmation_required": false,
+          "kind": "checkin_prompt",
+          "mutation": "none",
+          "action_label": "Sync readiness",
+          "will_change_if_confirmed": "No training state changes from this prompt.",
+          "will_never_change": "The saved plan, readiness values, completion state, or preferences.",
+          "prompt_kind": "sync_readiness"
+        }
+      },
+      {
+        "id": "pattern_pain_or_discomfort_recurrence",
+        "family": "pain_or_discomfort_recurrence",
+        "title": "Discomfort",
+        "description": "Observed.",
+        "confidence": "moderate",
+        "suggested_adjustment": "Caution.",
+        "preference_type": "none",
+        "support_count": 2,
+        "why_it_matters": "Repeated discomfort belongs in a conservative safety flow, not personalization.",
+        "result": {
+          "review_required": false,
+          "confirmation_required": false,
+          "kind": "caution",
+          "mutation": "none",
+          "action_label": "Review caution guidance",
+          "will_change_if_confirmed": "No training state changes from this guidance.",
+          "will_never_change": "No sensitive health record or automatic training mutation is created.",
+          "caution_actions": [
+            "stop_or_reduce",
+            "capture_discomfort_flag",
+            "seek_qualified_care"
+          ]
+        }
+      }
+    ],
+    "warnings": []
+  },
+  "failure_cases": [
+    {
+      "id": "timeout",
+      "expected_source": "deterministic",
+      "expected_failure": "timeout",
+      "fallback_used": true
+    },
+    {
+      "id": "ai_unavailable",
+      "expected_source": "deterministic",
+      "expected_failure": "ai_unavailable",
+      "fallback_used": true
+    },
+    {
+      "id": "malformed_ai",
+      "expected_source": "deterministic",
+      "expected_failure": "malformed_ai",
+      "fallback_used": true
+    },
+    {
+      "id": "invalid_ai",
+      "expected_source": "deterministic",
+      "expected_failure": "invalid_ai",
+      "fallback_used": true
+    },
+    {
+      "id": "unsupported_ai",
+      "expected_source": "deterministic",
+      "expected_failure": "unsupported_ai",
+      "fallback_used": true
+    }
+  ],
+  "privacy_forbidden_audit_keys": [
+    "uid",
+    "email",
+    "note",
+    "description",
+    "title",
+    "suggested_adjustment",
+    "raw",
+    "token",
+    "sleep",
+    "hrv",
+    "heart_rate",
+    "fatigue",
+    "soreness",
+    "pain_severity",
+    "injury"
+  ]
+}

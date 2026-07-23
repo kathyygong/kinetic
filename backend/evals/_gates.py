@@ -18,6 +18,7 @@ from app.ai_safety import contains_medical_claim, contradicts_selected_action
 from app.api import app
 from app.auth import _validate_project_token_claims
 from app.llm_client import LLMUnavailable
+from app import behavior_insights as behavior_insights_module
 from app import intake_parser as intake_parser_module
 from app.mobile_intake import MobileIntakeRequest, route_mobile_intake
 from app import training_summary as training_summary_module
@@ -67,6 +68,16 @@ def _weekly_schema(value: dict[str, Any]) -> None:
 
 
 def _behavior_schema(value: dict[str, Any]) -> None:
+    _assert(
+        value.get("contract_version") == "behavior-pattern-result.v1",
+        "bad behavior contract version",
+    )
+    analysis = value.get("analysis")
+    _assert(isinstance(analysis, dict), "missing behavior analysis metadata")
+    _assert(
+        analysis.get("source") in {"deterministic", "ollama"},
+        "bad behavior analysis source",
+    )
     _assert(isinstance(value.get("patterns"), list), "missing patterns")
     _assert(isinstance(value.get("warnings"), list), "missing warnings")
     for pattern in value["patterns"]:
@@ -83,6 +94,30 @@ def _behavior_schema(value: dict[str, Any]) -> None:
             isinstance(pattern.get("suggested_adjustment"), str)
             and pattern["suggested_adjustment"],
             "bad suggested_adjustment",
+        )
+        _assert(
+            pattern.get("family")
+            in {
+                "heavy_calendar_misses",
+                "specific_day_skips",
+                "long_run_day_preference",
+                "rest_override",
+                "adjustment_tolerance",
+                "stale_data_or_checkin_gap",
+                "pain_or_discomfort_recurrence",
+            },
+            "bad pattern family",
+        )
+        _assert(
+            isinstance(pattern.get("result"), dict)
+            and pattern["result"].get("kind")
+            in {
+                "scoring_preference_review",
+                "preferred_day_review",
+                "checkin_prompt",
+                "caution",
+            },
+            "bad pattern result",
         )
 
 
@@ -170,6 +205,326 @@ def check_behavior_insights() -> None:
             _assert("limited history" in warning_text, "sparse case missing warning")
             for pattern in body["patterns"]:
                 _assert(pattern["confidence"] == "low", "sparse pattern not low")
+
+
+def check_behavior_pattern_result_contract() -> None:
+    fixture_path = (
+        Path(__file__).resolve().parents[2]
+        / "ios"
+        / "KineticCompanion"
+        / "Tests"
+        / "Fixtures"
+        / "mobile-pattern-result-contract.json"
+    )
+    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+    _assert(
+        fixture["contract_schema"] == behavior_insights_module.CONTRACT_VERSION,
+        "behavior-pattern result fixture version drifted",
+    )
+    fixture_patterns = fixture["response"]["patterns"]
+    behavior_insights_module.BehaviorPatternEnvelope.model_validate(
+        fixture["response"]
+    )
+    for pattern in fixture_patterns:
+        behavior_insights_module._validate_contract_pattern(pattern)
+
+    base = [
+        {
+            "id": f"base-{index}",
+            "date": f"2026-07-{index + 1:02d}",
+            "plannedWorkout": "Easy run",
+            "recommendedWorkout": "Easy run",
+            "selectedAction": "proceed",
+            "confidence": "moderate",
+            "userResponse": "accepted",
+            "actualWorkout": {"completed": True, "perceivedEffort": 5},
+            "context": {"calendarLoad": "light"},
+        }
+        for index in range(5)
+    ]
+    route_cases = [
+        (
+            "heavy_calendar_misses",
+            "scoring_preference_review",
+            [
+                {
+                    **base[0],
+                    "id": "heavy-1",
+                    "userResponse": "skipped",
+                    "context": {"calendarLoad": "heavy"},
+                },
+                {
+                    **base[1],
+                    "id": "heavy-2",
+                    "userResponse": "rejected",
+                    "context": {"calendarLoad": "heavy"},
+                },
+                *base[2:],
+            ],
+        ),
+        (
+            "specific_day_skips",
+            "preferred_day_review",
+            [
+                {
+                    **base[0],
+                    "id": "tue-1",
+                    "date": "2026-07-07",
+                    "userResponse": "skipped",
+                    "actualWorkout": {
+                        "completed": False,
+                        "skipReason": "schedule",
+                    },
+                },
+                {
+                    **base[1],
+                    "id": "tue-2",
+                    "date": "2026-07-14",
+                    "userResponse": "skipped",
+                    "actualWorkout": {
+                        "completed": False,
+                        "skipReason": "schedule",
+                    },
+                },
+                *base[2:],
+            ],
+        ),
+        (
+            "long_run_day_preference",
+            "preferred_day_review",
+            [
+                {
+                    **base[0],
+                    "id": "long-1",
+                    "date": "2026-07-04",
+                    "plannedWorkout": "Long run",
+                    "recommendedWorkout": "Long run",
+                },
+                {
+                    **base[1],
+                    "id": "long-2",
+                    "date": "2026-07-11",
+                    "plannedWorkout": "Long run",
+                    "recommendedWorkout": "Long run",
+                },
+                *base[2:],
+            ],
+        ),
+        (
+            "rest_override",
+            "scoring_preference_review",
+            [
+                {
+                    **base[0],
+                    "id": "rest-1",
+                    "selectedAction": "rest",
+                    "userResponse": "rejected",
+                },
+                {
+                    **base[1],
+                    "id": "rest-2",
+                    "selectedAction": "rest",
+                    "userResponse": "rejected",
+                },
+                *base[2:],
+            ],
+        ),
+        (
+            "adjustment_tolerance",
+            "scoring_preference_review",
+            [
+                {
+                    **base[0],
+                    "id": "hard-1",
+                    "userResponse": "rejected",
+                    "rejectionReason": "too_hard",
+                },
+                {
+                    **base[1],
+                    "id": "hard-2",
+                    "userResponse": "rejected",
+                    "rejectionReason": "too_hard",
+                },
+                *base[2:],
+            ],
+        ),
+        (
+            "stale_data_or_checkin_gap",
+            "checkin_prompt",
+            [
+                {
+                    **base[0],
+                    "id": "stale-1",
+                    "context": {"readinessFreshness": "stale"},
+                },
+                {
+                    **base[1],
+                    "id": "stale-2",
+                    "context": {"readinessFreshness": "stale"},
+                },
+                *base[2:],
+            ],
+        ),
+        (
+            "pain_or_discomfort_recurrence",
+            "caution",
+            [
+                {
+                    **base[0],
+                    "id": "pain-1",
+                    "userResponse": "skipped",
+                    "actualWorkout": {
+                        "completed": False,
+                        "skipReason": "pain_or_discomfort",
+                    },
+                },
+                {
+                    **base[1],
+                    "id": "pain-2",
+                    "userResponse": "skipped",
+                    "actualWorkout": {
+                        "completed": False,
+                        "skipReason": "pain_or_discomfort",
+                    },
+                },
+                *base[2:],
+            ],
+        ),
+    ]
+    for family, result_kind, events in route_cases:
+        before = copy.deepcopy(events)
+        result = behavior_insights_module.deterministic_behavior_insights(events)
+        _assert(events == before, f"{family} detection mutated input")
+        _assert(
+            result["contract_version"] == fixture["contract_schema"],
+            f"{family} contract version drifted",
+        )
+        matched = [
+            pattern
+            for pattern in result["patterns"]
+            if pattern["family"] == family
+        ]
+        _assert(len(matched) == 1, f"{family} route was not surfaced exactly once")
+        pattern = matched[0]
+        _assert(
+            pattern["result"]["kind"] == result_kind,
+            f"{family} result kind drifted",
+        )
+        _assert(
+            bool(pattern["why_it_matters"])
+            and bool(pattern["result"]["will_change_if_confirmed"])
+            and bool(pattern["result"]["will_never_change"]),
+            f"{family} result copy is incomplete",
+        )
+        if result_kind in {"checkin_prompt", "caution"}:
+            _assert(
+                pattern["result"]["mutation"] == "none",
+                f"{family} non-mutating route gained a mutation",
+            )
+        prose = " ".join(
+            [
+                pattern["title"],
+                pattern["description"],
+                pattern["suggested_adjustment"],
+                pattern["why_it_matters"],
+                pattern["result"]["will_change_if_confirmed"],
+                pattern["result"]["will_never_change"],
+            ]
+        )
+        _assert(
+            not contains_medical_claim(prose),
+            f"{family} result prose made a medical claim",
+        )
+
+
+def check_behavior_pattern_result_failures_and_auth() -> None:
+    fixture_path = (
+        Path(__file__).resolve().parents[2]
+        / "ios"
+        / "KineticCompanion"
+        / "Tests"
+        / "Fixtures"
+        / "mobile-pattern-result-contract.json"
+    )
+    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+    events = [
+        {
+            "id": f"heavy-{index}",
+            "date": f"2026-07-{index + 1:02d}",
+            "plannedWorkout": "Easy run",
+            "recommendedWorkout": "Easy run",
+            "selectedAction": "modify",
+            "confidence": "moderate",
+            "userResponse": "skipped" if index < 2 else "accepted",
+            "actualWorkout": {"completed": index >= 2},
+            "context": {"calendarLoad": "heavy" if index < 2 else "light"},
+        }
+        for index in range(5)
+    ]
+    original_call = behavior_insights_module.call_llm
+    simulations = {
+        "timeout": lambda *args, **kwargs: (_ for _ in ()).throw(
+            LLMUnavailable("simulated timeout")
+        ),
+        "ai_unavailable": lambda *args, **kwargs: (_ for _ in ()).throw(
+            LLMUnavailable("simulated offline provider")
+        ),
+        "malformed_ai": lambda *args, **kwargs: "not json",
+        "invalid_ai": lambda *args, **kwargs: json.dumps({"patterns": []}),
+        "unsupported_ai": lambda *args, **kwargs: json.dumps(
+            {
+                "patterns": [
+                    {
+                        "family": "pain_or_discomfort_recurrence",
+                        "title": "Unsupported",
+                        "description": "Unsupported by the bounded input.",
+                        "confidence": "moderate",
+                        "suggested_adjustment": "Open caution.",
+                        "preference_type": "none",
+                    }
+                ],
+                "warnings": [],
+            }
+        ),
+    }
+    try:
+        for expected in fixture["failure_cases"]:
+            behavior_insights_module.call_llm = simulations[expected["id"]]
+            before = copy.deepcopy(events)
+            result = behavior_insights_module.generate_behavior_insights(events)
+            _assert(events == before, f"{expected['id']} fallback mutated input")
+            _assert(
+                result["analysis"]["source"] == expected["expected_source"],
+                f"{expected['id']} source drifted",
+            )
+            _assert(
+                result["analysis"]["failure"] == expected["expected_failure"],
+                f"{expected['id']} failure drifted",
+            )
+            _assert(
+                result["analysis"]["fallback_used"] is expected["fallback_used"],
+                f"{expected['id']} fallback flag drifted",
+            )
+            _assert(result["patterns"], f"{expected['id']} lost deterministic result")
+    finally:
+        behavior_insights_module.call_llm = original_call
+
+    original_auth = os.environ.get("KINETIC_AUTH_REQUIRED")
+    os.environ["KINETIC_AUTH_REQUIRED"] = "true"
+    try:
+        anonymous = client.post(
+            "/behavior-insights",
+            json={"recommendation_events": events},
+        )
+        _assert(
+            anonymous.status_code == 401,
+            f"strict-auth behavior result returned {anonymous.status_code}",
+        )
+    finally:
+        if original_auth is None:
+            os.environ.pop("KINETIC_AUTH_REQUIRED", None)
+        else:
+            os.environ["KINETIC_AUTH_REQUIRED"] = original_auth
 
 
 def check_behavior_prompt_privacy() -> None:
@@ -986,6 +1341,11 @@ def main() -> None:
         ("mobile intake failures and strict auth", check_mobile_intake_failure_contract),
         ("mobile check-in compatibility and strict auth", check_mobile_checkin_compatibility),
         ("behavior insights", check_behavior_insights),
+        ("behavior pattern result contract", check_behavior_pattern_result_contract),
+        (
+            "behavior pattern result failures and strict auth",
+            check_behavior_pattern_result_failures_and_auth,
+        ),
         ("behavior prompt privacy", check_behavior_prompt_privacy),
         ("training summary", check_training_summary),
         (

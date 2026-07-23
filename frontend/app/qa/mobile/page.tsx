@@ -35,6 +35,7 @@ const FILTERS: Array<{ value: EventFilter; label: string }> = [
   { value: "mobile_decision_validated", label: "Decision" },
   { value: "mobile_intake_lifecycle", label: "Intake" },
   { value: "mobile_checkin_synced", label: "Check-in" },
+  { value: "mobile_pattern_result_lifecycle", label: "Patterns" },
 ];
 
 export default function MobileQaPage() {
@@ -125,6 +126,16 @@ export default function MobileQaPage() {
       update_succeeded: true,
       latency_ms: 160,
     });
+    trackProductEvent("mobile_pattern_result_lifecycle", {
+      platform: "web",
+      action: "reviewed",
+      outcome: "success",
+      pattern_family: "specific_day_skips",
+      result_kind: "preferred_day_review",
+      mutation_state: "review_only",
+      deterministic_validation: "not_run",
+      source: "deterministic",
+    });
     void refresh();
   };
 
@@ -173,7 +184,7 @@ export default function MobileQaPage() {
         </div>
       </header>
 
-      <section className="grid gap-3 md:grid-cols-5">
+      <section className="grid gap-3 md:grid-cols-6">
         <SummaryTile
           icon={Activity}
           label="Mobile events"
@@ -201,6 +212,15 @@ export default function MobileQaPage() {
               (event) =>
                 event.name === "mobile_intake_lifecycle" &&
                 event.properties.route !== undefined,
+            ).length,
+          )}
+        />
+        <SummaryTile
+          icon={RefreshCw}
+          label="Pattern results"
+          value={String(
+            events.filter(
+              (event) => event.name === "mobile_pattern_result_lifecycle",
             ).length,
           )}
         />

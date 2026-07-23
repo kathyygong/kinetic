@@ -181,7 +181,10 @@ Before inviting mobile beta users:
 10. Confirm behavior patterns have bounded outcomes: confirmed schedule-style
    patterns can update preferred-day inputs for deterministic plan generation;
    scoring patterns remain capped nudges; stale-data patterns prompt sync or
-   check-in; pain patterns route to caution only.
+   check-in; pain patterns route to caution only. Validate
+   `behavior-pattern-result.v1` against
+   [MOBILE_PATTERN_RESULT_CONTRACT.md](./MOBILE_PATTERN_RESULT_CONTRACT.md) and
+   its canonical cross-platform fixture.
 11. Confirm existing web admin/QA/eval review surfaces can inspect
    mobile-originated decisions, intake drafts, validation outcomes, check-ins,
    and privacy-safe telemetry. Use `/qa/mobile` for the local web audit view.
@@ -212,7 +215,16 @@ inferred readiness, raw
 HealthKit sample, pain severity, injury, or medical field may cross this
 boundary. Use [MOBILE_CHECKIN_CONTRACT.md](./MOBILE_CHECKIN_CONTRACT.md) and
 [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md) for the exact proof and
-the remaining patched-Active-LTS Next.js distribution blocker.
+the completed patched-Active-LTS Next.js hosted Windows proof. The managed
+Windows workstation proxy may still lack that tarball, but it is no longer a
+repository or hosted-integration blocker.
+
+Mobile Phase 3.5 Part A adds the strict shared Behavior Pattern Result
+Contract, deterministic schedule confirmation through the existing intake
+planner, bounded scoring confirmation, prompt/caution-only non-mutation
+routes, and privacy-safe `/qa/mobile` readback. Use
+[MOBILE_PATTERN_RESULT_HANDOFF.md](./MOBILE_PATTERN_RESULT_HANDOFF.md) for the
+Windows evidence and optional native continuation.
 
 ## Live Firebase persistence QA
 

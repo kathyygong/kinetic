@@ -647,6 +647,14 @@ export default function DashboardPage() {
           readinessBaselines.sleep_hours,
         ),
         recoveryStatus: bucketRecoveryStatus(recoveryState),
+        readinessFreshness: !todayReadiness
+          ? "missing"
+          : (decision.staleness_warnings ?? []).some((warning) =>
+                /recovery|readiness/i.test(warning),
+              )
+            ? "stale"
+            : "fresh",
+        checkinStatus: "not_due",
       },
     });
     // Intentionally omit `todayReadiness` / `readinessBaselines` from the

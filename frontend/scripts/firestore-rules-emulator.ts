@@ -231,6 +231,22 @@ async function main() {
               deterministic_validation: "not_run",
             },
           },
+          {
+            schemaVersion: 2,
+            id: "shared-pattern-result-1",
+            name: "mobile_pattern_result_lifecycle",
+            at: "2026-07-23T12:00:00.000Z",
+            properties: {
+              platform: "web",
+              action: "reviewed",
+              outcome: "success",
+              pattern_family: "specific_day_skips",
+              result_kind: "preferred_day_review",
+              mutation_state: "review_only",
+              deterministic_validation: "not_run",
+              source: "deterministic",
+            },
+          },
         ],
       },
       deleted: false,
@@ -264,6 +280,13 @@ async function main() {
           event.name === "mobile_checkin_synced",
       )?.properties?.write_scope === "readiness",
       "owner A should read bounded mobile check-in lifecycle outcomes",
+    );
+    expect(
+      auditEvents.find(
+        (event: { name?: string }) =>
+          event.name === "mobile_pattern_result_lifecycle",
+      )?.properties?.result_kind === "preferred_day_review",
+      "owner A should read bounded behavior-pattern result outcomes",
     );
     expect((await getDoc(ownWorkouts)).exists(), "owner A should read workouts");
     expect(

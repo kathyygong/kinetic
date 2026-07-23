@@ -72,6 +72,10 @@ export type RecommendationEvent = {
     calendarLoad?: "light" | "moderate" | "heavy";
     sleepStatus?: "below_baseline" | "normal" | "above_baseline";
     recoveryStatus?: "low" | "moderate" | "high";
+    /** Bounded freshness signal; never a readiness or biometric value. */
+    readinessFreshness?: "fresh" | "stale" | "missing";
+    /** Bounded habit-loop state; never reflection prose. */
+    checkinStatus?: "completed" | "missing" | "not_due";
   };
 };
 

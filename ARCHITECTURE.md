@@ -110,6 +110,24 @@ preferred-day inputs, after user review. The deterministic plan generator and
 validator still own mileage, phase structure, workout spacing, taper, and
 load safety.
 
+Mobile Phase 3.5 formalizes this boundary as
+`behavior-pattern-result.v1`. `POST /behavior-insights` remains authenticated
+and read-only. The backend intersects any optional-model family selection with
+deterministically supported detections and authors every action, change
+statement, and never-change boundary deterministically. Scoring results can
+only build confirmed bounded preferences. Schedule results construct a
+grounded typed intake draft and reuse `validateIntakeDraft`,
+`buildConfirmedIntakeState`, and `persistConfirmedIntake`; validation and
+review do not write. Stale-data/check-in and pain/discomfort results declare
+`mutation: none`.
+
+The cross-platform fixture lives at
+`ios/KineticCompanion/Tests/Fixtures/mobile-pattern-result-contract.json`.
+Privacy-safe result lifecycle telemetry reuses the owner-scoped
+`mobile_audit` document and `/qa/mobile`; it contains route enums only, never
+pattern prose, notes, identity, tokens, readiness/biometric values, pain
+severity, injury, or medical fields.
+
 ## Runtime modes
 
 - `fallback`: deterministic explanation templates; deployed demo default.

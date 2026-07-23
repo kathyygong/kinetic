@@ -29,13 +29,19 @@ import {
   fetchBehaviorInsights,
   type BehaviorInsightsResponse,
   type BehaviorPattern,
+  type IntakeDay,
 } from "@/lib/api";
 import {
-  behaviorRepository,
-} from "@/lib/persistence/behaviorRepository";
+  buildConfirmedPatternPreference,
+  buildPreferredDayPatternDraft,
+} from "@/lib/behaviorPatternResultContract";
+import { buildConfirmedIntakeState, persistConfirmedIntake } from "@/lib/intake";
+import { behaviorRepository } from "@/lib/persistence/behaviorRepository";
 import type { LearnedPreference } from "@/lib/behaviorTypes";
 import { auth } from "@/lib/firebase";
 import { trackProductEvent } from "@/lib/instrumentation";
+import { getUserProfile } from "@/lib/profileStorage";
+import { getGoal, getSavedPlan } from "@/lib/storage";
 import { tokens } from "@/lib/tokens";
 
 // --- Helpers ---------------------------------------------------------------
@@ -47,21 +53,37 @@ import { tokens } from "@/lib/tokens";
  * idempotent across reloads and across server-side code paths.
  */
 function buildPreferenceId(p: BehaviorPattern): string {
-  const slug = p.title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  return `learned_${p.preference_type}_${slug}`;
+  return p.id;
 }
 
 // Human labels for each `preference_type`. Kept short — they sit
 // inside a small pill next to the pattern title.
-const PREFERENCE_LABELS: Record<BehaviorPattern["preference_type"], string> = {
+const PREFERENCE_LABELS: Record<LearnedPreference["type"], string> = {
   intensity_tolerance: "Intensity",
   rest_day_preference: "Rest days",
   busy_day_preference: "Busy days",
   schedule_preference: "Schedule",
 };
+
+const PATTERN_LABELS: Record<BehaviorPattern["family"], string> = {
+  heavy_calendar_misses: "Busy days",
+  specific_day_skips: "Schedule",
+  long_run_day_preference: "Long-run day",
+  rest_override: "Rest days",
+  adjustment_tolerance: "Intensity",
+  stale_data_or_checkin_gap: "Data habit",
+  pain_or_discomfort_recurrence: "Caution",
+};
+
+const DAY_OPTIONS: Array<{ value: IntakeDay; label: string }> = [
+  { value: "mon", label: "Mon" },
+  { value: "tue", label: "Tue" },
+  { value: "wed", label: "Wed" },
+  { value: "thu", label: "Thu" },
+  { value: "fri", label: "Fri" },
+  { value: "sat", label: "Sat" },
+  { value: "sun", label: "Sun" },
+];
 
 // Confidence pill styling. Intentionally muted — we don't want "high"
 // to read as urgent or "low" to read as a warning. Each shade nudges
@@ -118,6 +140,10 @@ export default function MemoryCenter({
   // transient "Preference saved…" success note inside its row. Cleared
   // by a timer below so the card returns to its quiet resting state.
   const [justSavedId, setJustSavedId] = useState<string | null>(null);
+  const [reviewingPattern, setReviewingPattern] =
+    useState<BehaviorPattern | null>(null);
+  const [reviewDays, setReviewDays] = useState<IntakeDay[]>([]);
+  const [reviewError, setReviewError] = useState<string | null>(null);
   const noticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Read events out of localStorage, POST them to /behavior-insights,
@@ -141,7 +167,9 @@ export default function MemoryCenter({
       trackProductEvent("ai_reasoning_completed", {
         surface: "behavior_insights",
         outcome: "success",
-        ui_fallback_used: false,
+        source: data.analysis.source,
+        fallback_used: data.analysis.fallback_used,
+        ui_fallback_used: data.analysis.fallback_used,
         latency_ms: Math.round(performance.now() - startedAt),
         recommendation_event_count: events.length,
         pattern_count: data.patterns.length,
@@ -179,6 +207,7 @@ export default function MemoryCenter({
   }, []);
 
   const togglePattern = useCallback((p: BehaviorPattern) => {
+    if (p.result.kind !== "scoring_preference_review") return;
     const id = buildPreferenceId(p);
     setSavedIds((prev) => {
       const next = new Set(prev);
@@ -193,6 +222,16 @@ export default function MemoryCenter({
           preference_type: p.preference_type,
           confidence: p.confidence,
         });
+        trackProductEvent("mobile_pattern_result_lifecycle", {
+          platform: "web",
+          action: "dismissed",
+          outcome: "success",
+          pattern_family: p.family,
+          result_kind: p.result.kind,
+          mutation_state: "applied",
+          deterministic_validation: "passed",
+          source: "deterministic",
+        });
         next.delete(id);
         setConfirmedPreferences(
           behaviorRepository.listConfirmedPreferences(),
@@ -204,18 +243,21 @@ export default function MemoryCenter({
         // engine consults learned preferences as a soft input — it never
         // rewrites the existing plan on its own, which is what the
         // success copy promises the user.
-        behaviorRepository.confirmPreference({
-          id,
-          type: p.preference_type,
-          description: p.description,
-          confidence: p.confidence,
-          userConfirmed: true,
-          createdAt: new Date().toISOString(),
-        });
+        behaviorRepository.confirmPreference(buildConfirmedPatternPreference(p));
         trackProductEvent("learned_preference_updated", {
           action: "confirmed",
-          preference_type: p.preference_type,
+          preference_type: p.result.preference_type,
           confidence: p.confidence,
+        });
+        trackProductEvent("mobile_pattern_result_lifecycle", {
+          platform: "web",
+          action: "confirmed",
+          outcome: "success",
+          pattern_family: p.family,
+          result_kind: p.result.kind,
+          mutation_state: "applied",
+          deterministic_validation: "passed",
+          source: "deterministic",
         });
         next.add(id);
         setConfirmedPreferences(
@@ -241,7 +283,124 @@ export default function MemoryCenter({
       preference_type: p.preference_type,
       confidence: p.confidence,
     });
+    trackProductEvent("mobile_pattern_result_lifecycle", {
+      platform: "web",
+      action: "dismissed",
+      outcome: "success",
+      pattern_family: p.family,
+      result_kind: p.result.kind,
+      mutation_state: "rejected",
+      deterministic_validation: "not_run",
+      source: "deterministic",
+    });
   }, []);
+
+  const beginPatternAction = useCallback(
+    (pattern: BehaviorPattern) => {
+      if (pattern.result.kind === "scoring_preference_review") {
+        togglePattern(pattern);
+        return;
+      }
+      if (pattern.result.kind === "preferred_day_review") {
+        const current = getUserProfile()?.preferred_training_days ?? [];
+        const proposed = new Set<IntakeDay>(current);
+        if (pattern.result.strategy === "avoid_day") {
+          proposed.delete(pattern.result.observed_day);
+        } else {
+          proposed.add(pattern.result.observed_day);
+        }
+        setReviewDays(
+          DAY_OPTIONS.map(({ value }) => value).filter((day) =>
+            proposed.has(day),
+          ),
+        );
+        setReviewingPattern(pattern);
+        setReviewError(null);
+        trackProductEvent("mobile_pattern_result_lifecycle", {
+          platform: "web",
+          action: "reviewed",
+          outcome: "success",
+          pattern_family: pattern.family,
+          result_kind: pattern.result.kind,
+          mutation_state: "review_only",
+          deterministic_validation: "not_run",
+          source: "deterministic",
+        });
+        return;
+      }
+      trackProductEvent("mobile_pattern_result_lifecycle", {
+        platform: "web",
+        action: pattern.result.kind === "caution" ? "caution" : "prompted",
+        outcome: "success",
+        pattern_family: pattern.family,
+        result_kind: pattern.result.kind,
+        mutation_state: "not_requested",
+        deterministic_validation: "not_run",
+        source: "deterministic",
+      });
+    },
+    [togglePattern],
+  );
+
+  const confirmPreferredDays = useCallback(() => {
+    const pattern = reviewingPattern;
+    if (!pattern || pattern.result.kind !== "preferred_day_review") return;
+    try {
+      const goal = getGoal();
+      if (!goal) {
+        throw new Error("Set a race goal before applying preferred training days.");
+      }
+      const currentPlan = getSavedPlan();
+      const minimumDays = Math.max(
+        1,
+        ...(currentPlan?.weeks.map((week) => week.workouts.length) ?? [1]),
+      );
+      const review = buildPreferredDayPatternDraft(
+        pattern,
+        reviewDays,
+        minimumDays,
+      );
+      const confirmed = buildConfirmedIntakeState({
+        draft: review.draft,
+        sourceText: review.sourceText,
+        today: new Date().toISOString().slice(0, 10),
+        currentGoal: goal,
+        currentProfile: getUserProfile(),
+        currentPlan,
+      });
+      persistConfirmedIntake(confirmed);
+      behaviorRepository.dismissPattern(pattern.id);
+      setDismissedIds((current) => new Set(current).add(pattern.id));
+      setReviewingPattern(null);
+      setReviewError(null);
+      trackProductEvent("mobile_pattern_result_lifecycle", {
+        platform: "web",
+        action: "confirmed",
+        outcome: "success",
+        pattern_family: pattern.family,
+        result_kind: pattern.result.kind,
+        mutation_state: "applied",
+        deterministic_validation: "passed",
+        source: "deterministic",
+      });
+    } catch (cause) {
+      setReviewError(
+        cause instanceof Error
+          ? cause.message
+          : "Preferred-day validation failed.",
+      );
+      trackProductEvent("mobile_pattern_result_lifecycle", {
+        platform: "web",
+        action: "failed",
+        outcome: "invalid",
+        pattern_family: pattern.family,
+        result_kind: pattern.result.kind,
+        mutation_state: "rejected",
+        deterministic_validation: "failed",
+        source: "deterministic",
+      });
+    }
+  }, [reviewDays, reviewingPattern]);
 
   const clearMemory = useCallback(() => {
     if (
@@ -379,6 +538,69 @@ export default function MemoryCenter({
         </section>
       ) : null}
 
+      {reviewingPattern?.result.kind === "preferred_day_review" ? (
+        <section className="mb-5 rounded-2xl border border-blue-200/70 bg-blue-50/60 p-4 dark:border-blue-900/40 dark:bg-blue-950/20">
+          <h3 className="text-sm font-semibold text-blue-950 dark:text-blue-100">
+            Review preferred training days
+          </h3>
+          <p className="mt-1 text-xs leading-relaxed text-blue-900/75 dark:text-blue-100/70">
+            Nothing changes until you confirm. Kinetic will regenerate the
+            saved plan through the existing deterministic planner and safety
+            checks.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {DAY_OPTIONS.map((day) => {
+              const selected = reviewDays.includes(day.value);
+              return (
+                <button
+                  key={day.value}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() =>
+                    setReviewDays((current) =>
+                      selected
+                        ? current.filter((value) => value !== day.value)
+                        : [...current, day.value],
+                    )
+                  }
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium ${
+                    selected
+                      ? "border-blue-400 bg-blue-600 text-white"
+                      : "border-blue-200 bg-white/70 text-blue-800 dark:border-blue-700 dark:bg-white/5 dark:text-blue-200"
+                  }`}
+                >
+                  {day.label}
+                </button>
+              );
+            })}
+          </div>
+          {reviewError ? (
+            <p className="mt-3 text-xs font-medium text-rose-700 dark:text-rose-200">
+              {reviewError}
+            </p>
+          ) : null}
+          <div className="mt-4 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setReviewingPattern(null);
+                setReviewError(null);
+              }}
+              className="rounded-full px-3 py-1.5 text-xs font-medium text-blue-800 dark:text-blue-200"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={confirmPreferredDays}
+              className="rounded-full bg-blue-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-800"
+            >
+              Confirm and validate
+            </button>
+          </div>
+        </section>
+      ) : null}
+
       {state.kind === "loading" ? (
         <LoadingState />
       ) : state.kind === "error" ? (
@@ -396,7 +618,7 @@ export default function MemoryCenter({
               pattern={p}
               saved={savedIds.has(buildPreferenceId(p))}
               justSaved={justSavedId === buildPreferenceId(p)}
-              onToggle={() => togglePattern(p)}
+              onAction={() => beginPatternAction(p)}
               onDismiss={() => dismissPattern(p)}
               historyCount={historyCount}
             />
@@ -413,19 +635,27 @@ function PatternRow({
   pattern,
   saved,
   justSaved,
-  onToggle,
+  onAction,
   onDismiss,
   historyCount,
 }: {
   pattern: BehaviorPattern;
   saved: boolean;
   justSaved: boolean;
-  onToggle: () => void;
+  onAction: () => void;
   onDismiss: () => void;
   historyCount: number;
 }) {
   const conf = CONFIDENCE_STYLES[pattern.confidence];
-  const typeLabel = PREFERENCE_LABELS[pattern.preference_type];
+  const typeLabel = PATTERN_LABELS[pattern.family];
+  const canDismiss =
+    pattern.result.kind === "scoring_preference_review" ||
+    pattern.result.kind === "preferred_day_review";
+  const actionHref =
+    pattern.result.kind === "checkin_prompt" ||
+    pattern.result.kind === "caution"
+      ? "/mobile-companion"
+      : null;
 
   return (
     <motion.div
@@ -452,6 +682,32 @@ function PatternRow({
             </span>{" "}
             {pattern.suggested_adjustment}
           </p>
+          <dl className="mt-3 space-y-2 rounded-lg border border-black/5 bg-white/45 p-3 text-xs leading-relaxed dark:border-white/10 dark:bg-white/[0.03]">
+            <div>
+              <dt className="font-semibold text-neutral-700 dark:text-neutral-200">
+                Why it matters
+              </dt>
+              <dd className="text-neutral-500 dark:text-neutral-400">
+                {pattern.why_it_matters}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-neutral-700 dark:text-neutral-200">
+                What can change
+              </dt>
+              <dd className="text-neutral-500 dark:text-neutral-400">
+                {pattern.result.will_change_if_confirmed}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-neutral-700 dark:text-neutral-200">
+                What never changes
+              </dt>
+              <dd className="text-neutral-500 dark:text-neutral-400">
+                {pattern.result.will_never_change}
+              </dd>
+            </div>
+          </dl>
           <p className="mt-2 text-[11px] text-neutral-400 dark:text-neutral-500">
             Based on {historyCount} recent recommendation{" "}
             {historyCount === 1 ? "record" : "records"}.
@@ -466,7 +722,7 @@ function PatternRow({
       </div>
 
       <div className="mt-3 flex items-center justify-end gap-2">
-        {!saved ? (
+        {!saved && canDismiss ? (
           <button
             type="button"
             onClick={onDismiss}
@@ -475,25 +731,39 @@ function PatternRow({
             Dismiss
           </button>
         ) : null}
-        <button
-          type="button"
-          onClick={onToggle}
-          aria-pressed={saved}
-          className={
-            saved
-              ? `inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50/80 px-3 py-1.5 text-xs font-medium text-emerald-800 hover:bg-emerald-100 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-200 dark:hover:bg-emerald-950/50 ${tokens.motion}`
-              : `inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white/70 px-3 py-1.5 text-xs font-medium text-neutral-700 hover:border-black/20 hover:bg-white dark:border-white/15 dark:bg-neutral-900/60 dark:text-neutral-200 dark:hover:bg-neutral-900 ${tokens.motion}`
-          }
-        >
-          {saved ? (
-            <>
-              <CheckIcon />
-              Using this preference
-            </>
-          ) : (
-            "Use this preference"
-          )}
-        </button>
+        {actionHref ? (
+          <a
+            href={actionHref}
+            onClick={onAction}
+            className={`inline-flex items-center rounded-full border border-black/10 bg-white/70 px-3 py-1.5 text-xs font-medium text-neutral-700 hover:border-black/20 hover:bg-white dark:border-white/15 dark:bg-neutral-900/60 dark:text-neutral-200 dark:hover:bg-neutral-900 ${tokens.motion}`}
+          >
+            {pattern.result.action_label}
+          </a>
+        ) : (
+          <button
+            type="button"
+            onClick={onAction}
+            aria-pressed={
+              pattern.result.kind === "scoring_preference_review"
+                ? saved
+                : undefined
+            }
+            className={
+              saved
+                ? `inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50/80 px-3 py-1.5 text-xs font-medium text-emerald-800 hover:bg-emerald-100 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-200 dark:hover:bg-emerald-950/50 ${tokens.motion}`
+                : `inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white/70 px-3 py-1.5 text-xs font-medium text-neutral-700 hover:border-black/20 hover:bg-white dark:border-white/15 dark:bg-neutral-900/60 dark:text-neutral-200 dark:hover:bg-neutral-900 ${tokens.motion}`
+            }
+          >
+            {saved ? (
+              <>
+                <CheckIcon />
+                Using this preference
+              </>
+            ) : (
+              pattern.result.action_label
+            )}
+          </button>
+        )}
       </div>
 
       {/* Transient success state. Lives below the row controls so it

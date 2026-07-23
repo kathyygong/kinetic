@@ -16,6 +16,11 @@
 //     the server decides what to do.
 
 import { auth } from "./firebase";
+import {
+  parseBehaviorInsightsResponse,
+  type BehaviorInsightsResponse,
+  type BehaviorPattern,
+} from "./behaviorPatternResultContract";
 import { getGoogleCalendarConnection } from "./integrations/googleCalendar";
 import {
   classifyMobileTodayHttpFailure,
@@ -234,28 +239,7 @@ export async function fetchWeeklyReasoning(
  * of styles; `preference_type` is constrained so the UI can pair each
  * pattern with a stable icon / label.
  */
-export type BehaviorPattern = {
-  title: string;
-  description: string;
-  confidence: "low" | "moderate" | "high";
-  suggested_adjustment: string;
-  preference_type:
-    | "busy_day_preference"
-    | "rest_day_preference"
-    | "intensity_tolerance"
-    | "schedule_preference";
-};
-
-/**
- * Schema for `POST /behavior-insights` responses. The backend always
- * returns a valid object on 2xx — on any internal failure path it
- * substitutes a deterministic fallback — so callers can treat the
- * response as authoritative.
- */
-export type BehaviorInsightsResponse = {
-  patterns: BehaviorPattern[];
-  warnings: string[];
-};
+export type { BehaviorInsightsResponse, BehaviorPattern };
 
 /**
  * Call `POST /behavior-insights` with the runner's `RecommendationEvent`
@@ -281,7 +265,7 @@ export async function fetchBehaviorInsights(
   if (!res.ok) {
     throw new Error(`behavior-insights failed: HTTP ${res.status}`);
   }
-  return (await res.json()) as BehaviorInsightsResponse;
+  return parseBehaviorInsightsResponse(await res.json());
 }
 
 // --- Read-only What-if reasoning -------------------------------------------

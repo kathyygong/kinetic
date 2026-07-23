@@ -983,6 +983,30 @@ branch was fast-forwarded into `main` on 2026-07-23.
 - Frontend lint, TypeScript, full smoke, production build, backend compile,
   deterministic gates, and backend smoke pass on Windows.
 
+### Mobile Phase 3.5 Part A Pattern Results - Completed 2026-07-23
+
+- Added the strict shared `behavior-pattern-result.v1` envelope and canonical
+  cross-platform fixture for all seven supported pattern families.
+- Kept `POST /behavior-insights` authenticated and read-only. Optional model
+  output can only select a deterministically supported family; displayed
+  actions and safety boundaries are deterministic.
+- Routed busy-day, rest-override, and difficulty-tolerance patterns to explicit
+  capped scoring-preference review.
+- Routed weekday-skip and long-run-day patterns to explicit preferred-day
+  review that reuses the existing intake validator, planner, and persistence
+  authority only after confirmation.
+- Routed stale readiness/check-in gaps to prompt-only UX and recurring
+  pain/discomfort flags to fixed caution guidance with `mutation: none`.
+- Added strict response parsing, review-time no-mutation checks, deterministic
+  confirmation coverage, strict auth, sparse data, timeout, unavailable AI,
+  malformed/invalid/unsupported AI fallback gates, and prompt privacy checks.
+- Added privacy-safe `mobile_pattern_result_lifecycle` telemetry and
+  `/qa/mobile` plus owner-only `mobile_audit` readback without a new Firestore
+  domain.
+- Kept notifications, hosted AI, Garmin/Oura, coach sharing, full native plan
+  editing, and autonomous mutation out of scope. Optional native Part B is
+  defined in [MOBILE_PATTERN_RESULT_HANDOFF.md](./MOBILE_PATTERN_RESULT_HANDOFF.md).
+
 ### Validation-Hardening Checkpoint - Updated 2026-07-13
 
 - Reconciled smoke fixtures with the canonical `CurrentPRs` integer-seconds

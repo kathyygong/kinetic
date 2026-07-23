@@ -21,6 +21,7 @@ from .ai_reasoning import generate_daily_reasoning, lookup_cached_reasoning
 from .ai_runtime import runtime_status
 from .weekly_reasoning import generate_weekly_recalibration_summary
 from .behavior_insights import (
+    BehaviorPatternEnvelope,
     deterministic_behavior_insights,
     generate_behavior_insights,
 )
@@ -420,7 +421,11 @@ class BehaviorInsightsRequest(BaseModel):
     recommendation_events: list[dict]
 
 
-@app.post("/behavior-insights", dependencies=[RequireAuth])
+@app.post(
+    "/behavior-insights",
+    dependencies=[RequireAuth],
+    response_model=BehaviorPatternEnvelope,
+)
 def behavior_insights(payload: BehaviorInsightsRequest):
     """Surface conservative behavioural patterns from recommendation history.
 

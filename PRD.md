@@ -528,7 +528,15 @@ Any AI-generated suggestion that could affect training must pass deterministic v
   signed-device proof, completed 2026-07-20. See
   [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md) and
   [MOBILE_INTAKE_CONTRACT.md](./MOBILE_INTAKE_CONTRACT.md).
-- Phase 3: Recovery/check-in loop.
+- Phase 3: Recovery/check-in loop. Parts A/B and physical-device proof
+  completed 2026-07-21.
+- Phase 3.5: Behavior Pattern Result Contract. Windows/shared Part A completed
+  2026-07-23 as strict `behavior-pattern-result.v1`: every surfaced family has
+  a scoring-review, preferred-day-review, prompt, or caution result; detection
+  and review remain read-only; confirmed schedule inputs reuse deterministic
+  plan validation; pain/discomfort cannot become a preference, diagnosis, or
+  automatic mutation. Optional native Part B is governed by
+  [MOBILE_PATTERN_RESULT_HANDOFF.md](./MOBILE_PATTERN_RESULT_HANDOFF.md).
 - Phase 4: Notifications only if justified by the Today/check-in loop.
 - Preserve the deterministic safety core: mobile can summarize signals and
   call the existing decision endpoint, but cannot bypass deterministic
