@@ -35,6 +35,40 @@ endpoint. It adds:
 
 No Swift or SwiftUI implementation is included in Part A.
 
+## Part A evidence
+
+Implementation commits:
+
+- `485b727` — shared contract, routes, UI review, telemetry, fixtures, tests,
+  and documentation;
+- `d2661a3` — hosted TypeScript narrowing correction.
+
+GitHub-hosted Windows integration run
+[30021806663](https://github.com/kathyygong/kinetic/actions/runs/30021806663)
+passed on 2026-07-23 at `d2661a3`:
+
+- clean `npm ci`;
+- connected dependency audit;
+- frontend lint;
+- TypeScript `--noEmit`;
+- complete deterministic frontend smoke suite, including the canonical
+  behavior-pattern fixture;
+- production frontend build;
+- beta readiness;
+- Python 3.12 dependency install and compile;
+- backend deterministic gates, including every pattern route, AI failure
+  class, request non-mutation, prompt privacy, and strict-auth rejection;
+- backend smoke;
+- Java 21 Firebase Auth/Firestore owner-only emulator suite, including
+  `mobile_pattern_result_lifecycle` readback from the existing
+  `mobile_audit` domain.
+
+Local Windows backend compile, deterministic gates, and backend smoke also
+passed. Local `npm ci` remains blocked by the managed package proxy returning
+`E404` for the pinned Next.js `16.2.11` tarball. The same lockfile installed
+and passed the clean hosted Windows workflow, so no dependency downgrade,
+lockfile change, or alternate registry workaround was made.
+
 ## Windows validation
 
 Run from the repository root unless a command changes directory:

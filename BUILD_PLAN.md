@@ -1006,6 +1006,11 @@ branch was fast-forwarded into `main` on 2026-07-23.
 - Kept notifications, hosted AI, Garmin/Oura, coach sharing, full native plan
   editing, and autonomous mutation out of scope. Optional native Part B is
   defined in [MOBILE_PATTERN_RESULT_HANDOFF.md](./MOBILE_PATTERN_RESULT_HANDOFF.md).
+- GitHub-hosted Windows integration run
+  [30021806663](https://github.com/kathyygong/kinetic/actions/runs/30021806663)
+  passed clean install/audit, lint, TypeScript, full frontend smoke, production
+  build, beta readiness, Python compile/gates/smoke, and owner-only Firebase
+  Auth/Firestore emulator coverage on 2026-07-23.
 
 ### Validation-Hardening Checkpoint - Updated 2026-07-13
 
