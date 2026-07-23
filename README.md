@@ -105,8 +105,8 @@ Runtime modes are explicit:
   SwiftUI Part B implementation completed 2026-07-20. Explicit recovery and
   completion/skipped/effort capture, deterministic validation, atomic existing-
   domain persistence, and privacy-safe audit passed the physical-device and
-  live same-user web proof on 2026-07-21. Evidence and the current dependency-
-  audit integration blocker are in
+  live same-user web proof on 2026-07-21. Evidence and the remaining patched-
+  Active-LTS Next.js distribution blocker are in
   [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md). Trusted project
   rules prompt for the scoped Git, Swift/Xcode, Simulator, and device commands
   that may require approval.

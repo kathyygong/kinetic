@@ -106,9 +106,14 @@ npm run beta:audit
 ```
 
 The audit command is intentionally separate from the offline demo path. It
-passes with no moderate/high/critical npm advisories as of the 2026-07-20
-dependency-hardening checkpoint. A future blocked registry lookup is not proof of safety;
-rerun it from a connected shell before broader beta exposure.
+passed with no moderate/high/critical npm advisories at the 2026-07-20
+dependency-hardening checkpoint. Newly published July 2026 advisories changed
+that result. The 2026-07-22 remediation constrains the affected
+`brace-expansion` and `sharp` ranges and reduces the connected audit from three
+high findings to one; direct Next.js `16.2.10` remains affected. A blocked
+registry lookup is not proof of safety; do not close the gate until the
+approved feed exposes `next@16.2.11` and `eslint-config-next@16.2.11`, the
+upgrade is installed, and the connected audit passes.
 
 The final Phase 2.5 Windows rerun also passed `npm ci`. The lockfile retains
 the audited Next.js 16.2.10 upgrade and PostCSS 8.5.14 override while pinning
@@ -203,8 +208,7 @@ inferred readiness, raw
 HealthKit sample, pain severity, injury, or medical field may cross this
 boundary. Use [MOBILE_CHECKIN_CONTRACT.md](./MOBILE_CHECKIN_CONTRACT.md) and
 [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md) for the exact proof and
-the newly published frontend dependency advisories that remain an integration
-blocker.
+the remaining patched-Active-LTS Next.js distribution blocker.
 
 ## Live Firebase persistence QA
 
@@ -257,25 +261,28 @@ persistence, authentication, or AI fallback.
 
 ## Dependency posture
 
-The current dependency posture is beta-checkpoint ready:
+The dependency posture remains blocked from the beta checkpoint:
 
-- connected frontend advisory audit passes, but should be rerun after package
-  changes;
+- the 2026-07-22 connected frontend advisory audit reports one high finding in
+  direct Next.js `16.2.10`; the affected `brace-expansion` and `sharp`
+  transitives have been constrained to patched versions;
 - direct frontend dependencies are exact-pinned in `package.json` and
   `package-lock.json`;
-- Next.js and `eslint-config-next` are aligned at `16.2.10`. Until a stable
-  Next release bundles patched PostCSS, a Next-only override pins PostCSS
-  `8.5.14`; do not replace it with npm audit's breaking Next downgrade;
+- Next.js and `eslint-config-next` are aligned at `16.2.10`. Upgrade them
+  together to patched Active LTS `16.2.11` when it is available from the
+  approved Windows package feed. Until a stable Next release bundles patched
+  PostCSS, a Next-only override pins PostCSS `8.5.14`; do not use npm audit's
+  breaking Next downgrade or an unapproved preview build;
 - direct backend requirements are exact-pinned in `backend/requirements.txt`.
 
 Use `npm run beta:readiness` for the local posture report and
 `npm run beta:audit` for the connected advisory gate.
 
-After Phase 2.5 Part B, rerun `npm ci`, the connected audit, lint, TypeScript,
-smoke, production build, and the Auth/Firestore emulator suite before the beta
-checkpoint. Also check the current stable Next manifest: remove the PostCSS
-override only after Next itself depends on PostCSS `8.5.10` or newer and the
-same gates pass without the override.
+After the `16.2.11` upgrade, rerun `npm ci`, the connected audit, lint,
+TypeScript, smoke, production build, and the Auth/Firestore emulator suite
+before the beta checkpoint. Also check the patched Next manifest: remove the
+PostCSS override only after Next itself depends on PostCSS `8.5.10` or newer
+and the same gates pass without the override.
 
 ## Rollback and triage
 

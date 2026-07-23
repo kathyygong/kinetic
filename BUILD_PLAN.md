@@ -790,14 +790,16 @@ Completed.
   this machine with `llama3.2:3b`; cold server startup is slower because it
   deliberately warms and pins the model before accepting requests.
 - Direct frontend and backend dependencies are pinned to the currently
-  verified versions. `npm run beta:audit` passes with no moderate/high/critical
-  npm advisories, and `npm run beta:readiness` reports no dependency pinning
-  warnings. The 2026-07-20 hardening checkpoint pins Next.js and
-  `eslint-config-next` at `16.2.10`, refreshes patched Firebase/tooling
-  transitives, and uses a Next-only PostCSS `8.5.14` override until stable Next
-  bundles PostCSS `8.5.10` or newer. Re-run the connected audit and full
-  frontend/Firebase gates after Phase 2.5 Part B, and remove the override only
-  when those gates pass against a patched Next manifest.
+  verified versions. The 2026-07-20 hardening checkpoint passed
+  `npm run beta:audit`, pinned Next.js and `eslint-config-next` at `16.2.10`,
+  refreshed patched Firebase/tooling transitives, and added a Next-only
+  PostCSS `8.5.14` override. Newly published July 2026 advisories changed that
+  result. On 2026-07-22 the vulnerable `brace-expansion` and `sharp` ranges
+  were remediated and lint, TypeScript, smoke, and production build passed,
+  leaving one direct Next.js high finding. The approved Windows package feed
+  must expose patched Active LTS `16.2.11` before the audit and full integration
+  gates can be closed. Remove the PostCSS override only when those gates pass
+  against a patched Next manifest that no longer needs it.
 - Telemetry QA now exercises every typed product event family, sensitive-key
   rejection, numeric/enum bounding, log capping, and write/remove failure
   isolation through `smoke-instrumentation.ts`.
@@ -890,8 +892,9 @@ Mobile Phase 3 Part A and the native Part B implementation also completed on
 2026-07-20. Swift fixture/simulator/signed-device, strict backend, owner-only
 emulator, and shared frontend gates pass; connected-device recovery and
 completed/skipped interaction plus live same-user web/audit readback passed
-2026-07-21. Newly published frontend dependency advisories remain an
-integration blocker. See
+2026-07-21. The transitive dependency advisories were remediated on 2026-07-22;
+distribution of patched Active LTS Next.js `16.2.11` through the approved
+Windows package feed remains the integration blocker. See
 [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
 
 ### Mobile Phase 2.5 Shared Intake Contract - Completed 2026-07-20
