@@ -208,6 +208,7 @@ export default function MemoryCenter({
 
   const togglePattern = useCallback((p: BehaviorPattern) => {
     if (p.result.kind !== "scoring_preference_review") return;
+    const scoringResult = p.result;
     const id = buildPreferenceId(p);
     setSavedIds((prev) => {
       const next = new Set(prev);
@@ -246,7 +247,7 @@ export default function MemoryCenter({
         behaviorRepository.confirmPreference(buildConfirmedPatternPreference(p));
         trackProductEvent("learned_preference_updated", {
           action: "confirmed",
-          preference_type: p.result.preference_type,
+          preference_type: scoringResult.preference_type,
           confidence: p.confidence,
         });
         trackProductEvent("mobile_pattern_result_lifecycle", {
@@ -254,7 +255,7 @@ export default function MemoryCenter({
           action: "confirmed",
           outcome: "success",
           pattern_family: p.family,
-          result_kind: p.result.kind,
+          result_kind: scoringResult.kind,
           mutation_state: "applied",
           deterministic_validation: "passed",
           source: "deterministic",

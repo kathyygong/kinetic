@@ -1,10 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import type {
-  BehaviorInsightsResponse,
-  BehaviorPattern,
-} from "../lib/behaviorPatternResultContract";
+import type { BehaviorPattern } from "../lib/behaviorPatternResultContract";
 import {
   buildConfirmedPatternPreference,
   buildPreferredDayPatternDraft,
