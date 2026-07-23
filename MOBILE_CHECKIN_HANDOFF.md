@@ -267,25 +267,28 @@ frontend lint, TypeScript, smoke, production build: passed
 frontend beta:readiness: 0 failures; expected skipped-audit warning only
 ```
 
-## Windows dependency remediation — 2026-07-22
+## Dependency remediation — 2026-07-22 through 2026-07-23
 
 The connected `npm run beta:audit` rerun originally found three newly
 published high advisories affecting `brace-expansion`, `sharp`, and the direct
-`next` dependency. The vulnerable transitive ranges are now constrained to
-`brace-expansion` `1.1.16` and `sharp` `0.35.0`; unaffected modern
-`brace-expansion` consumers remain on their existing major. Under those
-overrides, `npm ci --prefer-offline`, lint, TypeScript, smoke, and the
-production build pass, and the connected audit is reduced from three high
-findings to one.
+`next` dependency. On 2026-07-22 the vulnerable transitive ranges were
+constrained to `brace-expansion` `1.1.16` and `sharp` `0.35.0`; unaffected
+modern `brace-expansion` consumers remain on their existing major. That
+reduced the connected audit from three high findings to one.
 
-The remaining finding is the direct Next.js `16.2.10` dependency. The official
-July 2026 security release identifies `16.2.11` as the patched Active LTS
-version, but the required Windows package-feed proxy currently returns `E404`
-for both `next@16.2.11` and `eslint-config-next@16.2.11`; direct access to the
-official npm registry also fails in this environment. A preview build and
-npm's breaking downgrade suggestion were deliberately rejected.
+On 2026-07-23 the package feed exposed patched Next.js `16.2.11` and the
+matching `eslint-config-next` `16.2.11`. Both were upgraded together while the
+scoped PostCSS `8.5.14` override was retained. The dependency blocker is now
+closed:
 
-Do not merge this branch to `main` or invite native Phase 3 beta users until
-the approved feed exposes the patched Active LTS packages, Next.js and
-`eslint-config-next` are upgraded together, `npm run beta:audit` is clean, and
-the complete Windows integration suite is rerun.
+- `npm ci --prefer-offline`: 442 packages, 0 vulnerabilities;
+- `npm run beta:audit`: 0 failures, 0 warnings, 14 checks;
+- lint, TypeScript, deterministic smoke, and the production build passed on
+  Next.js `16.2.11`; all 16 application routes built successfully;
+- beta readiness passed with 0 failures and the single expected offline-audit
+  warning;
+- backend compile, deterministic gates, and smoke passed;
+- the Auth/Firestore owner-only and tombstone emulator suite passed.
+
+The feature branch remains separate from `main` pending the explicit
+integration decision; no dependency advisory remains an integration blocker.

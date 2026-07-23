@@ -33,8 +33,10 @@ native recovery/completed/skipped implementation with green Swift fixture,
 simulator, signed-device, strict-backend, owner-only emulator, and shared
 frontend gates. Physical-device recovery/completed/skipped interaction and
 live same-user Recovery, training-review, memory, and audit readback passed on
-2026-07-21. The feature branch remains separate from `main` pending the final
-integration decision and remediation of newly published frontend advisories.
+2026-07-21. The July dependency blocker was cleared on 2026-07-23 with patched
+Next.js `16.2.11`, a clean connected audit, and a complete integration rerun.
+The feature branch remains separate from `main` pending the final integration
+decision.
 
 ## 🏃 The Problem
 Most running apps provide static plans that exist in a vacuum. When life happens (e.g. a late-night meeting, poor sleep, or an unexpected trip) the plan breaks. Users are left to manually adjust their training or, more often, lose consistency and abandon the plan entirely.

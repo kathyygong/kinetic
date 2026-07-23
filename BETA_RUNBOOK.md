@@ -27,10 +27,10 @@ Phase 3 Part A and the native Part B recovery/check-in implementation completed
 on the feature branch on 2026-07-20; physical-device recovery and
 completed/skipped workout interaction plus live same-user Recovery,
 training-review, memory, and audit readback passed 2026-07-21. The branch
-remains outside `main` while newly published dependency advisories are
-remediated. Do not expand into a full native app,
-Garmin/Oura ingestion, hosted AI, broad push notifications, coach sharing, or
-autonomous AI plan mutation without another explicit product decision.
+remains outside `main` pending an explicit integration decision. The July
+dependency blocker was cleared on 2026-07-23. Do not expand into a full native
+app, Garmin/Oura ingestion, hosted AI, broad push notifications, coach sharing,
+or autonomous AI plan mutation without another explicit product decision.
 
 The mobile phase plan lives in
 [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md). The completed native
@@ -108,17 +108,15 @@ npm run beta:audit
 The audit command is intentionally separate from the offline demo path. It
 passed with no moderate/high/critical npm advisories at the 2026-07-20
 dependency-hardening checkpoint. Newly published July 2026 advisories changed
-that result. The 2026-07-22 remediation constrains the affected
-`brace-expansion` and `sharp` ranges and reduces the connected audit from three
-high findings to one; direct Next.js `16.2.10` remains affected. A blocked
-registry lookup is not proof of safety; do not close the gate until the
-approved feed exposes `next@16.2.11` and `eslint-config-next@16.2.11`, the
-upgrade is installed, and the connected audit passes.
+that result. On 2026-07-22 the affected `brace-expansion` and `sharp` ranges
+were constrained to patched versions, reducing the connected audit from three
+high findings to one. On 2026-07-23 Next.js and `eslint-config-next` were
+upgraded together to `16.2.11`; the connected audit then passed with 0
+failures, 0 warnings, and 14 checks.
 
-The final Phase 2.5 Windows rerun also passed `npm ci`. The lockfile retains
-the audited Next.js 16.2.10 upgrade and PostCSS 8.5.14 override while pinning
-the previously verified browser-data transitives instead of floating to
-packages not yet mirrored by the configured Windows registry.
+The current lockfile passes `npm ci`, retains the Next-only PostCSS `8.5.14`
+override, pins legacy `brace-expansion` at `1.1.16` and `sharp` at `0.35.0`,
+and resolves unaffected modern `brace-expansion` consumers independently.
 
 Firebase rule checks:
 
@@ -261,28 +259,26 @@ persistence, authentication, or AI fallback.
 
 ## Dependency posture
 
-The dependency posture remains blocked from the beta checkpoint:
+The dependency posture passed the 2026-07-23 beta checkpoint:
 
-- the 2026-07-22 connected frontend advisory audit reports one high finding in
-  direct Next.js `16.2.10`; the affected `brace-expansion` and `sharp`
-  transitives have been constrained to patched versions;
+- the connected frontend advisory audit reports no moderate, high, or critical
+  findings;
 - direct frontend dependencies are exact-pinned in `package.json` and
   `package-lock.json`;
-- Next.js and `eslint-config-next` are aligned at `16.2.10`. Upgrade them
-  together to patched Active LTS `16.2.11` when it is available from the
-  approved Windows package feed. Until a stable Next release bundles patched
-  PostCSS, a Next-only override pins PostCSS `8.5.14`; do not use npm audit's
-  breaking Next downgrade or an unapproved preview build;
+- Next.js and `eslint-config-next` are aligned at patched Active LTS
+  `16.2.11`;
+- legacy `brace-expansion` is pinned at `1.1.16`, `sharp` at `0.35.0`, and a
+  Next-only override retains PostCSS `8.5.14`;
 - direct backend requirements are exact-pinned in `backend/requirements.txt`.
 
 Use `npm run beta:readiness` for the local posture report and
 `npm run beta:audit` for the connected advisory gate.
 
-After the `16.2.11` upgrade, rerun `npm ci`, the connected audit, lint,
-TypeScript, smoke, production build, and the Auth/Firestore emulator suite
-before the beta checkpoint. Also check the patched Next manifest: remove the
-PostCSS override only after Next itself depends on PostCSS `8.5.10` or newer
-and the same gates pass without the override.
+The `16.2.11` checkpoint passed `npm ci`, the connected audit, lint,
+TypeScript, smoke, production build, beta readiness, backend compile, backend
+gates, backend smoke, and the Auth/Firestore emulator suite on 2026-07-23.
+Remove the PostCSS override only after Next itself depends on PostCSS `8.5.10`
+or newer and the same gates pass without the override.
 
 ## Rollback and triage
 
