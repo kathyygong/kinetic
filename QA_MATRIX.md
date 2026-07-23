@@ -3,6 +3,11 @@
 This matrix captures the current release proof and the checks required before
 the next beta checkpoint.
 
+The 2026-07-23 dependency and integration entries below are backed by
+[GitHub-hosted Windows run 30012524615](https://github.com/kathyygong/kinetic/actions/runs/30012524615).
+The managed local Windows proxy still lacks the Next.js `16.2.11` tarball, so
+the hosted `windows-latest` workflow is the reproducible Windows authority.
+
 | Area | Required check | Current status |
 | --- | --- | --- |
 | Frontend lint | `cd frontend && npm run lint` | Passed 2026-07-23 on the patched Next.js 16.2.11 dependency baseline |
@@ -37,7 +42,7 @@ the next beta checkpoint.
 | Mobile Phase 2.5 scope | [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md) defines the fixed shared contract, native safety boundary, and acceptance gates | Parts A/B, physical-device evidence, and final Windows integration rerun completed 2026-07-20 without vocabulary or scope changes; fast-forwarded into `main` |
 | Mobile NLP intake | schedule/availability/travel/goal/preference notes create review-only drafts; recovery, pain, missed-workout, and reflection notes open bounded flows; strict-auth rejection when anonymous; deterministic confirm/apply; malformed/ambiguous fallback | Shared plus Swift route/network/confirmation gates passed 2026-07-20; physical iPhone exercised all bounded destinations, a confirmed availability change, and rejection of an ungrounded Sunday swap |
 | Mobile perceived-recovery flow | NLP recovery notes open explicit perceived-recovery capture; captured fields coexist with HealthKit summaries; AI never fabricates readiness values from text | Passed 2026-07-21 on physical iPhone: explicit 2/5 recovery, 4/5 fatigue, and 3/5 soreness saved while web Recovery preserved/read sleep 7h51m, HRV 68.71, and resting HR 53; bounded `/qa/mobile` success readback |
-| Mobile Phase 3 shared check-in contract | [MOBILE_CHECKIN_CONTRACT.md](./MOBILE_CHECKIN_CONTRACT.md), canonical fixture, deterministic recovery/workout application, failure taxonomy, existing-domain payloads, strict auth, privacy-safe audit, and owner-only rules | Parts A/B and physical proof passed: 47 Swift tests, simulator and signed iPhone build/install/launch, strict backend, Auth/Firestore emulator, frontend regressions, recovery, completed/skipped atomic writes, same-user training-review/memory/audit readback; see [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md). The patched Next.js 16.2.11 dependency baseline, clean connected audit, and full integration rerun passed 2026-07-23 |
+| Mobile Phase 3 shared check-in contract | [MOBILE_CHECKIN_CONTRACT.md](./MOBILE_CHECKIN_CONTRACT.md), canonical fixture, deterministic recovery/workout application, failure taxonomy, existing-domain payloads, strict auth, privacy-safe audit, and owner-only rules | Parts A/B and physical proof passed: 47 Swift tests, simulator and signed iPhone build/install/launch, strict backend, Auth/Firestore emulator, frontend regressions, recovery, completed/skipped atomic writes, same-user training-review/memory/audit readback; see [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md). The patched Next.js 16.2.11 dependency baseline, clean connected audit, and full GitHub-hosted Windows integration rerun passed 2026-07-23 |
 | Behavior pattern result contract | every surfaced pattern has a bounded response; confirmed schedule patterns can update preferred-day inputs for deterministic plan generation; pain patterns route to caution only | Required before mobile beta |
 | Mobile admin/eval observability | `/qa/mobile` shows mobile-originated sync, recommendation, intake, validation, and check-in events from the shared privacy-safe event log | Expanded 2026-07-20 with bounded intake route, draft kind, failure, parser, mutation, validation, and latency readback; instrumentation privacy and owner-only emulator gates pass |
 | Mobile/web sync compatibility | web dashboard consumes mobile readiness without unsafe overwrite or confidence drift | Passed 2026-07-16 with physical-device write and same-user web Recovery readback |

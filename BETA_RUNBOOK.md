@@ -114,9 +114,14 @@ high findings to one. On 2026-07-23 Next.js and `eslint-config-next` were
 upgraded together to `16.2.11`; the connected audit then passed with 0
 failures, 0 warnings, and 14 checks.
 
-The current lockfile passes `npm ci`, retains the Next-only PostCSS `8.5.14`
-override, pins legacy `brace-expansion` at `1.1.16` and `sharp` at `0.35.0`,
-and resolves unaffected modern `brace-expansion` consumers independently.
+The current lockfile passes `npm ci` on the Mac and in
+[GitHub-hosted Windows integration](https://github.com/kathyygong/kinetic/actions/runs/30012524615).
+It retains the Next-only PostCSS `8.5.14` override, pins legacy
+`brace-expansion` at `1.1.16` and `sharp` at `0.35.0`, and resolves unaffected
+modern `brace-expansion` consumers independently. The managed local Windows
+proxy can still return `E404` for the new Next.js tarball; use the checked-in
+`.github/workflows/windows-integration.yml` gate rather than treating that
+workstation feed limitation as evidence against the lockfile.
 
 Firebase rule checks:
 
@@ -276,7 +281,8 @@ Use `npm run beta:readiness` for the local posture report and
 
 The `16.2.11` checkpoint passed `npm ci`, the connected audit, lint,
 TypeScript, smoke, production build, beta readiness, backend compile, backend
-gates, backend smoke, and the Auth/Firestore emulator suite on 2026-07-23.
+gates, backend smoke, and the Auth/Firestore emulator suite on the
+GitHub-hosted Windows runner on 2026-07-23.
 Remove the PostCSS override only after Next itself depends on PostCSS `8.5.10`
 or newer and the same gates pass without the override.
 

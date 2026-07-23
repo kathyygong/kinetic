@@ -797,8 +797,10 @@ Completed.
   result. On 2026-07-22 the vulnerable `brace-expansion` and `sharp` ranges
   were remediated. On 2026-07-23 Next.js and `eslint-config-next` were upgraded
   together to patched Active LTS `16.2.11`; the connected audit and complete
-  integration suite passed. Remove the PostCSS override only when the same
-  gates pass against a patched Next manifest that no longer needs it.
+  GitHub-hosted Windows integration suite passed. The managed workstation
+  proxy still lacks the new tarball, so the checked-in Windows workflow is the
+  reproducible integration authority. Remove the PostCSS override only when
+  the same gates pass against a patched Next manifest that no longer needs it.
 - Telemetry QA now exercises every typed product event family, sensitive-key
   rejection, numeric/enum bounding, log capping, and write/remove failure
   isolation through `smoke-instrumentation.ts`.
@@ -893,8 +895,9 @@ emulator, and shared frontend gates pass; connected-device recovery and
 completed/skipped interaction plus live same-user web/audit readback passed
 2026-07-21. The transitive dependency advisories were remediated on 2026-07-22;
 patched Active LTS Next.js `16.2.11`, the clean connected audit, and the full
-integration rerun passed on 2026-07-23. No dependency advisory remains an
-integration blocker. See
+GitHub-hosted Windows integration rerun passed on 2026-07-23. No dependency
+advisory remains an integration blocker; the managed workstation proxy's
+remaining `E404` is recorded as an environment limitation. See
 [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
 
 ### Mobile Phase 2.5 Shared Intake Contract - Completed 2026-07-20

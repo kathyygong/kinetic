@@ -276,19 +276,26 @@ constrained to `brace-expansion` `1.1.16` and `sharp` `0.35.0`; unaffected
 modern `brace-expansion` consumers remain on their existing major. That
 reduced the connected audit from three high findings to one.
 
-On 2026-07-23 the package feed exposed patched Next.js `16.2.11` and the
-matching `eslint-config-next` `16.2.11`. Both were upgraded together while the
-scoped PostCSS `8.5.14` override was retained. The dependency blocker is now
-closed:
+On 2026-07-23 the Mac environment resolved patched Next.js `16.2.11` and the
+matching `eslint-config-next` `16.2.11` from the official registry. Both were
+upgraded together while the scoped PostCSS `8.5.14` override was retained.
+GitHub-hosted Windows validation then closed the dependency and integration
+blocker in
+[Windows integration run 30012524615](https://github.com/kathyygong/kinetic/actions/runs/30012524615):
 
-- `npm ci --prefer-offline`: 442 packages, 0 vulnerabilities;
-- `npm run beta:audit`: 0 failures, 0 warnings, 14 checks;
-- lint, TypeScript, deterministic smoke, and the production build passed on
-  Next.js `16.2.11`; all 16 application routes built successfully;
+- Windows `npm ci`: 442 packages, 0 vulnerabilities;
+- connected `npm run beta:audit`: 0 failures, 0 warnings, 14 checks;
+- Windows lint, TypeScript, deterministic smoke, and the production build
+  passed on Next.js `16.2.11`; all 16 application routes built successfully;
 - beta readiness passed with 0 failures and the single expected offline-audit
   warning;
-- backend compile, deterministic gates, and smoke passed;
-- the Auth/Firestore owner-only and tombstone emulator suite passed.
+- Python 3.12 backend compile, deterministic gates, and smoke passed;
+- the Java 21 Auth/Firestore owner-only and tombstone emulator suite passed.
+
+The managed local Windows package proxy still returns `E404` for the
+`next@16.2.11` tarball. That workstation-specific restore limitation is not a
+product or lockfile failure; the checked-in hosted Windows gate uses the
+official registry and must remain green for `main`.
 
 The feature branch remains separate from `main` pending the explicit
 integration decision; no dependency advisory remains an integration blocker.
