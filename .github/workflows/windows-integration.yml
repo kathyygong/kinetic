@@ -22,6 +22,15 @@ jobs:
     name: Frontend, backend, and Firestore gates
     runs-on: windows-latest
     timeout-minutes: 45
+    env:
+      NEXT_PUBLIC_FIREBASE_API_KEY: ci-api-key
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: kinetic-ci.invalid
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: kinetic-ci
+      NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: kinetic-ci.invalid
+      NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "000000000000"
+      NEXT_PUBLIC_FIREBASE_APP_ID: ci-app
+      NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:8000
+      NEXT_TELEMETRY_DISABLED: "1"
 
     steps:
       - name: Check out repository
