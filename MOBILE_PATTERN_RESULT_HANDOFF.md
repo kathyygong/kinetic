@@ -9,9 +9,10 @@ controlled mobile beta.
 
 - Part A: Windows/shared contract, backend/frontend authority, fixture,
   telemetry, QA readback, and deterministic validation.
-- Part B: native SwiftUI consumption implemented on the shared phase branch;
-  Mac compile, simulator, signed-device, physical-device, and final Windows
-  proof remain.
+- Part B: native SwiftUI consumption implemented and exercised on Mac,
+  simulator, and a signed physical iPhone. The authenticated route/readback
+  matrix passed; the remaining closure gates are the full authenticated
+  pattern-card accessibility pass and final shared Windows/hosted integration.
 
 Part B must not change the `behavior-pattern-result.v1` vocabulary or create a
 native-only mutation path.
@@ -127,9 +128,48 @@ phase-completion test pass. It:
   (`kinetic.web-profile-url`).
 
 Focused Swift fixture, strict-decoder, request-privacy, networking, failure,
-and audit tests were added. They have not been executed on this Windows
-workstation because the Swift toolchain is unavailable. This is an
-implementation checkpoint, not Phase 3.5 completion evidence.
+audit, and explicit preference-tombstone recovery tests now pass on Mac. The
+Mac run also fixed cancellation propagation and an explicit-confirmation
+compatibility issue with a valid deleted preference envelope. This remains an
+implementation checkpoint, not Phase 3.5 completion evidence, until the
+remaining accessibility and final shared Windows/hosted gates pass.
+
+## Mac and physical-device evidence — 2026-07-24
+
+```text
+Date: 2026-07-24
+Branch and commit: codex/mobile-pattern-results; source transfer fea05c7; verified fixes b61c4b5
+macOS: 26.5.2 (25F84)
+Xcode: 26.3 (17C529)
+Simulator device/iOS: iPhone 17 / iOS 26.3
+Physical device/iOS: iPhone 17 / iOS 26.5.2
+Focused Swift tests: BehaviorPatternContractFixtureTests 4/4; MobileAuditModelsTests 5/5
+Complete Swift tests: 52/52
+Unsigned simulator build/launch: clean generic simulator build passed; rebuilt app installed/launched
+Signed generic-device build: passed with the existing team/profile; rebuilt app installed/launched
+Physical route proof: scoring, preferred-day, readiness prompt, and caution routes passed
+Same-user preference readback: native confirmed/applied/passed event; web showed “Using this preference”; live Today decision followed
+Preferred-day no-native-write proof: reviewed/not_requested audit; web profile remained Mon/Wed/Fri/Sun with Tue/Thu/Sat unselected
+/qa/mobile privacy readback: passed for reviewed, confirmed, prompted, caution, applied, review_only, and not_requested states using fixed enum fields only
+Accessibility: maximum simulator Dynamic Type plus increased contrast rendered without clipping; physical controls were tappable
+Kill switch: physical launch with the entry-point flag set to NO passed and was restored to YES; no state was deleted
+Remaining limitations: authenticated pattern-card VoiceOver order, landscape, and small-screen pass; final shared Windows/hosted integration and owner-only emulator rerun
+```
+
+The strict local backend returned HTTP 200 for physical-device `/decision` and
+`/behavior-insights`. The opt-in local demo seed was expanded to 10 bounded
+events so the disposable same-user history safely produced a scoring result,
+Sunday preferred-day result, stale-readiness prompt, and fixed discomfort
+caution. The web surface observed 11 records after Today added its current
+recommendation.
+
+Two contract-compatible defects were found and fixed during the run:
+
+- `URLError.cancelled` now propagates as `CancellationError`, so dismissing the
+  sheet cannot render a synthetic unknown failure.
+- An explicit scoring confirmation may start a new empty preference epoch from
+  a valid deletion tombstone, without restoring deleted preference history.
+  Malformed tombstones still fail closed.
 
 ## Mac source-transfer gate
 

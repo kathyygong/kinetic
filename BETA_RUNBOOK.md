@@ -33,6 +33,13 @@ native app, Garmin/Oura ingestion, hosted AI, broad push notifications, coach
 sharing, or autonomous AI plan mutation without another explicit product
 decision.
 
+Mobile Phase 3.5 Part B reached its Mac/physical-device checkpoint on
+2026-07-24: 52 Swift tests, simulator and signed-device builds, strict
+scoring/preferred-day/prompt/caution interaction, same-user web readback, and
+privacy-safe `/qa/mobile` readback passed. Phase 3.5 is not yet beta-ready;
+authenticated pattern-card VoiceOver/landscape/small-screen proof and the final
+shared Windows/hosted integration plus owner-only emulator rerun remain.
+
 The mobile phase plan lives in
 [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md). The completed native
 execution record lives in [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md), and
@@ -225,9 +232,10 @@ planner, bounded scoring confirmation, prompt/caution-only non-mutation
 routes, and privacy-safe `/qa/mobile` readback. Use
 [MOBILE_PATTERN_RESULT_HANDOFF.md](./MOBILE_PATTERN_RESULT_HANDOFF.md) for the
 Windows evidence and active native Part B closure checklist. Do not call Phase
-3.5 beta-ready until the Part B Swift suite/app compile, simulator/device
-routes, accessibility checks, same-user preference/web-schedule readback,
-privacy-safe audit readback, and final hosted Windows integration all pass.
+3.5 beta-ready until the remaining authenticated accessibility checks and
+final hosted Windows/owner-only integration pass. Swift suite/app compile,
+simulator/device routes, same-user preference/web-schedule readback, and
+privacy-safe audit readback passed on 2026-07-24.
 
 ## Live Firebase persistence QA
 

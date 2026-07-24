@@ -1150,7 +1150,7 @@ branch was fast-forwarded into `main` on 2026-07-23.
   build, beta readiness, Python compile/gates/smoke, and owner-only Firebase
   Auth/Firestore emulator coverage on 2026-07-23.
 
-### Mobile Phase 3.5 Part B Native Pattern Results - Implementation Started 2026-07-24
+### Mobile Phase 3.5 Part B Native Pattern Results - Mac/Device Checkpoint 2026-07-24
 
 - Added strict Swift `behavior-pattern-result.v1` decoding against the shared
   canonical fixture, including exact-key, version, bounds, duplicate-ID,
@@ -1170,13 +1170,24 @@ branch was fast-forwarded into `main` on 2026-07-23.
   caution with no diagnosis or mutation.
 - Reused the existing privacy-safe mobile audit domain and added a local kill
   switch plus configurable web-review URL.
-- Added focused Swift contract, privacy, networking, failure, and audit tests.
-  Windows cannot execute Swift, so Mac package/app compile and all device proof
-  remain required before Phase 3.5 is complete.
-- Defer the broad phase-completion regression pass until this Part B slice
-  compiles and the focused contract tests pass. Do not continue unrelated
-  feature work before the remaining Mac, device, readback, accessibility, and
-  final hosted Windows gates close.
+- Added focused Swift contract, privacy, networking, failure, tombstone
+  recovery, and audit tests. Mac execution passed 4 behavior tests, 5 audit
+  tests, and all 52 package tests.
+- Passed a clean unsigned iPhone 17 / iOS 26.3 simulator build/launch, signed
+  generic-device build, and rebuilt physical iPhone 17 / iOS 26.5.2
+  install/launch.
+- Passed strict physical scoring, preferred-day, readiness-prompt, and caution
+  routes. Same-user web readback showed the native scoring preference in use,
+  the preferred-day handoff left Mon/Wed/Fri/Sun unchanged, and `/qa/mobile`
+  showed only fixed privacy-safe lifecycle fields.
+- Fixed cancellation propagation and allowed an explicit confirmation to
+  start a new empty preference epoch from a valid deletion tombstone without
+  restoring deleted history. Expanded only the opt-in demo seed to make all
+  four physical result kinds repeatable.
+- Maximum simulator Dynamic Type plus increased contrast rendered without
+  clipping. Keep Phase 3.5 open for the authenticated pattern-card VoiceOver,
+  landscape, and small-screen pass and the final shared Windows/hosted plus
+  owner-only emulator rerun.
 
 ### Validation-Hardening Checkpoint - Updated 2026-07-13
 

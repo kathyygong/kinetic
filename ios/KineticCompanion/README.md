@@ -192,7 +192,15 @@ workout-swap invariants, HealthKit-preserving recovery merge, atomic workout
 results, idempotent check-in retries, strict pattern route validation,
 free-text request stripping, authenticated behavior networking, and
 pattern-audit privacy. Phase 3.5 tests require a fresh Mac execution before
-the implementation is considered complete.
+the implementation is considered complete. That Mac execution passed on
+2026-07-24 at verified-fix commit `b61c4b5`: 4 focused behavior tests, 5
+focused audit tests, all 52 package tests, clean unsigned simulator build and
+launch, signed generic-device build, and rebuilt physical iPhone install and
+launch. Physical scoring, preferred-day, readiness-prompt, and caution routes,
+same-user web preference/schedule state, and privacy-safe `/qa/mobile`
+readback passed. Maximum simulator Dynamic Type plus increased contrast also
+rendered without clipping. Authenticated pattern-card VoiceOver order,
+landscape, small-screen, and final shared Windows/hosted proof remain.
 
 Device auth, HealthKit interaction, authenticated decisions, Firestore audit
 write/readback, and web readback require the untracked Firebase configuration,

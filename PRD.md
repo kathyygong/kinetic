@@ -569,12 +569,16 @@ Any AI-generated suggestion that could affect training must pass deterministic v
   a scoring-review, preferred-day-review, prompt, or caution result; detection
   and review remain read-only; confirmed schedule inputs reuse deterministic
   plan validation; pain/discomfort cannot become a preference, diagnosis, or
-  automatic mutation. Thin native Part B implementation started 2026-07-24
+  automatic mutation. Thin native Part B reached its Mac/physical-device
+  checkpoint on 2026-07-24
   against the same contract and shared recommendation history. Native scoring
   preferences use explicit owner-scoped confirmation; preferred-day changes
   route to the web validator in v1 to optimize for user safety and one
-  planning authority over native feature completeness. Mac/device/readback
-  proof remains before phase completion. Part B is governed by
+  planning authority over native feature completeness. All 52 Swift tests,
+  simulator and signed-device builds, physical scoring/preferred-day/prompt/
+  caution routes, same-user web state, and privacy audit readback passed.
+  Authenticated pattern-card VoiceOver/landscape/small-screen and final shared
+  Windows/hosted proof remain before phase completion. Part B is governed by
   [MOBILE_PATTERN_RESULT_HANDOFF.md](./MOBILE_PATTERN_RESULT_HANDOFF.md).
 - Phase 4: Notifications only if justified by the Today/check-in loop.
 - Preserve the deterministic safety core: mobile can summarize signals and

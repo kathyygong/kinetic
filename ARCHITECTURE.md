@@ -128,6 +128,17 @@ Privacy-safe result lifecycle telemetry reuses the owner-scoped
 pattern prose, notes, identity, tokens, readiness/biometric values, pain
 severity, injury, or medical fields.
 
+The 2026-07-24 native checkpoint passed all 52 Swift tests, clean simulator
+and signed-device builds, and physical scoring, preferred-day, prompt, and
+caution routing. Explicit native scoring confirmation is transactionally
+idempotent and may start a new empty preference epoch from a valid deletion
+tombstone because it is a direct user action; it never restores deleted
+history, and malformed tombstones fail closed. Preferred-day routing remained
+`review_only`/`not_requested` and the same-user web profile retained its
+existing selected days. The final architecture gate is limited to
+authenticated pattern-card accessibility and the shared Windows/hosted
+integration rerun.
+
 ## Runtime modes
 
 - `fallback`: deterministic explanation templates; deployed demo default.
@@ -391,3 +402,7 @@ fields from the existing owner-only audit envelope.
 - The completed Part A + Part B tree passed the full Windows dependency,
   frontend, backend, and owner-only Firestore rerun on 2026-07-20 before
   fast-forward integration into `main`.
+- Mobile Phase 3.5 Part B passed the 2026-07-24 Mac/package/simulator/signed
+  physical-route and same-user readback checkpoint on
+  `codex/mobile-pattern-results`. It remains outside `main` pending the
+  authenticated accessibility pass and final shared Windows/hosted rerun.
