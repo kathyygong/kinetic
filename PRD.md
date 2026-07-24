@@ -577,8 +577,10 @@ Any AI-generated suggestion that could affect training must pass deterministic v
   planning authority over native feature completeness. All 52 Swift tests,
   simulator and signed-device builds, physical scoring/preferred-day/prompt/
   caution routes, same-user web state, and privacy audit readback passed.
-  Authenticated pattern-card VoiceOver/landscape/small-screen and final shared
-  Windows/hosted proof remain before phase completion. Part B is governed by
+  Final shared Windows/hosted and owner-only emulator proof passed in run
+  [30105302955](https://github.com/kathyygong/kinetic/actions/runs/30105302955).
+  Authenticated pattern-card VoiceOver/landscape/small-screen remains before
+  phase completion. Part B is governed by
   [MOBILE_PATTERN_RESULT_HANDOFF.md](./MOBILE_PATTERN_RESULT_HANDOFF.md).
 - Phase 4: Notifications only if justified by the Today/check-in loop.
 - Preserve the deterministic safety core: mobile can summarize signals and

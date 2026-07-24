@@ -11,8 +11,8 @@ controlled mobile beta.
   telemetry, QA readback, and deterministic validation.
 - Part B: native SwiftUI consumption implemented and exercised on Mac,
   simulator, and a signed physical iPhone. The authenticated route/readback
-  matrix passed; the remaining closure gates are the full authenticated
-  pattern-card accessibility pass and final shared Windows/hosted integration.
+  matrix and final shared Windows/hosted integration passed; the remaining
+  closure gate is the full authenticated pattern-card accessibility pass.
 
 Part B must not change the `behavior-pattern-result.v1` vocabulary or create a
 native-only mutation path.
@@ -132,7 +132,7 @@ audit, and explicit preference-tombstone recovery tests now pass on Mac. The
 Mac run also fixed cancellation propagation and an explicit-confirmation
 compatibility issue with a valid deleted preference envelope. This remains an
 implementation checkpoint, not Phase 3.5 completion evidence, until the
-remaining accessibility and final shared Windows/hosted gates pass.
+remaining authenticated accessibility gate passes.
 
 ## Mac and physical-device evidence — 2026-07-24
 
@@ -153,7 +153,7 @@ Preferred-day no-native-write proof: reviewed/not_requested audit; web profile r
 /qa/mobile privacy readback: passed for reviewed, confirmed, prompted, caution, applied, review_only, and not_requested states using fixed enum fields only
 Accessibility: maximum simulator Dynamic Type plus increased contrast rendered without clipping; physical controls were tappable
 Kill switch: physical launch with the entry-point flag set to NO passed and was restored to YES; no state was deleted
-Remaining limitations: authenticated pattern-card VoiceOver order, landscape, and small-screen pass; final shared Windows/hosted integration and owner-only emulator rerun
+Remaining limitations: authenticated pattern-card VoiceOver order, landscape, and small-screen pass
 ```
 
 The strict local backend returned HTTP 200 for physical-device `/decision` and
@@ -170,6 +170,13 @@ Two contract-compatible defects were found and fixed during the run:
 - An explicit scoring confirmation may start a new empty preference epoch from
   a valid deletion tombstone, without restoring deleted preference history.
   Malformed tombstones still fail closed.
+
+GitHub-hosted Windows integration run
+[30105302955](https://github.com/kathyygong/kinetic/actions/runs/30105302955)
+passed at `1b99cfe` in 3m07s after the Mac evidence push. It covered clean
+`npm ci`, connected dependency audit, lint, TypeScript, full frontend smoke,
+production build, beta readiness, backend dependency install/compile/evals/
+smoke, and the owner-only Firebase Auth/Firestore emulator suite.
 
 ## Mac source-transfer gate
 

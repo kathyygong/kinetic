@@ -136,8 +136,9 @@ tombstone because it is a direct user action; it never restores deleted
 history, and malformed tombstones fail closed. Preferred-day routing remained
 `review_only`/`not_requested` and the same-user web profile retained its
 existing selected days. The final architecture gate is limited to
-authenticated pattern-card accessibility and the shared Windows/hosted
-integration rerun.
+authenticated pattern-card accessibility. Shared Windows/hosted integration
+and the owner-only emulator suite passed in run
+[30105302955](https://github.com/kathyygong/kinetic/actions/runs/30105302955).
 
 ## Runtime modes
 
@@ -405,4 +406,5 @@ fields from the existing owner-only audit envelope.
 - Mobile Phase 3.5 Part B passed the 2026-07-24 Mac/package/simulator/signed
   physical-route and same-user readback checkpoint on
   `codex/mobile-pattern-results`. It remains outside `main` pending the
-  authenticated accessibility pass and final shared Windows/hosted rerun.
+  authenticated accessibility pass. Final shared Windows/hosted integration
+  passed at `1b99cfe`.

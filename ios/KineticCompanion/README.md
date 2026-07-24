@@ -200,7 +200,9 @@ launch. Physical scoring, preferred-day, readiness-prompt, and caution routes,
 same-user web preference/schedule state, and privacy-safe `/qa/mobile`
 readback passed. Maximum simulator Dynamic Type plus increased contrast also
 rendered without clipping. Authenticated pattern-card VoiceOver order,
-landscape, small-screen, and final shared Windows/hosted proof remain.
+landscape, and small-screen proof remain. Final shared Windows/hosted
+integration and the owner-only emulator suite passed in run
+[30105302955](https://github.com/kathyygong/kinetic/actions/runs/30105302955).
 
 Device auth, HealthKit interaction, authenticated decisions, Firestore audit
 write/readback, and web readback require the untracked Firebase configuration,

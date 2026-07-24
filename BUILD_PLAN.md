@@ -1185,9 +1185,12 @@ branch was fast-forwarded into `main` on 2026-07-23.
   restoring deleted history. Expanded only the opt-in demo seed to make all
   four physical result kinds repeatable.
 - Maximum simulator Dynamic Type plus increased contrast rendered without
-  clipping. Keep Phase 3.5 open for the authenticated pattern-card VoiceOver,
-  landscape, and small-screen pass and the final shared Windows/hosted plus
-  owner-only emulator rerun.
+  clipping.
+- GitHub-hosted Windows integration run
+  [30105302955](https://github.com/kathyygong/kinetic/actions/runs/30105302955)
+  passed clean install/audit, frontend, backend, and owner-only Firebase
+  emulator gates at `1b99cfe`. Keep Phase 3.5 open only for the authenticated
+  pattern-card VoiceOver, landscape, and small-screen pass.
 
 ### Validation-Hardening Checkpoint - Updated 2026-07-13
 

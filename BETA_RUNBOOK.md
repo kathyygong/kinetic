@@ -37,8 +37,10 @@ Mobile Phase 3.5 Part B reached its Mac/physical-device checkpoint on
 2026-07-24: 52 Swift tests, simulator and signed-device builds, strict
 scoring/preferred-day/prompt/caution interaction, same-user web readback, and
 privacy-safe `/qa/mobile` readback passed. Phase 3.5 is not yet beta-ready;
-authenticated pattern-card VoiceOver/landscape/small-screen proof and the final
-shared Windows/hosted integration plus owner-only emulator rerun remain.
+authenticated pattern-card VoiceOver/landscape/small-screen proof remains.
+Final shared Windows/hosted integration and the owner-only emulator suite
+passed in run
+[30105302955](https://github.com/kathyygong/kinetic/actions/runs/30105302955).
 
 The mobile phase plan lives in
 [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md). The completed native
@@ -232,10 +234,12 @@ planner, bounded scoring confirmation, prompt/caution-only non-mutation
 routes, and privacy-safe `/qa/mobile` readback. Use
 [MOBILE_PATTERN_RESULT_HANDOFF.md](./MOBILE_PATTERN_RESULT_HANDOFF.md) for the
 Windows evidence and active native Part B closure checklist. Do not call Phase
-3.5 beta-ready until the remaining authenticated accessibility checks and
-final hosted Windows/owner-only integration pass. Swift suite/app compile,
-simulator/device routes, same-user preference/web-schedule readback, and
-privacy-safe audit readback passed on 2026-07-24.
+3.5 beta-ready until the remaining authenticated accessibility checks pass.
+Final hosted Windows/owner-only integration passed in run
+[30105302955](https://github.com/kathyygong/kinetic/actions/runs/30105302955);
+Swift suite/app compile, simulator/device routes, same-user preference/
+web-schedule readback, and privacy-safe audit readback also passed on
+2026-07-24.
 
 ## Live Firebase persistence QA
 
