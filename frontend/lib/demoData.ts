@@ -160,6 +160,42 @@ function seedRecommendationHistory(now: Date): number {
     makeEvent(now, -7, "6 mi intervals", "35 min easy run", "modify", "rejected", "not_enough_time", "heavy", false, 25),
     makeEvent(now, -4, "5 mi easy", "5 mi easy", "proceed", "accepted", undefined, "moderate", true, 55),
     makeEvent(now, -2, "8 mi long run", "45 min easy run", "modify", "skipped", "not_enough_time", "heavy", false, 30),
+    makeEvent(now, -19, "8 mi long run", "8 mi long run", "proceed", "accepted", undefined, "light", true, 105),
+    makeEvent(now, -5, "9 mi long run", "9 mi long run", "proceed", "accepted", undefined, "light", true, 115),
+    makeEvent(
+      now,
+      -16,
+      "5 mi easy",
+      "30 min easy run",
+      "modify",
+      "skipped",
+      undefined,
+      "moderate",
+      false,
+      30,
+      {
+        skipReason: "pain_or_discomfort",
+        readinessFreshness: "stale",
+        checkinStatus: "missing",
+      },
+    ),
+    makeEvent(
+      now,
+      -10,
+      "4 mi easy",
+      "Rest day",
+      "rest",
+      "skipped",
+      undefined,
+      "moderate",
+      false,
+      20,
+      {
+        skipReason: "pain_or_discomfort",
+        readinessFreshness: "stale",
+        checkinStatus: "missing",
+      },
+    ),
   ];
 
   let saved = 0;
@@ -180,6 +216,17 @@ function makeEvent(
   calendarLoad: NonNullable<RecommendationEvent["context"]["calendarLoad"]>,
   completed: boolean,
   availableMinutes: number,
+  bounded?: {
+    skipReason?: NonNullable<
+      NonNullable<RecommendationEvent["actualWorkout"]>["skipReason"]
+    >;
+    readinessFreshness?: NonNullable<
+      RecommendationEvent["context"]["readinessFreshness"]
+    >;
+    checkinStatus?: NonNullable<
+      RecommendationEvent["context"]["checkinStatus"]
+    >;
+  },
 ): RecommendationEvent {
   const date = isoDateKey(addDays(now, daysOffset));
   return {
@@ -196,11 +243,18 @@ function makeEvent(
     actualWorkout: {
       completed,
       ...(completed ? { distanceMiles: 4.2, durationMinutes: 38, perceivedEffort: 5 } : {}),
+      ...(bounded?.skipReason ? { skipReason: bounded.skipReason } : {}),
     },
     context: {
       calendarLoad,
       sleepStatus: completed ? "normal" : "below_baseline",
       recoveryStatus: completed ? "high" : "moderate",
+      ...(bounded?.readinessFreshness
+        ? { readinessFreshness: bounded.readinessFreshness }
+        : {}),
+      ...(bounded?.checkinStatus
+        ? { checkinStatus: bounded.checkinStatus }
+        : {}),
     },
   };
 }

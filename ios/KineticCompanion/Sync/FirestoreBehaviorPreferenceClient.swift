@@ -52,21 +52,7 @@ final class FirestoreBehaviorPreferenceClient: BehaviorPreferenceConfirming {
             _ = try await db.runTransaction { transaction, errorPointer in
                 do {
                     let document = try transaction.getDocument(reference).data()
-                    if document?["deleted"] as? Bool == true {
-                        throw FirestoreBehaviorPreferenceError.stateConflict
-                    }
-                    var payload: [String: Any]
-                    if let document {
-                        guard document["schemaVersion"] as? Int == 1,
-                              let current = document["payload"] as? [String: Any],
-                              current["version"] as? Int == 1,
-                              current["preferences"] is [String: Any] else {
-                            throw FirestoreBehaviorPreferenceError.invalidDomain
-                        }
-                        payload = current
-                    } else {
-                        payload = ["version": 1, "preferences": [String: Any]()]
-                    }
+                    var payload = try Self.preferencePayload(from: document)
                     var preferences = payload["preferences"] as? [String: Any] ?? [:]
                     let createdAt = MobileTodayDate.isoString(now)
                     let candidate: [String: Any] = [
@@ -111,5 +97,31 @@ final class FirestoreBehaviorPreferenceClient: BehaviorPreferenceConfirming {
         #else
         throw FirestoreBehaviorPreferenceError.unavailable
         #endif
+    }
+
+    static func preferencePayload(
+        from document: [String: Any]?
+    ) throws -> [String: Any] {
+        let empty: [String: Any] = [
+            "version": 1,
+            "preferences": [String: Any]()
+        ]
+        guard let document else { return empty }
+        if document["deleted"] as? Bool == true {
+            guard document["schemaVersion"] as? Int == 1,
+                  document["payload"] is NSNull else {
+                throw FirestoreBehaviorPreferenceError.invalidDomain
+            }
+            // A pattern confirmation is an explicit user action, so it may
+            // start a new preference epoch without restoring deleted history.
+            return empty
+        }
+        guard document["schemaVersion"] as? Int == 1,
+              let current = document["payload"] as? [String: Any],
+              current["version"] as? Int == 1,
+              current["preferences"] is [String: Any] else {
+            throw FirestoreBehaviorPreferenceError.invalidDomain
+        }
+        return current
     }
 }

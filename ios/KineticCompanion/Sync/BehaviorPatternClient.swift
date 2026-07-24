@@ -129,6 +129,8 @@ final class URLSessionBehaviorPatternClient: BehaviorPatternNetworking {
             throw error
         } catch let error as URLError {
             switch error.code {
+            case .cancelled:
+                throw CancellationError()
             case .timedOut:
                 throw BehaviorPatternRequestError(code: .timeout)
             case .notConnectedToInternet, .networkConnectionLost, .cannotConnectToHost,

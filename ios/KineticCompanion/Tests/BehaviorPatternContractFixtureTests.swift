@@ -33,10 +33,18 @@ final class BehaviorPatternContractFixtureTests: XCTestCase {
         extra["raw_note"] = "private"
         XCTAssertThrowsError(try decode(extra))
 
+        XCTAssertThrowsError(
+            try BehaviorInsightsResponse.decode(Data("{".utf8))
+        )
+
         var tooMany = valid
         let patterns = try XCTUnwrap(valid["patterns"] as? [[String: Any]])
         tooMany["patterns"] = Array(repeating: patterns[0], count: 21)
         XCTAssertThrowsError(try decode(tooMany))
+
+        var duplicates = valid
+        duplicates["patterns"] = [patterns[0], patterns[0]]
+        XCTAssertThrowsError(try decode(duplicates))
 
         var weakSupport = valid
         var weakPatterns = patterns
@@ -44,11 +52,46 @@ final class BehaviorPatternContractFixtureTests: XCTestCase {
         weakSupport["patterns"] = weakPatterns
         XCTAssertThrowsError(try decode(weakSupport))
 
+        for (key, value) in [
+            ("family", "unknown_family"),
+            ("preference_type", "unknown_preference")
+        ] {
+            var unknown = valid
+            var unknownPatterns = patterns
+            unknownPatterns[0][key] = value
+            unknown["patterns"] = unknownPatterns
+            XCTAssertThrowsError(try decode(unknown))
+        }
+
         var routeDrift = valid
         var driftPatterns = patterns
         driftPatterns[0]["family"] = "pain_or_discomfort_recurrence"
         routeDrift["patterns"] = driftPatterns
         XCTAssertThrowsError(try decode(routeDrift))
+
+        for (key, value) in [
+            ("kind", "unknown_result"),
+            ("mutation", "unknown_mutation"),
+            ("preference_type", "unknown_preference")
+        ] {
+            var unknown = valid
+            var unknownPatterns = patterns
+            var unknownResult = try XCTUnwrap(
+                unknownPatterns[0]["result"] as? [String: Any]
+            )
+            unknownResult[key] = value
+            unknownPatterns[0]["result"] = unknownResult
+            unknown["patterns"] = unknownPatterns
+            XCTAssertThrowsError(try decode(unknown))
+        }
+
+        var unknownDay = valid
+        var dayPatterns = patterns
+        var dayResult = try XCTUnwrap(dayPatterns[1]["result"] as? [String: Any])
+        dayResult["observed_day"] = "funday"
+        dayPatterns[1]["result"] = dayResult
+        unknownDay["patterns"] = dayPatterns
+        XCTAssertThrowsError(try decode(unknownDay))
 
         var resultExtra = valid
         var extraPatterns = patterns
@@ -59,7 +102,7 @@ final class BehaviorPatternContractFixtureTests: XCTestCase {
         XCTAssertThrowsError(try decode(resultExtra))
     }
 
-    func testNativeRequestDropsFreeTextAndSensitiveOutcomeFields() throws {
+    func testNativeRequestPrivacyAndExplicitPreferenceTombstoneRecovery() throws {
         let source = MobileCheckinRecommendationEvent(
             id: "mobile:2026-07-24:1:MON",
             date: "2026-07-24",
@@ -99,12 +142,38 @@ final class BehaviorPatternContractFixtureTests: XCTestCase {
         XCTAssertFalse(serialized.contains("\"note\""))
         XCTAssertTrue(serialized.contains("readinessFreshness"))
         XCTAssertTrue(serialized.contains("checkinStatus"))
+
+        let empty = try FirestoreBehaviorPreferenceClient.preferencePayload(from: nil)
+        XCTAssertEqual(empty["version"] as? Int, 1)
+        XCTAssertEqual((empty["preferences"] as? [String: Any])?.count, 0)
+
+        let restarted = try FirestoreBehaviorPreferenceClient.preferencePayload(
+            from: [
+                "schemaVersion": 1,
+                "payload": NSNull(),
+                "deleted": true
+            ]
+        )
+        XCTAssertEqual((restarted["preferences"] as? [String: Any])?.count, 0)
+
+        XCTAssertThrowsError(
+            try FirestoreBehaviorPreferenceClient.preferencePayload(
+                from: [
+                    "schemaVersion": 1,
+                    "payload": ["version": 1, "preferences": [String: Any]()],
+                    "deleted": true
+                ]
+            )
+        )
     }
 
     func testFailureMappingAndAuthenticatedNetworking() async throws {
         XCTAssertEqual(URLSessionBehaviorPatternClient.failure(for: 401), .authRequired)
+        XCTAssertEqual(URLSessionBehaviorPatternClient.failure(for: 403), .authRequired)
+        XCTAssertEqual(URLSessionBehaviorPatternClient.failure(for: 408), .timeout)
         XCTAssertEqual(URLSessionBehaviorPatternClient.failure(for: 429), .timeout)
         XCTAssertEqual(URLSessionBehaviorPatternClient.failure(for: 504), .timeout)
+        XCTAssertEqual(URLSessionBehaviorPatternClient.failure(for: 500), .backendUnavailable)
         XCTAssertEqual(URLSessionBehaviorPatternClient.failure(for: 503), .backendUnavailable)
         XCTAssertEqual(URLSessionBehaviorPatternClient.failure(for: 422), .invalidResponse)
 
@@ -148,6 +217,125 @@ final class BehaviorPatternContractFixtureTests: XCTestCase {
             XCTFail("Empty auth should fail")
         } catch let error as BehaviorPatternRequestError {
             XCTAssertEqual(error.code, .authRequired)
+        }
+
+        BehaviorPatternURLProtocol.handler = { request in
+            (
+                HTTPURLResponse(
+                    url: request.url!,
+                    statusCode: 200,
+                    httpVersion: nil,
+                    headerFields: ["Content-Type": "application/json"]
+                )!,
+                Data("{}".utf8),
+                nil
+            )
+        }
+        await assertFailure(.invalidResponse, client: client)
+
+        BehaviorPatternURLProtocol.handler = { request in
+            (
+                HTTPURLResponse(
+                    url: request.url!,
+                    statusCode: 200,
+                    httpVersion: nil,
+                    headerFields: nil
+                )!,
+                Data(),
+                URLError(.notConnectedToInternet)
+            )
+        }
+        await assertFailure(.offline, client: client)
+
+        BehaviorPatternURLProtocol.handler = { request in
+            (
+                HTTPURLResponse(
+                    url: request.url!,
+                    statusCode: 200,
+                    httpVersion: nil,
+                    headerFields: nil
+                )!,
+                Data(),
+                URLError(.timedOut)
+            )
+        }
+        await assertFailure(.timeout, client: client)
+
+        BehaviorPatternURLProtocol.handler = { request in
+            (
+                HTTPURLResponse(
+                    url: request.url!,
+                    statusCode: 200,
+                    httpVersion: nil,
+                    headerFields: nil
+                )!,
+                Data(),
+                URLError(.cancelled)
+            )
+        }
+        do {
+            _ = try await client.fetch(
+                request: BehaviorInsightsRequest(recommendationEvents: []),
+                idToken: "bounded-token"
+            )
+            XCTFail("Cancellation should propagate")
+        } catch is CancellationError {
+            // Expected: a dismissed surface must not render a synthetic failure.
+        } catch {
+            XCTFail("Expected CancellationError, got \(error)")
+        }
+
+        var attempts = 0
+        BehaviorPatternURLProtocol.handler = { request in
+            attempts += 1
+            if attempts == 1 {
+                return (
+                    HTTPURLResponse(
+                        url: request.url!,
+                        statusCode: 504,
+                        httpVersion: nil,
+                        headerFields: nil
+                    )!,
+                    Data(),
+                    nil
+                )
+            }
+            return (
+                HTTPURLResponse(
+                    url: request.url!,
+                    statusCode: 200,
+                    httpVersion: nil,
+                    headerFields: ["Content-Type": "application/json"]
+                )!,
+                responseData,
+                nil
+            )
+        }
+        await assertFailure(.timeout, client: client)
+        let retried = try await client.fetch(
+            request: BehaviorInsightsRequest(recommendationEvents: []),
+            idToken: "bounded-token"
+        )
+        XCTAssertEqual(retried.contractVersion, BehaviorPatternContract.schema)
+        XCTAssertEqual(attempts, 2)
+    }
+
+    private func assertFailure(
+        _ expected: BehaviorPatternFailureCode,
+        client: URLSessionBehaviorPatternClient,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) async {
+        do {
+            _ = try await client.fetch(
+                request: BehaviorInsightsRequest(recommendationEvents: []),
+                idToken: "bounded-token"
+            )
+            XCTFail("Expected \(expected.rawValue)", file: file, line: line)
+        } catch let error as BehaviorPatternRequestError {
+            XCTAssertEqual(error.code, expected, file: file, line: line)
+        } catch {
+            XCTFail("Expected BehaviorPatternRequestError, got \(error)", file: file, line: line)
         }
     }
 

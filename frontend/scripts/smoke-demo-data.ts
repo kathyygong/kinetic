@@ -73,15 +73,18 @@ async function main(): Promise<void> {
   const events = behavior.listRecommendationEvents();
 
   expect(seeded.planWeeks >= 4, `expected >=4 plan weeks, got ${seeded.planWeeks}`);
-  expect(seeded.recommendationEvents === 6, `expected 6 behavior events, got ${seeded.recommendationEvents}`);
+  expect(seeded.recommendationEvents === 10, `expected 10 behavior events, got ${seeded.recommendationEvents}`);
   expect(goal?.race_distance === "half", `expected half marathon goal, got ${goal?.race_distance}`);
   expect(goal?.target_date === "2026-10-15", `expected target date 2026-10-15, got ${goal?.target_date}`);
   expect(savedPlan?.weeks.length === seeded.planWeeks, "saved plan did not match seeded week count");
   expect(userProfile?.onboarding_completed === true, "profile should be onboarding complete");
   expect(userProfile?.connected_services.google_calendar.connected === false, "demo profile should not fake Google Calendar");
   expect(readinessEntries.length === 5, `expected 5 readiness entries, got ${readinessEntries.length}`);
-  expect(events.length === 6, `expected 6 recommendation events, got ${events.length}`);
+  expect(events.length === 10, `expected 10 recommendation events, got ${events.length}`);
   expect(events.filter((event) => event.context.calendarLoad === "heavy").length >= 4, "expected heavy-calendar behavior history");
+  expect(events.filter((event) => event.context.readinessFreshness === "stale").length >= 2, "expected stale-readiness behavior history");
+  expect(events.filter((event) => event.actualWorkout?.skipReason === "pain_or_discomfort").length >= 2, "expected bounded discomfort behavior history");
+  expect(events.filter((event) => event.actualWorkout?.completed && event.plannedWorkout.includes("long")).length >= 2, "expected long-run completion history");
   expect(behavior.listLearnedPreferences().length === 0, "seed should leave learned preferences empty");
 
   behavior.saveLearnedPreference({
@@ -95,11 +98,11 @@ async function main(): Promise<void> {
   expect(behavior.listLearnedPreferences().length === 1, "preference setup failed");
   clearDemoLearning();
   expect(behavior.listLearnedPreferences().length === 0, "clearDemoLearning should clear preferences");
-  expect(behavior.listRecommendationEvents().length === 6, "clearDemoLearning should preserve recommendation history");
+  expect(behavior.listRecommendationEvents().length === 10, "clearDemoLearning should preserve recommendation history");
 
   const reset = resetDemoData(fixedNow);
-  expect(reset.recommendationEvents === 6, `reset expected 6 behavior events, got ${reset.recommendationEvents}`);
-  expect(behavior.listRecommendationEvents().length === 6, "reset should replace, not duplicate, behavior history");
+  expect(reset.recommendationEvents === 10, `reset expected 10 behavior events, got ${reset.recommendationEvents}`);
+  expect(behavior.listRecommendationEvents().length === 10, "reset should replace, not duplicate, behavior history");
 
   if (errors.length > 0) {
     console.error("FAIL:");
