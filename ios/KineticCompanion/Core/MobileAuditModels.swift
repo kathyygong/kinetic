@@ -5,6 +5,7 @@ enum MobileAuditEventName: String, Codable, CaseIterable {
     case decisionValidated = "mobile_decision_validated"
     case intakeLifecycle = "mobile_intake_lifecycle"
     case checkinSynced = "mobile_checkin_synced"
+    case patternResultLifecycle = "mobile_pattern_result_lifecycle"
 }
 
 enum MobilePlatform: String, Codable {
@@ -137,6 +138,45 @@ enum MobileIntakeMutationState: String, Codable {
     case reviewOnly = "review_only"
     case applied
     case rejected
+}
+
+enum MobilePatternResultAction: String, Codable {
+    case reviewed
+    case confirmed
+    case dismissed
+    case prompted
+    case caution
+    case failed
+}
+
+enum MobilePatternResultOutcome: String, Codable {
+    case success
+    case failed
+    case invalid
+}
+
+struct MobilePatternResultLifecycleAudit: MobileAuditPayload {
+    static let eventName = MobileAuditEventName.patternResultLifecycle
+
+    var platform = MobilePlatform.ios
+    var action: MobilePatternResultAction
+    var outcome: MobilePatternResultOutcome
+    var patternFamily: BehaviorPatternFamily
+    var resultKind: BehaviorPatternResultKind
+    var mutationState: MobileIntakeMutationState
+    var deterministicValidation: DeterministicValidationState
+    var source: BehaviorPatternSource
+
+    enum CodingKeys: String, CodingKey {
+        case platform
+        case action
+        case outcome
+        case patternFamily = "pattern_family"
+        case resultKind = "result_kind"
+        case mutationState = "mutation_state"
+        case deterministicValidation = "deterministic_validation"
+        case source
+    }
 }
 
 enum MobileCheckinStatus: String, Codable {

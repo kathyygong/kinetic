@@ -65,6 +65,13 @@ final class TodayViewModel: ObservableObject {
     @Published private(set) var intakeResponse: MobileIntakeResponse?
     @Published private(set) var intakeFailure: MobileIntakeFailureCode?
     @Published private(set) var intakeMessage: String?
+    @Published private(set) var behaviorLoading = false
+    @Published private(set) var behaviorResponse: BehaviorInsightsResponse?
+    @Published private(set) var behaviorFailure: BehaviorPatternFailureCode?
+    @Published private(set) var behaviorMessage: String?
+    @Published private(set) var behaviorHistoryCount = 0
+    @Published private(set) var behaviorConfirmingIDs: Set<String> = []
+    @Published private(set) var confirmedBehaviorPatternIDs: Set<String> = []
     @Published private(set) var checkinSaving = false
     @Published private(set) var checkinFailure: MobileCheckinFailureState?
     @Published private(set) var checkinMessage: String?
@@ -78,6 +85,9 @@ final class TodayViewModel: ObservableObject {
     private let audit: MobileAuditTransporting
     private let intakeClient: MobileIntakeNetworking
     private let intakeApplyClient: MobileIntakeApplying
+    private let behaviorClient: BehaviorPatternNetworking
+    private let behaviorHistoryReader: BehaviorRecommendationHistoryReading
+    private let behaviorPreferenceClient: BehaviorPreferenceConfirming
     private let checkinClient: MobileCheckinSaving
     private var latestSharedState: MobileTodaySharedState?
     private var pendingIntakeNote: String?
@@ -92,6 +102,11 @@ final class TodayViewModel: ObservableObject {
         audit: MobileAuditTransporting = FirestoreMobileAuditTransport(),
         intakeClient: MobileIntakeNetworking = URLSessionMobileIntakeClient(),
         intakeApplyClient: MobileIntakeApplying = FirestoreMobileIntakeApplyClient(),
+        behaviorClient: BehaviorPatternNetworking = URLSessionBehaviorPatternClient(),
+        behaviorHistoryReader: BehaviorRecommendationHistoryReading =
+            FirestoreBehaviorRecommendationHistoryReader(),
+        behaviorPreferenceClient: BehaviorPreferenceConfirming =
+            FirestoreBehaviorPreferenceClient(),
         checkinClient: MobileCheckinSaving = FirestoreMobileCheckinClient()
     ) {
         self.firebaseConfigured = firebaseConfigured
@@ -103,6 +118,9 @@ final class TodayViewModel: ObservableObject {
         self.audit = audit
         self.intakeClient = intakeClient
         self.intakeApplyClient = intakeApplyClient
+        self.behaviorClient = behaviorClient
+        self.behaviorHistoryReader = behaviorHistoryReader
+        self.behaviorPreferenceClient = behaviorPreferenceClient
         self.checkinClient = checkinClient
         authState = firebaseConfigured ? .signedOut : .missingConfiguration
     }
@@ -140,6 +158,7 @@ final class TodayViewModel: ObservableObject {
         todayBuildFailure = nil
         latestSharedState = nil
         resetIntake()
+        resetBehaviorPatterns()
         resetCheckin()
         cache.clear()
     }
@@ -391,6 +410,120 @@ final class TodayViewModel: ObservableObject {
         intakeFailure = nil
         intakeMessage = nil
         pendingIntakeNote = nil
+    }
+
+    func loadBehaviorPatterns() async {
+        guard MobileTodayAppConfiguration.behaviorPatternsEnabled,
+              isSignedIn,
+              let user = Auth.auth().currentUser,
+              !behaviorLoading else { return }
+        behaviorLoading = true
+        behaviorResponse = nil
+        behaviorFailure = nil
+        behaviorMessage = nil
+        do {
+            let history = try await behaviorHistoryReader.read().map {
+                Array($0.events.values)
+            } ?? []
+            let events = history
+                .sorted { $0.date > $1.date }
+                .prefix(BehaviorPatternContract.maximumHistoryEvents)
+                .map(BehaviorRecommendationEvent.init)
+            behaviorHistoryCount = events.count
+            confirmedBehaviorPatternIDs = Set(latestSharedState?.preferences.map(\.id) ?? [])
+            let token = try await user.getIDToken()
+            let response = try await behaviorClient.fetch(
+                request: BehaviorInsightsRequest(recommendationEvents: events),
+                idToken: token
+            )
+            behaviorResponse = response
+            behaviorLoading = false
+            for pattern in response.patterns {
+                emitBehaviorAudit(
+                    action: .reviewed,
+                    outcome: .success,
+                    pattern: pattern,
+                    mutation: pattern.result.mutation == .none
+                        ? .notRequested
+                        : .reviewOnly,
+                    validation: .passed,
+                    source: response.analysis.source
+                )
+            }
+        } catch let error as BehaviorPatternRequestError {
+            behaviorFailure = error.code
+            behaviorLoading = false
+        } catch let error as BehaviorRecommendationHistoryError {
+            behaviorFailure = switch error {
+            case .signedOut: .authRequired
+            case .invalidDomain: .invalidResponse
+            case .unavailable: .backendUnavailable
+            }
+            behaviorLoading = false
+        } catch is CancellationError {
+            behaviorLoading = false
+        } catch {
+            behaviorFailure = .unknown
+            behaviorLoading = false
+        }
+    }
+
+    func confirmBehaviorPreference(_ pattern: BehaviorPattern) async {
+        guard !behaviorConfirmingIDs.contains(pattern.id),
+              case .scoringPreference(_, _, _, _, _) = pattern.result else { return }
+        behaviorConfirmingIDs.insert(pattern.id)
+        behaviorMessage = nil
+        do {
+            try await behaviorPreferenceClient.confirm(pattern, now: Date())
+            confirmedBehaviorPatternIDs.insert(pattern.id)
+            behaviorConfirmingIDs.remove(pattern.id)
+            behaviorMessage = "Preference saved. Safety and plan rules remain authoritative."
+            emitBehaviorAudit(
+                action: .confirmed,
+                outcome: .success,
+                pattern: pattern,
+                mutation: .applied,
+                validation: .passed
+            )
+            await loadToday()
+        } catch {
+            behaviorConfirmingIDs.remove(pattern.id)
+            behaviorMessage = (error as? LocalizedError)?.errorDescription
+                ?? "The preference was not saved. Refresh before trying again."
+            emitBehaviorAudit(
+                action: .failed,
+                outcome: .failed,
+                pattern: pattern,
+                mutation: .rejected,
+                validation: .failed
+            )
+        }
+    }
+
+    func markBehaviorPatternRouted(_ pattern: BehaviorPattern) {
+        let action: MobilePatternResultAction = switch pattern.result {
+        case .checkinPrompt(_, _, _, _): .prompted
+        case .caution(_, _, _, _): .caution
+        case .scoringPreference(_, _, _, _, _),
+             .preferredDay(_, _, _, _, _): .reviewed
+        }
+        emitBehaviorAudit(
+            action: action,
+            outcome: .success,
+            pattern: pattern,
+            mutation: .notRequested,
+            validation: .notRun
+        )
+    }
+
+    func resetBehaviorPatterns() {
+        behaviorLoading = false
+        behaviorResponse = nil
+        behaviorFailure = nil
+        behaviorMessage = nil
+        behaviorHistoryCount = 0
+        behaviorConfirmingIDs = []
+        confirmedBehaviorPatternIDs = []
     }
 
     var workoutCheckinAvailable: Bool {
@@ -730,6 +863,28 @@ final class TodayViewModel: ObservableObject {
         }
     }
 
+    private func emitBehaviorAudit(
+        action: MobilePatternResultAction,
+        outcome: MobilePatternResultOutcome,
+        pattern: BehaviorPattern,
+        mutation: MobileIntakeMutationState,
+        validation: DeterministicValidationState,
+        source: BehaviorPatternSource? = nil
+    ) {
+        let properties = MobilePatternResultLifecycleAudit(
+            action: action,
+            outcome: outcome,
+            patternFamily: pattern.family,
+            resultKind: pattern.result.kind,
+            mutationState: mutation,
+            deterministicValidation: validation,
+            source: source ?? behaviorResponse?.analysis.source ?? .deterministic
+        )
+        Task {
+            await audit.send(MobileAuditEnvelope(properties: properties))
+        }
+    }
+
     private func emitCheckinAudit(
         request: MobileCheckinRequest,
         failure: MobileCheckinFailureState,
@@ -864,6 +1019,7 @@ struct TodayView: View {
     @State private var password = ""
     @State private var showingReconnectConfirmation = false
     @State private var showingIntake = false
+    @State private var showingBehaviorPatterns = false
     @State private var showingCheckin = false
     @State private var checkinLaunch = MobileCheckinLaunch.recovery
 
@@ -944,6 +1100,9 @@ struct TodayView: View {
                 todayCard
                 checkinCard
                 intakeCard
+                if MobileTodayAppConfiguration.behaviorPatternsEnabled {
+                    behaviorPatternCard
+                }
                 healthCard
                 privacyCard
             }
@@ -1013,6 +1172,36 @@ struct TodayView: View {
             Text("Routing never writes. Mutable drafts require review and confirmation.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
+        }
+        .padding(20)
+        .kineticCard()
+    }
+
+    private var behaviorPatternCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("What Kinetic is learning", systemImage: "brain.head.profile")
+                .font(.headline)
+            Text(
+                "Review repeated patterns from bounded recommendation and check-in history."
+            )
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            Button {
+                viewModel.resetBehaviorPatterns()
+                showingBehaviorPatterns = true
+            } label: {
+                Label("Review behavior patterns", systemImage: "list.bullet.rectangle")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .sheet(isPresented: $showingBehaviorPatterns) {
+                BehaviorPatternView(viewModel: viewModel)
+            }
+            Text(
+                "Review never writes. Scoring preferences require confirmation; schedule changes stay in the deterministically validated web flow."
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
         .padding(20)
         .kineticCard()

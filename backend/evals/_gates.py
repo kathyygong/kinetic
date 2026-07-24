@@ -5,8 +5,9 @@ from __future__ import annotations
 import copy
 import json
 import os
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 os.environ["KINETIC_AI_MODE"] = "fallback"
 os.environ.setdefault("KINETIC_DEMO_MODE", "true")
@@ -19,6 +20,7 @@ from app.api import app
 from app.auth import _validate_project_token_claims
 from app.llm_client import LLMUnavailable
 from app import behavior_insights as behavior_insights_module
+from app import decision_engine as decision_engine_module
 from app import intake_parser as intake_parser_module
 from app.mobile_intake import MobileIntakeRequest, route_mobile_intake
 from app import training_summary as training_summary_module
@@ -28,8 +30,36 @@ from evals.eval_cases import BEHAVIOR_INSIGHT_CASES, DAILY_REASONING_CASES
 
 client = TestClient(app)
 
+# Keep deterministic gates hermetic even when a developer machine has live
+# Google Calendar credentials. Ninety minutes matches the production fallback
+# default used when neither Calendar nor the caller supplies a tighter window.
+decision_engine_module.get_available_minutes = lambda: 90
+
+
+@dataclass(frozen=True)
+class GateSpec:
+    """One executable release gate registered for CLI and report generation."""
+
+    id: str
+    label: str
+    runner: Callable[[], None]
+
+
+@dataclass(frozen=True)
+class GateResult:
+    """Observed result from one successful gate execution."""
+
+    id: str
+    label: str
+    assertions: int
+
+
+_assertion_count = 0
+
 
 def _assert(cond: bool, message: str) -> None:
+    global _assertion_count
+    _assertion_count += 1
     if not cond:
         raise AssertionError(message)
 
@@ -153,11 +183,12 @@ def check_project_token_claim_validation() -> None:
             "sub": "",
         },
     ]:
+        rejected = False
         try:
             _validate_project_token_claims(invalid, project_id)
         except ValueError:
-            continue
-        raise AssertionError("invalid Firebase claims were accepted")
+            rejected = True
+        _assert(rejected, "invalid Firebase claims were accepted")
 
 
 def check_daily_reasoning() -> None:
@@ -1326,37 +1357,98 @@ def check_mobile_today_contract() -> None:
     )
 
 
+GATE_SPECS: tuple[GateSpec, ...] = (
+    GateSpec("ai-status", "AI runtime fallback", check_ai_status),
+    GateSpec(
+        "project-token-claims",
+        "Project token claim validation",
+        check_project_token_claim_validation,
+    ),
+    GateSpec("daily-reasoning", "Daily reasoning safety", check_daily_reasoning),
+    GateSpec("mobile-today", "Mobile Today contract", check_mobile_today_contract),
+    GateSpec("weekly-reasoning", "Weekly reasoning safety", check_weekly_reasoning),
+    GateSpec("what-if", "What-if read-only safety", check_what_if),
+    GateSpec(
+        "what-if-failures",
+        "What-if malformed/timeout fallback",
+        check_what_if_failure_fallbacks,
+    ),
+    GateSpec("intake", "Intake grounding and no-mutation safety", check_intake_parsing),
+    GateSpec(
+        "intake-failures",
+        "Intake malformed/timeout/ungrounded fallback",
+        check_intake_failure_fallbacks,
+    ),
+    GateSpec(
+        "mobile-intake",
+        "Mobile intake tagged route contract",
+        check_mobile_intake_contract,
+    ),
+    GateSpec(
+        "mobile-intake-failures",
+        "Mobile intake failures and strict auth",
+        check_mobile_intake_failure_contract,
+    ),
+    GateSpec(
+        "mobile-checkin",
+        "Mobile check-in compatibility and strict auth",
+        check_mobile_checkin_compatibility,
+    ),
+    GateSpec("behavior", "Behavior-learning safety", check_behavior_insights),
+    GateSpec(
+        "behavior-results",
+        "Behavior pattern result contract",
+        check_behavior_pattern_result_contract,
+    ),
+    GateSpec(
+        "behavior-result-failures",
+        "Behavior result failures and strict auth",
+        check_behavior_pattern_result_failures_and_auth,
+    ),
+    GateSpec(
+        "behavior-privacy",
+        "Behavior prompt privacy",
+        check_behavior_prompt_privacy,
+    ),
+    GateSpec(
+        "training-summary",
+        "Training-summary grounding and privacy",
+        check_training_summary,
+    ),
+    GateSpec(
+        "training-summary-failures",
+        "Training-summary invalid/timeout fallback",
+        check_training_summary_failure_fallbacks,
+    ),
+)
+
+
+def run_gates(*, emit_progress: bool = False) -> tuple[GateResult, ...]:
+    """Run the canonical gate registry and return measured assertion counts."""
+
+    global _assertion_count
+    results: list[GateResult] = []
+    for spec in GATE_SPECS:
+        _assertion_count = 0
+        spec.runner()
+        result = GateResult(
+            id=spec.id,
+            label=spec.label,
+            assertions=_assertion_count,
+        )
+        results.append(result)
+        if emit_progress:
+            print(f"PASS {spec.label} ({result.assertions} assertions)")
+    return tuple(results)
+
+
 def main() -> None:
-    checks = [
-        ("ai status", check_ai_status),
-        ("project token claim validation", check_project_token_claim_validation),
-        ("daily reasoning", check_daily_reasoning),
-        ("mobile Today contract", check_mobile_today_contract),
-        ("weekly reasoning", check_weekly_reasoning),
-        ("what-if reasoning", check_what_if),
-        ("what-if failure fallbacks", check_what_if_failure_fallbacks),
-        ("intake parsing", check_intake_parsing),
-        ("intake failure fallbacks", check_intake_failure_fallbacks),
-        ("mobile intake contract", check_mobile_intake_contract),
-        ("mobile intake failures and strict auth", check_mobile_intake_failure_contract),
-        ("mobile check-in compatibility and strict auth", check_mobile_checkin_compatibility),
-        ("behavior insights", check_behavior_insights),
-        ("behavior pattern result contract", check_behavior_pattern_result_contract),
-        (
-            "behavior pattern result failures and strict auth",
-            check_behavior_pattern_result_failures_and_auth,
-        ),
-        ("behavior prompt privacy", check_behavior_prompt_privacy),
-        ("training summary", check_training_summary),
-        (
-            "training summary failure fallbacks",
-            check_training_summary_failure_fallbacks,
-        ),
-    ]
-    for label, fn in checks:
-        fn()
-        print(f"PASS {label}")
-    print("OK deterministic AI gates passed")
+    results = run_gates(emit_progress=True)
+    assertion_total = sum(result.assertions for result in results)
+    print(
+        f"OK deterministic AI gates passed "
+        f"({len(results)} groups, {assertion_total} assertions)"
+    )
 
 
 if __name__ == "__main__":

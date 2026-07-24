@@ -95,7 +95,7 @@ npm run build
 npm run smoke
 cd ..\backend
 .\.venv\Scripts\python.exe -m compileall app evals
-.\.venv\Scripts\python.exe -m evals._gates
+.\.venv\Scripts\python.exe -m evals.generate_report --check
 .\.venv\Scripts\python.exe -m evals._smoke
 ```
 
@@ -224,7 +224,10 @@ Contract, deterministic schedule confirmation through the existing intake
 planner, bounded scoring confirmation, prompt/caution-only non-mutation
 routes, and privacy-safe `/qa/mobile` readback. Use
 [MOBILE_PATTERN_RESULT_HANDOFF.md](./MOBILE_PATTERN_RESULT_HANDOFF.md) for the
-Windows evidence and optional native continuation.
+Windows evidence and active native Part B closure checklist. Do not call Phase
+3.5 beta-ready until the Part B Swift suite/app compile, simulator/device
+routes, accessibility checks, same-user preference/web-schedule readback,
+privacy-safe audit readback, and final hosted Windows integration all pass.
 
 ## Live Firebase persistence QA
 

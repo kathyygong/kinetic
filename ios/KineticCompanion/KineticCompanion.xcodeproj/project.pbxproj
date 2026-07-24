@@ -22,6 +22,10 @@
 		B30000000000000000000001 /* MobileCheckinModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000001 /* MobileCheckinModels.swift */; };
 		B30000000000000000000002 /* FirestoreMobileCheckinClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000002 /* FirestoreMobileCheckinClient.swift */; };
 		B30000000000000000000003 /* MobileCheckinView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000003 /* MobileCheckinView.swift */; };
+		B40000000000000000000001 /* BehaviorPatternModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000001 /* BehaviorPatternModels.swift */; };
+		B40000000000000000000002 /* BehaviorPatternClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000002 /* BehaviorPatternClient.swift */; };
+		B40000000000000000000003 /* FirestoreBehaviorPreferenceClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000003 /* FirestoreBehaviorPreferenceClient.swift */; };
+		B40000000000000000000004 /* BehaviorPatternView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000004 /* BehaviorPatternView.swift */; };
 		0D12F96022DCA9EF3C28C083 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 6985C3D2B62E235EA17E146B /* FirebaseAuth */; };
 		19A41C44B7B7EAC0027B8530 /* KineticCompanionApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88DE97D168A7D0850DD4C339 /* KineticCompanionApp.swift */; };
 		3C51B6B1E9756E35B77D4245 /* HealthKitReadinessStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC5EA145914F61B82E2A2012 /* HealthKitReadinessStore.swift */; };
@@ -53,6 +57,10 @@
 		A30000000000000000000001 /* MobileCheckinModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileCheckinModels.swift; sourceTree = "<group>"; };
 		A30000000000000000000002 /* FirestoreMobileCheckinClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreMobileCheckinClient.swift; sourceTree = "<group>"; };
 		A30000000000000000000003 /* MobileCheckinView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileCheckinView.swift; sourceTree = "<group>"; };
+		A40000000000000000000001 /* BehaviorPatternModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BehaviorPatternModels.swift; sourceTree = "<group>"; };
+		A40000000000000000000002 /* BehaviorPatternClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BehaviorPatternClient.swift; sourceTree = "<group>"; };
+		A40000000000000000000003 /* FirestoreBehaviorPreferenceClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreBehaviorPreferenceClient.swift; sourceTree = "<group>"; };
+		A40000000000000000000004 /* BehaviorPatternView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BehaviorPatternView.swift; sourceTree = "<group>"; };
 		48A776192600D3C0D26B0392 /* KineticCompanion.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KineticCompanion.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		548BC69A4C8329E046EC1A47 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		70ED0161ECBE4358A3ED7DE2 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
@@ -84,6 +92,7 @@
 		0374A3DD96495D6C05A5F8BA /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				A40000000000000000000001 /* BehaviorPatternModels.swift */,
 				918FAE71321C37EDF1A06DCC /* MobileAuditModels.swift */,
 				A30000000000000000000001 /* MobileCheckinModels.swift */,
 				A20000000000000000000002 /* MobileIntakeConfirmation.swift */,
@@ -101,6 +110,8 @@
 		2334E79EED3B015E956CF00E /* Sync */ = {
 			isa = PBXGroup;
 			children = (
+				A40000000000000000000002 /* BehaviorPatternClient.swift */,
+				A40000000000000000000003 /* FirestoreBehaviorPreferenceClient.swift */,
 				A30000000000000000000002 /* FirestoreMobileCheckinClient.swift */,
 				A10000000000000000000004 /* FirestoreTodayClient.swift */,
 				907C219820289BDCF0D6DFCD /* FirestoreSyncClient.swift */,
@@ -144,6 +155,7 @@
 		94C8973B391732B25B35429F /* App */ = {
 			isa = PBXGroup;
 			children = (
+				A40000000000000000000004 /* BehaviorPatternView.swift */,
 				548BC69A4C8329E046EC1A47 /* DesignTokens.swift */,
 				88DE97D168A7D0850DD4C339 /* KineticCompanionApp.swift */,
 				A30000000000000000000003 /* MobileCheckinView.swift */,
@@ -252,6 +264,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				AAD4C8C83D1EB82AE7C18583 /* DesignTokens.swift in Sources */,
+				B40000000000000000000001 /* BehaviorPatternModels.swift in Sources */,
+				B40000000000000000000002 /* BehaviorPatternClient.swift in Sources */,
+				B40000000000000000000003 /* FirestoreBehaviorPreferenceClient.swift in Sources */,
+				B40000000000000000000004 /* BehaviorPatternView.swift in Sources */,
 				B10000000000000000000004 /* FirestoreTodayClient.swift in Sources */,
 				DEF53399BFBE7EA7298B69B1 /* FirestoreSyncClient.swift in Sources */,
 				3C51B6B1E9756E35B77D4245 /* HealthKitReadinessStore.swift in Sources */,

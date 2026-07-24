@@ -116,6 +116,23 @@ Review cancellation, invalid selection, missing goal, malformed response,
 strict-auth rejection, unavailable AI, timeout, and unsupported AI leave
 state unchanged.
 
+### Native v1 authority decision
+
+The native client may confirm scoring preferences because that write is small,
+typed, owner-scoped, idempotent, and still capped by the shared decision
+engine. It must route preferred-day results to the web review surface in v1.
+
+This deliberately optimizes the user/technical tradeoff:
+
+- users get immediate native value for low-risk personalization and existing
+  check-in/readiness actions;
+- users do not receive subtly different plans depending on which client they
+  used;
+- engineering retains one deterministic plan validator and persistence
+  authority instead of maintaining Swift and TypeScript planner parity;
+- native schedule completeness is deferred until a shared validator can be
+  reused without weakening safety, spacing, taper, or race-day rules.
+
 ## Failure contract
 
 `analysis.failure` is one of:

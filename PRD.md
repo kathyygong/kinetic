@@ -407,6 +407,20 @@ Requirements:
 - Add an optional hosted provider for lower latency and better reliability.
 - Preserve local Ollama and deterministic fallback modes.
 - Support BYO API key only if the product needs it.
+- Introduce a provider-neutral AI request/result contract and provider adapters
+  so model and provider changes do not require feature, API-envelope, frontend,
+  or telemetry rewrites.
+- Select models per workload rather than forcing one model across explanation,
+  extraction, summarization, and offline evaluation.
+- Keep provider and model as observable metadata, not product behavior or
+  hard-coded response modes.
+- Promote a model only after representative Kinetic evals satisfy the user
+  experience gates for grounding, safety, consistency, and surface-specific
+  latency. Among models that pass those gates, prefer the lowest sustainable
+  total cost and operational complexity.
+- Do not pay for additional model capability unless it produces a measurable
+  user benefit, and do not accept a materially worse user experience only to
+  preserve a cheaper or local technical deployment.
 
 #### Team Or Coach Sharing
 
@@ -504,6 +518,23 @@ Any AI-generated suggestion that could affect training must pass deterministic v
 
 - Add deterministic eval report.
 - Add optional local Ollama model benchmark report.
+- Keep one executable gate registry as the source of truth for deterministic
+  execution, assertion totals, report generation, and report-freshness checks.
+- Keep deterministic harnesses hermetic: local credentials, external network
+  state, clock drift, and test order must not change outcomes.
+- Migrate standalone backend/frontend checks incrementally to standard test
+  runners while preserving the current product-risk scenarios.
+- Add a required, small browser suite for the highest-value signed-in,
+  plan/decision, intake review/confirmation, check-in/persistence, and AI
+  fallback journeys.
+- Add property-based planner invariants, adversarial intake cases, and
+  provider-resilience tests before those surfaces become broader beta
+  dependencies.
+- Produce a versioned model-promotion artifact per workload with repeated
+  quality, grounding, safety, fallback, latency, cost/resource, prompt, model,
+  and environment evidence.
+- Run shared deterministic gates on Windows and Linux; run Swift shared-fixture
+  and package gates on macOS.
 - Add demo walkthrough script.
 - Add architecture diagrams or concise system explanation.
 
@@ -512,7 +543,10 @@ Any AI-generated suggestion that could affect training must pass deterministic v
 - Scale persistence and auth hardening beyond the demo foundation.
 - Expand monitoring beyond the baseline product instrumentation.
 - Mature export/reset controls for beta users.
-- Decide whether to support BYO AI key or hosted provider later.
+- Add a provider-neutral AI runtime before making a hosted provider a beta
+  dependency.
+- Decide whether to support BYO AI key or an operator-controlled hosted
+  provider after the runtime boundary and workload evals are in place.
 
 ### Phase 8: Mobile Companion Proof
 
@@ -535,7 +569,12 @@ Any AI-generated suggestion that could affect training must pass deterministic v
   a scoring-review, preferred-day-review, prompt, or caution result; detection
   and review remain read-only; confirmed schedule inputs reuse deterministic
   plan validation; pain/discomfort cannot become a preference, diagnosis, or
-  automatic mutation. Optional native Part B is governed by
+  automatic mutation. Thin native Part B implementation started 2026-07-24
+  against the same contract and shared recommendation history. Native scoring
+  preferences use explicit owner-scoped confirmation; preferred-day changes
+  route to the web validator in v1 to optimize for user safety and one
+  planning authority over native feature completeness. Mac/device/readback
+  proof remains before phase completion. Part B is governed by
   [MOBILE_PATTERN_RESULT_HANDOFF.md](./MOBILE_PATTERN_RESULT_HANDOFF.md).
 - Phase 4: Notifications only if justified by the Today/check-in loop.
 - Preserve the deterministic safety core: mobile can summarize signals and
@@ -559,6 +598,16 @@ Any AI-generated suggestion that could affect training must pass deterministic v
 - Frontend remains Next.js.
 - Build must not depend on external font fetches.
 - AI responses must be typed, schema-validated, cached where possible, and timeout-protected.
+- Feature code must depend on provider-neutral AI capabilities. Provider
+  adapters may translate structured output, streaming, reasoning, token-limit,
+  and residency controls into provider-specific requests.
+- Model routing must be workload-specific and configuration-driven. Changing a
+  model within a compatible provider should not require feature-code changes;
+  changing providers should not change user-facing response contracts.
+- Model promotion must optimize user outcomes first: safety and grounding are
+  hard gates, latency and continuity are surface-specific gates, and cost,
+  throughput, privacy, hardware footprint, and operational complexity choose
+  among configurations that pass.
 - The main workout recommendation flow must remain usable when AI is disabled or unavailable.
 - Protected backend endpoints must support Firebase auth in strict production-like mode.
 - Google Calendar integration must degrade gracefully when credentials, tokens, or user OAuth are unavailable.
@@ -570,11 +619,19 @@ Any AI-generated suggestion that could affect training must pass deterministic v
   shell, the npm advisory audit before broader beta exposure. Direct
   frontend/backend dependencies should stay exact-pinned unless a package
   change is intentionally reviewed.
+- Checked-in eval reports must be reproducible from executable gates and fail
+  CI when stale. Hand-edited pass counts are not release evidence.
+- Required deterministic gates must not call live Calendar, model, persistence,
+  or other external services unless the gate explicitly owns an emulator or
+  connected-integration contract.
 
 ## 7. Open Questions And Considerations
 
 - Is Firebase sufficient long-term, or should Kinetic eventually move to a dedicated relational database?
 - Should the product support BYO API key mode later, or keep AI runtime choices operator-controlled?
+- Which hosted provider/model configuration, if any, passes Kinetic's workload
+  evals with enough user-visible latency or quality improvement to justify its
+  recurring cost and operational/privacy tradeoffs?
 - How much natural-language intake should be exposed in the demo without making the app feel chat-first?
 - Which Apple-inspired UI elements should be implemented first: product-stage dashboard, scroll-linked plan highlights, floating metric capsules, or Liquid Glass-style surfaces?
 - How should resume and demo materials describe AI capability without overstating autonomy?

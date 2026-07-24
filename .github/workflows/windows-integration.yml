@@ -94,9 +94,9 @@ jobs:
         working-directory: backend
         run: python -m compileall app evals
 
-      - name: Run backend deterministic gates
+      - name: Run backend deterministic gates and verify eval report
         working-directory: backend
-        run: python -m evals._gates
+        run: python -m evals.generate_report --check
 
       - name: Run backend smoke suite
         working-directory: backend

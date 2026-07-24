@@ -90,4 +90,23 @@ enum MobileTodayAppConfiguration {
         let raw = defaultsValue ?? plistValue ?? "http://127.0.0.1:8000"
         return URL(string: raw) ?? URL(string: "http://127.0.0.1:8000")!
     }
+
+    static var webProfileURL: URL {
+        let defaultsValue = UserDefaults.standard.string(forKey: "kinetic.web-profile-url")
+        let plistValue = Bundle.main.object(forInfoDictionaryKey: "KINETIC_WEB_PROFILE_URL") as? String
+        let raw = defaultsValue ?? plistValue ?? "http://127.0.0.1:3000/profile"
+        return URL(string: raw) ?? URL(string: "http://127.0.0.1:3000/profile")!
+    }
+
+    static var behaviorPatternsEnabled: Bool {
+        if UserDefaults.standard.object(forKey: "kinetic.behavior-patterns-enabled") != nil {
+            return UserDefaults.standard.bool(forKey: "kinetic.behavior-patterns-enabled")
+        }
+        if let value = Bundle.main.object(
+            forInfoDictionaryKey: "KINETIC_BEHAVIOR_PATTERNS_ENABLED"
+        ) as? Bool {
+            return value
+        }
+        return true
+    }
 }

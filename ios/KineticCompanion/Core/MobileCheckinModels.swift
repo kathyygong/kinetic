@@ -337,6 +337,8 @@ struct MobileCheckinRecommendationContext: Codable, Equatable {
     var calendarLoad: String?
     var sleepStatus: String?
     var recoveryStatus: String?
+    var readinessFreshness: String? = nil
+    var checkinStatus: String? = nil
 }
 
 struct MobileCheckinRecommendationEvent: Codable, Equatable {

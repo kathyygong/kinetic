@@ -72,9 +72,38 @@ final class MobileAuditModelsTests: XCTestCase {
                 "mobile_companion_sync_completed",
                 "mobile_decision_validated",
                 "mobile_intake_lifecycle",
-                "mobile_checkin_synced"
+                "mobile_checkin_synced",
+                "mobile_pattern_result_lifecycle"
             ])
         )
+    }
+
+    func testPatternResultAuditUsesOnlyContractVocabulary() throws {
+        let envelope = MobileAuditEnvelope(
+            properties: MobilePatternResultLifecycleAudit(
+                action: .confirmed,
+                outcome: .success,
+                patternFamily: .heavyCalendarMisses,
+                resultKind: .scoringPreferenceReview,
+                mutationState: .applied,
+                deterministicValidation: .passed,
+                source: .deterministic
+            )
+        )
+        let data = try JSONEncoder().encode(envelope)
+        let object = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: data) as? [String: Any]
+        )
+        XCTAssertEqual(object["name"] as? String, "mobile_pattern_result_lifecycle")
+        let properties = try XCTUnwrap(object["properties"] as? [String: Any])
+        XCTAssertEqual(
+            Set(properties.keys),
+            [
+                "platform", "action", "outcome", "pattern_family", "result_kind",
+                "mutation_state", "deterministic_validation", "source"
+            ]
+        )
+        assertNoSensitiveKeys(properties)
     }
 
     func testIntakeAuditUsesOnlyFixedPrivacySafeVocabulary() throws {

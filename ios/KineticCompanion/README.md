@@ -1,9 +1,10 @@
 # Kinetic iOS Companion
 
 This directory contains the bounded Phase 1 HealthKit/Firebase proof, Phase 2A
-native Today surface, Phase 2.5 bounded intake implementation, and Phase 3
-check-in implementation described in the mobile handoff documents. It is not a
-full native companion app.
+native Today surface, Phase 2.5 bounded intake implementation, Phase 3
+check-in implementation, and the Phase 3.5 behavior-pattern result slice
+described in the mobile handoff documents. It is not a full native companion
+app.
 
 ## Implemented Gates
 
@@ -48,6 +49,13 @@ full native companion app.
 - Owner-scoped transactional recovery merge or atomic workout/recommendation
   persistence with tombstone, conflict, retry, and idempotency protection.
 - Fixed privacy-safe native check-in audit transport.
+- Strict `behavior-pattern-result.v1` Swift fixture parsing, authenticated
+  finite-deadline networking, and sanitized shared recommendation-history
+  requests.
+- Native pattern cards for scoring review, web-routed preferred-day review,
+  existing readiness/check-in prompts, and fixed discomfort caution.
+- Transactional owner-scoped scoring-preference confirmation with idempotent
+  retry and privacy-safe native pattern lifecycle audit.
 
 The app does not include general plan editing, onboarding, notifications,
 calendar ingestion, general chat, AI mutation, or raw HealthKit cloud sync. The
@@ -85,6 +93,26 @@ physical device with the launch argument pair:
 -kinetic.api-base-url
 http://<mac-lan-address>:8000
 ```
+
+The Phase 3.5 preferred-day handoff defaults to
+`http://127.0.0.1:3000/profile`. Point a physical/beta build at the reachable
+web profile surface with:
+
+```text
+-kinetic.web-profile-url
+https://<reachable-web-host>/profile
+```
+
+Hide the native behavior-pattern entry point without changing the contract or
+stored state by setting:
+
+```text
+-kinetic.behavior-patterns-enabled
+NO
+```
+
+Equivalent build-time plist keys are `KINETIC_WEB_PROFILE_URL` and
+`KINETIC_BEHAVIOR_PATTERNS_ENABLED`.
 
 The debug build declares local-network usage for a Mac development backend.
 Allow the iOS Local Network prompt during signed-device QA. A USB private-link
@@ -142,12 +170,29 @@ xcodebuild \
   build
 ```
 
-The 47-test Swift suite covers readiness/Today/intake/check-in canonical
+For Phase 3.5 Part B, run the focused behavior tests before the complete
+52-test suite:
+
+```bash
+swift test --filter BehaviorPatternContractFixtureTests
+swift test --filter MobileAuditModelsTests
+swift test
+```
+
+The authoritative signed-build, simulator/device route, same-user web
+readback, audit privacy, accessibility, rollback-control, and evidence
+checklist is
+[`MOBILE_PATTERN_RESULT_HANDOFF.md`](../../MOBILE_PATTERN_RESULT_HANDOFF.md).
+
+The expanded Swift suite covers readiness/Today/intake/check-in/behavior canonical
 fixtures, every intake route and draft kind, bounded request construction,
 strict response/privacy rejection, authenticated networking, stable failure
 mapping, confirmation grounding, availability/preferred-day transforms,
 workout-swap invariants, HealthKit-preserving recovery merge, atomic workout
-results, and idempotent check-in retries.
+results, idempotent check-in retries, strict pattern route validation,
+free-text request stripping, authenticated behavior networking, and
+pattern-audit privacy. Phase 3.5 tests require a fresh Mac execution before
+the implementation is considered complete.
 
 Device auth, HealthKit interaction, authenticated decisions, Firestore audit
 write/readback, and web readback require the untracked Firebase configuration,

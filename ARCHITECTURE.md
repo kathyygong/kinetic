@@ -135,6 +135,73 @@ severity, injury, or medical fields.
   grounding checks, timeouts, caching, and fallback.
 - `disabled`: deterministic decision flow without AI reasoning calls.
 
+## Model selection and portability
+
+Kinetic selects models per workload. The goal is not to maximize a generic
+benchmark score or use one model everywhere; it is to deliver the best user
+outcome inside the safety, latency, privacy, cost, and operational constraints
+of each surface.
+
+Current choices:
+
+| Workload | Configuration | User benefit | Technical tradeoff |
+| --- | --- | --- | --- |
+| Safety-critical workout selection and persisted changes | Deterministic code | Predictable, explainable decisions that remain available offline and cannot drift with a model response | Less flexible prose and language understanding; feature logic must be maintained explicitly |
+| Daily/weekly explanation and behavior analysis | Ollama with `qwen3:8b` | More natural explanation and pattern-selection capability than templates while keeping data local and avoiding per-call fees | CPU inference is too slow for synchronous product flows; these paths must be asynchronous, cached, or fallback-safe |
+| Natural-language intake | Startup-warmed Ollama with `llama3.2:3b` | Meets the bounded extraction need with stable structured output and a measured sub-24-second interaction budget | Lower general reasoning headroom than larger models; Kinetic compensates with a constrained schema, deterministic field agreement, review, and explicit confirmation |
+| Training-summary narration | Ollama with `llama3.2:3b` | Reuses the warm low-latency model for concise grounded prose | The model may add little value over deterministic copy in sparse cases, so invalid or ungrounded narration is discarded |
+| Offline/demo failure path | Deterministic fallback | Immediate, private, reliable behavior with no paid or network dependency | Copy is less varied and conversational |
+
+`llama3.2:3b` has workload-specific promotion evidence: the optional intake
+gate completed two identical passes over eight exact-value cases with no
+fallback and a recorded p95/max of 16.67 seconds on the development machine.
+Its small size is therefore a user-latency decision as much as a technical
+resource decision.
+
+`qwen3:8b` is a pragmatic local-demo configuration, not a production winner.
+It offers additional language capability without hosted cost, but observed CPU
+latency ranges from minutes for normal reasoning to longer behavior prompts.
+The repository contains a comparative harness for `qwen3:8b`,
+`gpt-oss:20b`, and `llama3.1:8b`, but it does not preserve a completed
+comparative report proving `qwen3:8b` is the best candidate. It should remain
+optional and fallback-safe until a representative workload report justifies a
+promotion or replacement.
+
+Model promotion follows a user-first Pareto rule:
+
+1. Safety, grounding, schema validity, non-mutation, and honest uncertainty are
+   hard gates.
+2. Each surface sets a user-facing latency and continuity gate. Synchronous
+   intake must finish inside its interaction budget; slower narration must not
+   block the primary training flow.
+3. Only configurations that pass those gates are compared on technical
+   dimensions: total cost, throughput, privacy/data residency, hardware and
+   memory footprint, cold start, operational complexity, and portability.
+4. Kinetic chooses the least costly and simplest configuration on that passing
+   quality/latency frontier. More capable or more expensive models are promoted
+   only when evals show a material user benefit.
+
+The current client is model-flexible within Ollama but not yet
+provider-neutral. General and workload-specific model tags are configured
+separately, and feature modules share one `call_llm` entry point. However, the
+implementation, runtime names, provenance enums, frontend contracts, and
+telemetry still encode Ollama behavior.
+
+The planned boundary introduces:
+
+- a provider-neutral request and result contract;
+- provider adapters for structured output, streaming, reasoning controls,
+  token budgets, and model residency;
+- a configuration-driven workload-to-provider/model policy;
+- generic live-model status with separate provider and model provenance; and
+- contract and workload evals that allow a provider change without changing
+  feature or user-facing response contracts.
+
+Ollama remains the local/no-cost adapter, deterministic fallback remains
+mandatory, and a hosted adapter is added only when its measured latency,
+quality, or reliability benefit justifies recurring cost and privacy/operations
+tradeoffs.
+
 ## Storage direction
 
 The current implementation is local-first: synchronous localStorage reads keep

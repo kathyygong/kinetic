@@ -1,8 +1,9 @@
-"""One-shot sanity check for backend/evals/eval_cases.py.
+"""Additional round-trip sanity checks for backend/evals/eval_cases.py.
 
 Drives every case through the live FastAPI app (TestClient, deterministic
 fallback) and asserts the deterministic engine outcomes pinned in each
-EvalCase. Not part of the eval harness proper — that lands later.
+EvalCase. The canonical safety gates run separately through ``evals._gates``;
+this module deliberately does not invoke them again.
 """
 
 from __future__ import annotations
@@ -16,8 +17,11 @@ os.environ.setdefault("KINETIC_AUTH_REQUIRED", "false")
 from fastapi.testclient import TestClient
 
 from app.api import app
-from evals._gates import main as run_ai_gates
+from app import decision_engine as decision_engine_module
 from evals.eval_cases import BEHAVIOR_INSIGHT_CASES, DAILY_REASONING_CASES
+
+# Match the hermetic Calendar boundary used by the canonical gate registry.
+decision_engine_module.get_available_minutes = lambda: 90
 
 
 def main() -> None:
@@ -94,11 +98,7 @@ def main() -> None:
                 assert needle in pts, (case.id, needle, pts)
 
     print()
-    print("--- Deterministic AI gates ---")
-    run_ai_gates()
-
-    print()
-    print("OK all cases and deterministic AI gates passed")
+    print("OK all additional round-trip smoke cases passed")
 
 
 if __name__ == "__main__":

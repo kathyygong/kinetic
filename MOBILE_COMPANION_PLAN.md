@@ -360,11 +360,14 @@ Pattern detection must produce a safe product result. Kinetic should not show
 patterns simply because they are interesting.
 
 Status: Mobile Phase 3.5 Part A Windows/shared
-`behavior-pattern-result.v1` implementation completed 2026-07-23. The existing
-read-only behavior endpoint now returns strict deterministic routes, schedule
-confirmation reuses the existing intake/planner authority, lifecycle telemetry
-feeds `/qa/mobile`, and the canonical fixture is ready for optional native
-Part B. See [MOBILE_PATTERN_RESULT_CONTRACT.md](./MOBILE_PATTERN_RESULT_CONTRACT.md)
+`behavior-pattern-result.v1` implementation completed 2026-07-23. Thin native
+Part B implementation started 2026-07-24: iOS now reads shared recommendation
+history, sanitizes the authenticated request, strictly validates the common
+fixture, renders all routes, confirms only bounded scoring preferences, routes
+preferred-day changes to the authoritative web validator, and reuses existing
+sync/check-in, caution, and audit flows. Mac compile, simulator/device,
+cross-platform readback, accessibility, and final Windows evidence remain.
+See [MOBILE_PATTERN_RESULT_CONTRACT.md](./MOBILE_PATTERN_RESULT_CONTRACT.md)
 and [MOBILE_PATTERN_RESULT_HANDOFF.md](./MOBILE_PATTERN_RESULT_HANDOFF.md).
 
 | Pattern family | Example | Allowed response |

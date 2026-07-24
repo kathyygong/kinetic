@@ -1,5 +1,16 @@
 # Kinetic Mobile Mac Handoff
 
+## Current active native handoff
+
+This file is a historical record for Phase 1 and Phase 2A. For current Mobile
+Phase 3.5 Part B work, do not restart from the scaffold/setup instructions
+below. Use
+[MOBILE_PATTERN_RESULT_HANDOFF.md](./MOBILE_PATTERN_RESULT_HANDOFF.md), which
+contains the authoritative source-transfer gate, exact Part B file manifest,
+52-test Mac command sequence, simulator/device matrix, configuration,
+cross-platform readback, privacy checks, and evidence template.
+The exact continuation prompt is `Continue Phase 3.5 Part B implementation.`
+
 This is the completed execution record for the Phase 1 and Phase 2A
 macOS/Xcode sessions. It began from the Windows preflight state and produced a
 real iOS HealthKit/Firebase sync spike plus the native Today surface. The work
@@ -207,7 +218,7 @@ Run backend gates before beta-facing demos:
 ```powershell
 cd backend
 .\.venv\Scripts\python.exe -m compileall app evals
-.\.venv\Scripts\python.exe -m evals._gates
+.\.venv\Scripts\python.exe -m evals.generate_report --check
 .\.venv\Scripts\python.exe -m evals._smoke
 ```
 

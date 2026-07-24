@@ -1,27 +1,32 @@
 # Kinetic Deterministic AI Eval Report
 
-Generated: 2026-07-20
+Generated: 2026-07-23
 
 ## Result
 
-**PASS — all 43 deterministic fallback and Mobile Phase 2.5 contract cases
-satisfied the demo safety gates.**
+**PASS — all 18 deterministic gate groups and 498
+explicit safety assertions passed.**
 
-| Gate group | Cases | Result |
-| --- | ---: | --- |
-| AI runtime fallback | 1 | PASS |
-| Daily reasoning safety | 4 | PASS |
-| Weekly reasoning safety | 1 | PASS |
-| What-if read-only safety | 1 | PASS |
-| What-if malformed/timeout fallback | 2 | PASS |
-| Intake grounding and no-mutation safety | 2 | PASS |
-| Intake malformed/timeout/ungrounded fallback | 3 | PASS |
-| Mobile intake tagged route contract | 14 | PASS |
-| Mobile intake context/auth/AI failure safety | 5 | PASS |
-| Behavior-learning safety | 4 | PASS |
-| Behavior prompt privacy | 1 | PASS |
-| Training-summary grounding and privacy | 3 | PASS |
-| Training-summary invalid/timeout fallback | 2 | PASS |
+| Gate ID | Gate group | Assertions | Result |
+| --- | --- | ---: | --- |
+| `ai-status` | AI runtime fallback | 3 | PASS |
+| `project-token-claims` | Project token claim validation | 3 | PASS |
+| `daily-reasoning` | Daily reasoning safety | 72 | PASS |
+| `mobile-today` | Mobile Today contract | 6 | PASS |
+| `weekly-reasoning` | Weekly reasoning safety | 8 | PASS |
+| `what-if` | What-if read-only safety | 11 | PASS |
+| `what-if-failures` | What-if malformed/timeout fallback | 10 | PASS |
+| `intake` | Intake grounding and no-mutation safety | 14 | PASS |
+| `intake-failures` | Intake malformed/timeout/ungrounded fallback | 11 | PASS |
+| `mobile-intake` | Mobile intake tagged route contract | 198 | PASS |
+| `mobile-intake-failures` | Mobile intake failures and strict auth | 10 | PASS |
+| `mobile-checkin` | Mobile check-in compatibility and strict auth | 10 | PASS |
+| `behavior` | Behavior-learning safety | 47 | PASS |
+| `behavior-results` | Behavior pattern result contract | 45 | PASS |
+| `behavior-result-failures` | Behavior result failures and strict auth | 26 | PASS |
+| `behavior-privacy` | Behavior prompt privacy | 3 | PASS |
+| `training-summary` | Training-summary grounding and privacy | 17 | PASS |
+| `training-summary-failures` | Training-summary invalid/timeout fallback | 4 | PASS |
 
 ## Enforced guarantees
 
@@ -35,23 +40,36 @@ satisfied the demo safety gates.**
   confirmation, and cannot mutate request or persisted state while parsing.
 - Sparse, malformed, timed-out, unavailable, and ungrounded intake output
   cannot invent or apply a change.
-- Mobile intake routes schedule, availability, travel, workout-swap, goal,
-  preferred-day, recovery, caution, missed-workout, reflection, explanation,
-  ambiguous, unsupported, and unsafe notes without mutation. Strict context,
-  strict-auth rejection, and AI failure fallbacks pass.
+- Mobile Today preserves caller-authoritative availability and lowers
+  confidence when required freshness context is missing.
+- Mobile intake routes every supported, ambiguous, unsupported, and unsafe note
+  without mutation; strict context, strict auth, and AI failure fallbacks pass.
+- Mobile check-in outcomes remain compatible with read-only training reviews
+  and strict-auth boundaries.
+- Every supported behavior pattern maps to a bounded product result; unsupported
+  model selections, malformed output, provider failures, and anonymous access
+  fail safely.
 - Sparse behavior history emits a limited-history warning and cannot claim
   moderate or high confidence.
 - Weekly/monthly reviews derive metrics deterministically from bounded outcome
   fields, exclude raw notes, remain read-only, and reject invented AI facts.
 - The baseline suite runs with `KINETIC_AI_MODE=fallback`; live AI is never
   required for a passing demo.
+- Calendar availability is stubbed inside the deterministic harness, so local
+  credentials and external network state cannot change gate outcomes.
 
 ## Reproduce
 
 From `backend/`:
 
 ```powershell
+# Run the canonical registry with progress output.
 .\.venv\Scripts\python.exe -m evals._gates
+
+# Run the same registry and verify this checked-in report is current.
+.\.venv\Scripts\python.exe -m evals.generate_report --check
+
+# Regenerate the report after an intentional gate change.
 .\.venv\Scripts\python.exe -m evals.generate_report
 ```
 
@@ -65,25 +83,18 @@ request immutability, no fallback, and the 24-second server budget.
 
 Frontend smoke coverage includes typed privacy-conscious instrumentation,
 returning-user sign-in hydration ordering, Apple Health CSV import bounding and
-note-dropping, and plan-safety invariants across race distance, experience
-level, and very low starting mileage.
+note-dropping, plan-safety invariants, shared mobile contracts, persistence,
+intake confirmation, and training-review request privacy.
 
-The live Firebase two-session persistence gate is closed: Cloud Firestore is
-enabled for `kinetic-aca73`, rules are deployed, and live QA verifies
-cross-session hydration, account isolation, local-cache ownership, and deletion
-tombstones after reload and second-origin sign-in. Frontend persistence smoke
-coverage also asserts signed-in delete failures do not silently wipe local
-cache before Firebase tombstones are confirmed.
+The Auth + Firestore emulator gate verifies owner access, cross-user and guest
+denial, unknown-domain denial, bounded mobile lifecycle readback, and deletion
+tombstones.
 
 Beta hardening includes a repeatable local readiness check and handoff matrix.
 `npm run beta:readiness` verifies lockfile presence, direct dependency pinning,
 protected QA artifact hygiene, and runbook/matrix presence. The connected
-`npm run beta:audit` advisory gate passes with no moderate/high/critical npm
-advisories. Re-run both gates after package changes.
+`npm run beta:audit` is the advisory gate.
 
 Telemetry QA exercises every typed product event family with safe values and
 intentionally unsafe extra fields, then proves capped local storage and
-write/remove failure isolation. Final beta hardening adds hosted preflight,
-rollback, and triage guidance without weakening authentication, Firestore
-owner-only rules, UID scoping, deletion tombstones, deterministic fallback, or
-bounded AI validation.
+write/remove failure isolation.
