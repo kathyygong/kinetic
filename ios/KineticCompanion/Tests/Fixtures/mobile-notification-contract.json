@@ -1,0 +1,212 @@
+{
+  "schema_version": "mobile-notification-fixture.v1",
+  "contract_schema": "mobile-notification.v1",
+  "success_cases": [
+    {
+      "id": "off_by_default",
+      "request": {
+        "schema_version": "mobile-notification.v1",
+        "platform": "ios",
+        "kind": "evening_checkin",
+        "local_day": "2026-07-29",
+        "now": "2026-07-29T09:00:00-04:00",
+        "target_at": "2026-07-29T20:00:00-04:00",
+        "enabled": false,
+        "permission": "not_determined",
+        "has_planned_workout": true,
+        "checkin_state": "pending",
+        "existing_request": false
+      },
+      "expected_action": "none",
+      "expected_reason": "user_opt_in_required"
+    },
+    {
+      "id": "explicit_opt_in_requests_permission",
+      "request": {
+        "schema_version": "mobile-notification.v1",
+        "platform": "ios",
+        "kind": "evening_checkin",
+        "local_day": "2026-07-29",
+        "now": "2026-07-29T09:00:00-04:00",
+        "target_at": "2026-07-29T20:00:00-04:00",
+        "enabled": true,
+        "permission": "not_determined",
+        "has_planned_workout": true,
+        "checkin_state": "pending",
+        "existing_request": false
+      },
+      "expected_action": "request_permission",
+      "expected_reason": "permission_required"
+    },
+    {
+      "id": "eligible_pending_checkin_schedules",
+      "request": {
+        "schema_version": "mobile-notification.v1",
+        "platform": "ios",
+        "kind": "evening_checkin",
+        "local_day": "2026-07-29",
+        "now": "2026-07-29T09:00:00-04:00",
+        "target_at": "2026-07-29T20:00:00-04:00",
+        "enabled": true,
+        "permission": "authorized",
+        "has_planned_workout": true,
+        "checkin_state": "pending",
+        "existing_request": false
+      },
+      "expected_action": "schedule",
+      "expected_reason": "eligible"
+    },
+    {
+      "id": "completed_checkin_cancels_existing_request",
+      "request": {
+        "schema_version": "mobile-notification.v1",
+        "platform": "ios",
+        "kind": "evening_checkin",
+        "local_day": "2026-07-29",
+        "now": "2026-07-29T18:00:00-04:00",
+        "target_at": "2026-07-29T20:00:00-04:00",
+        "enabled": true,
+        "permission": "authorized",
+        "has_planned_workout": true,
+        "checkin_state": "completed",
+        "existing_request": true
+      },
+      "expected_action": "cancel",
+      "expected_reason": "checkin_complete"
+    },
+    {
+      "id": "skipped_checkin_needs_no_reminder",
+      "request": {
+        "schema_version": "mobile-notification.v1",
+        "platform": "ios",
+        "kind": "evening_checkin",
+        "local_day": "2026-07-29",
+        "now": "2026-07-29T18:00:00-04:00",
+        "target_at": "2026-07-29T20:00:00-04:00",
+        "enabled": true,
+        "permission": "provisional",
+        "has_planned_workout": true,
+        "checkin_state": "skipped",
+        "existing_request": false
+      },
+      "expected_action": "none",
+      "expected_reason": "checkin_skipped"
+    },
+    {
+      "id": "permission_denial_cancels_existing_request",
+      "request": {
+        "schema_version": "mobile-notification.v1",
+        "platform": "ios",
+        "kind": "evening_checkin",
+        "local_day": "2026-07-29",
+        "now": "2026-07-29T09:00:00-04:00",
+        "target_at": "2026-07-29T20:00:00-04:00",
+        "enabled": true,
+        "permission": "denied",
+        "has_planned_workout": true,
+        "checkin_state": "pending",
+        "existing_request": true
+      },
+      "expected_action": "cancel",
+      "expected_reason": "permission_denied"
+    },
+    {
+      "id": "no_planned_workout_needs_no_reminder",
+      "request": {
+        "schema_version": "mobile-notification.v1",
+        "platform": "ios",
+        "kind": "evening_checkin",
+        "local_day": "2026-07-29",
+        "now": "2026-07-29T09:00:00-04:00",
+        "target_at": "2026-07-29T20:00:00-04:00",
+        "enabled": true,
+        "permission": "authorized",
+        "has_planned_workout": false,
+        "checkin_state": "not_applicable",
+        "existing_request": false
+      },
+      "expected_action": "none",
+      "expected_reason": "no_planned_workout"
+    },
+    {
+      "id": "elapsed_target_cancels_existing_request",
+      "request": {
+        "schema_version": "mobile-notification.v1",
+        "platform": "ios",
+        "kind": "evening_checkin",
+        "local_day": "2026-07-29",
+        "now": "2026-07-29T21:00:00-04:00",
+        "target_at": "2026-07-29T20:00:00-04:00",
+        "enabled": true,
+        "permission": "authorized",
+        "has_planned_workout": true,
+        "checkin_state": "pending",
+        "existing_request": true
+      },
+      "expected_action": "cancel",
+      "expected_reason": "target_elapsed"
+    }
+  ],
+  "failure_cases": [
+    {
+      "id": "rejects_sensitive_readiness_input",
+      "request": {
+        "schema_version": "mobile-notification.v1",
+        "platform": "ios",
+        "kind": "evening_checkin",
+        "local_day": "2026-07-29",
+        "now": "2026-07-29T09:00:00-04:00",
+        "target_at": "2026-07-29T20:00:00-04:00",
+        "enabled": true,
+        "permission": "authorized",
+        "has_planned_workout": true,
+        "checkin_state": "pending",
+        "existing_request": false,
+        "hrv": 68
+      }
+    },
+    {
+      "id": "rejects_cross_day_target",
+      "request": {
+        "schema_version": "mobile-notification.v1",
+        "platform": "ios",
+        "kind": "evening_checkin",
+        "local_day": "2026-07-29",
+        "now": "2026-07-29T09:00:00-04:00",
+        "target_at": "2026-07-30T20:00:00-04:00",
+        "enabled": true,
+        "permission": "authorized",
+        "has_planned_workout": true,
+        "checkin_state": "pending",
+        "existing_request": false
+      }
+    },
+    {
+      "id": "rejects_unknown_notification_kind",
+      "request": {
+        "schema_version": "mobile-notification.v1",
+        "platform": "ios",
+        "kind": "readiness_stale",
+        "local_day": "2026-07-29",
+        "now": "2026-07-29T09:00:00-04:00",
+        "target_at": "2026-07-29T20:00:00-04:00",
+        "enabled": true,
+        "permission": "authorized",
+        "has_planned_workout": true,
+        "checkin_state": "pending",
+        "existing_request": false
+      }
+    }
+  ],
+  "forbidden_lock_screen_terms": [
+    "hrv",
+    "heart rate",
+    "sleep",
+    "fatigue",
+    "soreness",
+    "pain",
+    "injury",
+    "readiness",
+    "workout"
+  ]
+}
