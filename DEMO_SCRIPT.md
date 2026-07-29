@@ -53,7 +53,7 @@ is enabled, rules are deployed, and live QA verifies hydration/account
 isolation plus deletion tombstones after reload and second-origin sign-in.
 
 If the reviewer asks what comes next, point to
-[MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md): native HealthKit daily
+[MOBILE_APP_PLAN.md](./MOBILE_APP_PLAN.md): native HealthKit daily
 readiness, Firebase sync, same-user web readback, retry, and tombstones are
 proven, and calendar-aware Native Today has passed shared, simulator, and signed
 physical-device gates. Bounded mobile NLP intake with deterministic

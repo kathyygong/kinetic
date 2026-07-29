@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This contract defines how the iOS companion syncs HealthKit-derived readiness
+This contract defines how the primary iOS app syncs HealthKit-derived readiness
 without weakening Kinetic's existing safety, privacy, and persistence model.
 
 The first mobile spike has two write targets:
@@ -161,7 +161,7 @@ Allowed `conflict` values:
 
 ## Local Summarization Rules
 
-The iOS companion must summarize on device before writing Firestore:
+The iOS app must summarize on device before writing Firestore:
 
 - Sleep: select the supported HealthKit asleep-stage intervals, group intervals
   separated by no more than two hours into sleep episodes, and total every

@@ -10,10 +10,15 @@ For a fast technical review, see [ARCHITECTURE.md](./ARCHITECTURE.md), the
 [five-minute demo script](./DEMO_SCRIPT.md), and the generated
 [deterministic AI eval report](./EVAL_REPORT.md). For beta handoff, see the
 [beta runbook](./BETA_RUNBOOK.md) and [QA matrix](./QA_MATRIX.md). The active
-product roadmap is the iOS [Mobile Companion Plan](./MOBILE_COMPANION_PLAN.md),
+product roadmap is the iOS
+[User-Ready Native Mobile Plan](./MOBILE_APP_PLAN.md),
 with the sync contract in [Mobile Readiness Schema](./MOBILE_READINESS_SCHEMA.md)
 and the authenticated Today boundary in
 [Mobile Today Contract](./MOBILE_TODAY_CONTRACT.md).
+Native iOS is Kinetic's primary user-facing product; web remains the advanced
+What-if/deep-analysis surface and the primary demo, admin, QA/eval, and
+beta-operations surface. Core runner features are not complete when they exist
+only on web.
 The browser-viewable prototype lives at `/mobile-companion` when the frontend is
 running locally. The Phase 1 native HealthKit/Firebase app and Xcode project
 live in [`ios/KineticCompanion`](./ios/KineticCompanion/README.md); physical
@@ -115,7 +120,27 @@ Runtime modes are explicit:
   [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md). Trusted project
   rules prompt for the scoped Git, Swift/Xcode, Simulator, and device commands
   that may require approval.
-- [ ] **Later Integrations:** Garmin/Oura ingestion, hosted AI provider option, coach sharing, broad push notifications, and full native plan editing.
+- [X] **Mobile Phase 3.5 — Behavior Pattern Results:** The shared contract and
+  native scoring/preferred-day/prompt/caution routes passed Windows, Mac,
+  simulator, physical-device, same-user, and privacy-safe audit proof.
+- [X] **Mobile Phase 4A — Notification Contract:** The opt-in local evening
+  check-in eligibility, permission, cancellation, and generic lock-screen
+  privacy contract passes the default frontend smoke suite.
+- [ ] **Mobile Phase 5 — Native Foundation:** Permanent navigation, account
+  creation/recovery, onboarding, progressive permissions, Settings, privacy,
+  support, data controls, and local notification delivery.
+- [ ] **Mobile Phase 6 — Native Plan Lifecycle:** Generate, preview, save,
+  browse, safely edit/regenerate, pause/resume, and confirm preferences without
+  a normal-runner web handoff.
+- [ ] **Mobile Phase 7 — Apple Calendar And Progress:** Privacy-minimized
+  EventKit free/busy ingestion, calendar-aware planning, optional explicit
+  one-way export, and shared-history progress.
+- [ ] **Mobile Phase 8 — User-Ready External Beta:** Accessibility/device,
+  offline/sync/migration, production operations, privacy, TestFlight, support,
+  and install-to-deletion external-user evidence.
+- [ ] **Later Integrations:** Garmin/Oura, hosted AI, coach/social features,
+  broad push notifications, full two-way Calendar sync, open-ended chat,
+  Apple Watch/widgets, Android, and autonomous AI plan mutation.
 
 Optional live-model verification (requires Ollama and the configured intake
 model) runs two repeatability passes across eight exact-value, no-fallback

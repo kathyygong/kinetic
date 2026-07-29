@@ -16,8 +16,10 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-For the mobile companion prototype, start the frontend and open
-`/mobile-companion`. When Playwright is installed in the frontend environment,
+For the legacy mobile browser prototype, start the frontend and open
+`/mobile-companion`. This route is a review harness for Kinetic's primary
+native iOS product, not a separate companion product. When Playwright is
+installed in the frontend environment,
 run `npm run smoke:mobile-browser` to exercise the readiness, calendar, intake,
 check-in, and notification state matrix against the running page.
 

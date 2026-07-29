@@ -775,7 +775,7 @@ Package the product so it is easy to show, explain, and extend.
 - Decide later whether to add:
   - BYO AI key mode
   - hosted AI provider
-  - full native mobile beyond the companion proof
+  - user-ready native mobile beyond the initial proof
   - native calendar integration
   - Garmin and Oura integrations
 
@@ -795,8 +795,8 @@ Demo packaging is complete.
 - Deployment/monitoring guidance can expand when a hosted beta target is
   selected. This checkpoint did not include hosted AI, native/background
   HealthKit sync, Garmin/Oura ingestion, native mobile, or autonomous AI
-  mutation; native iOS is now selected later as the scoped Mobile Companion
-  Proof phase.
+  mutation; native iOS was selected later for an initial proof and is now the
+  primary product surface.
 - Added [BETA_RUNBOOK.md](./BETA_RUNBOOK.md), [QA_MATRIX.md](./QA_MATRIX.md),
   and `npm run beta:readiness` as the first beta-hardening checkpoint. The
   connected `npm run beta:audit` advisory gate is documented separately and
@@ -872,15 +872,15 @@ Acceptance criteria:
    are closed; dependency posture, final QA matrix, hosted preflight, and
    rollback guidance are complete.
 7. Apple Health CSV readiness import is implemented as a web-beta bridge.
-   Native/background HealthKit sync and native mobile are the selected mobile
-   product direction, scoped specifically as Mobile Companion Proof in
-   [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md). Garmin/Oura, hosted
-   AI, broad notifications, coach sharing, and autonomous plan mutation remain
-   out of scope.
-8. Execute the mobile phase in this order: docs-only phase selection, iOS
-   readiness schema, HealthKit/Firebase sync spike, web readback proof, native
-   calendar-aware Today surface, bounded mobile intake review, recovery/check-in
-   loop, then notification evaluation only if justified.
+   The completed initial native proof now leads into the selected user-ready
+   native product direction in
+   [MOBILE_APP_PLAN.md](./MOBILE_APP_PLAN.md). Garmin/Oura, hosted
+   AI, broad notifications, coach sharing, full two-way Calendar sync,
+   open-ended chat, and autonomous plan mutation remain out of scope.
+8. Continue mobile in this order: close the shared notification contract;
+   build permanent native foundation/onboarding/settings; add bounded native
+   plan ownership; add privacy-minimized Apple Calendar and progress; then
+   close user-ready production and external-beta gates.
 
 ## Worktree Checkpoint - Updated 2026-06-29
 
@@ -944,10 +944,11 @@ Completed.
   readiness input path. It accepts bounded sleep, HRV, resting-heart-rate,
   fatigue, and soreness fields, drops unsupported columns/notes, and writes
   through the existing readiness store. Native HealthKit sync and the
-  calendar-aware Today surface are implemented as a thin iOS companion that
-  summarizes locally and syncs bounded daily readiness records. Phase 2.5
-  bounded mobile intake implementation and physical-device proof are complete;
-  Garmin and Oura remain deferred.
+  calendar-aware Today surface are implemented and summarize locally before
+  syncing bounded daily readiness records. The completed initial proof now
+  leads into the user-ready native roadmap: onboarding/settings, bounded plan
+  ownership, Apple Calendar/progress, and external-beta hardening. Garmin and
+  Oura remain deferred.
 - Final operational polish is complete: [BETA_RUNBOOK.md](./BETA_RUNBOOK.md),
   [QA_MATRIX.md](./QA_MATRIX.md), and [DEPLOY.md](./DEPLOY.md) document hosted
   preflight, strict-auth posture, rollback, triage, protected artifact handling,
@@ -970,10 +971,19 @@ Completed.
   clearing local state.
 - `.edge-qa*` profiles and temporary screenshots remain intentionally untracked and must not be included in product commits.
 
-## Mobile Companion Proof - Selected 2026-07-10
+## User-Ready Native Mobile - Rebaselined 2026-07-29
 
-The selected mobile product direction is Mobile Companion Proof, documented in
-[MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md).
+The completed initial mobile proof established the native safety and data
+foundation. The selected product direction now continues through a user-ready
+iOS app, documented in
+[MOBILE_APP_PLAN.md](./MOBILE_APP_PLAN.md). Mobile is complete only
+when an external runner can complete the core install-to-deletion journey
+without the web or developer help.
+
+Native iOS is Kinetic's primary user-facing product. Core runner functionality
+is designed mobile-first and does not count as product-complete when it exists
+only on web. Web remains the advanced What-if/deep-analysis surface and the
+primary demo, admin, QA/eval, and beta-operations surface.
 
 Build sequence:
 
@@ -994,6 +1004,16 @@ Build sequence:
    readiness values from text.
 5. Notifications only if justified: Today-ready, stale-readiness, and
    check-in reminders only after the core loop proves value.
+6. Native foundation: permanent navigation, account creation/recovery,
+   onboarding, permission education, settings, privacy, support, and data
+   controls.
+7. Native plan lifecycle: generate, preview, save, browse, safely edit,
+   regenerate, pause/resume, and confirm preferences without the web.
+8. Apple Calendar and Progress: privacy-minimized EventKit free/busy
+   ingestion, calendar-aware planning, optional explicit one-way export, and
+   shared-history review.
+9. User-ready hardening: accessibility/device, offline/sync, migrations,
+   production operations, privacy disclosures, TestFlight, and external beta.
 
 Acceptance gates:
 
@@ -1012,6 +1032,24 @@ Acceptance gates:
   deterministic.
 - Mobile failures degrade through freshness/confidence rather than invented
   certainty.
+- A normal runner can create an account, onboard, own a plan, use Today,
+  check in, review progress, change settings, and export/delete data without
+  the web.
+- Mobile completion requires production-environment, accessibility, device,
+  migration, operational, TestFlight, and external-beta evidence.
+
+Delivery cadence:
+
+- Batch Windows/shared contracts, backend authority, fixtures, Firebase rules,
+  observability, and integration harnesses for one coherent native dependency
+  set—normally one phase and at most two tightly coupled phases.
+- Commit/push one authoritative handoff, then stay on Mac to implement and
+  validate the corresponding native phases sequentially.
+- Do not build all remaining Windows phases before native validation. SwiftUI,
+  permissions, EventKit, background behavior, and device UX must feed back
+  before later shared contracts freeze.
+- Return to Windows after the Mac batch for final shared/hosted integration and
+  the next dependency set. Phase 8 remains continuous across both lanes.
 
 Status: Phase 1 completed on 2026-07-16. The checked-in Xcode project passed
 Swift package tests, simulator build, signed physical-device build/install,
@@ -1150,7 +1188,7 @@ branch was fast-forwarded into `main` on 2026-07-23.
   build, beta readiness, Python compile/gates/smoke, and owner-only Firebase
   Auth/Firestore emulator coverage on 2026-07-23.
 
-### Mobile Phase 3.5 Part B Native Pattern Results - Mac/Device Checkpoint 2026-07-24
+### Mobile Phase 3.5 Part B Native Pattern Results - Functionally Complete 2026-07-24
 
 - Added strict Swift `behavior-pattern-result.v1` decoding against the shared
   canonical fixture, including exact-key, version, bounds, duplicate-ID,
@@ -1189,8 +1227,98 @@ branch was fast-forwarded into `main` on 2026-07-23.
 - GitHub-hosted Windows integration run
   [30105302955](https://github.com/kathyygong/kinetic/actions/runs/30105302955)
   passed clean install/audit, frontend, backend, and owner-only Firebase
-  emulator gates at `1b99cfe`. Keep Phase 3.5 open only for the authenticated
-  pattern-card VoiceOver, landscape, and small-screen pass.
+  emulator gates at `1b99cfe`.
+- Product accepted Phase 3.5 as functionally complete on 2026-07-29. The
+  authenticated pattern-card VoiceOver, landscape, and small-screen checks are
+  explicitly unverified and deferred to the next phase that changes native iOS
+  UI. They are mandatory at Phase 5 entry and before external beta.
+
+### Mobile Phase 4 Part A Local Check-in Notification - Implemented 2026-07-29
+
+- Selected only the opt-in local evening check-in reminder from the Phase 4
+  candidates. The implemented check-in loop justifies testing this narrow
+  retention hypothesis; there is not yet evidence for morning Today-ready or
+  stale-readiness notifications.
+- Added the strict shared `mobile-notification.v1` decision contract and
+  canonical fixture for opt-in, permission, pending-check-in eligibility,
+  completion/skip cancellation, elapsed target, and fail-closed privacy cases.
+- Kept the reminder off by default and local-only. Part A adds no push service,
+  device tokens, backend scheduler, new persistence domain, or native UI.
+- Fixed generic lock-screen copy cannot expose workout, readiness, biometric,
+  pain, or medical detail.
+- Native notification delivery will be folded into the permanent Phase 5
+  onboarding/Settings foundation instead of a temporary Phase 4 screen. Phase
+  5 begins with the deferred Phase 3.5 pattern-card VoiceOver/landscape/
+  small-screen checks. See
+  [MOBILE_NOTIFICATION_CONTRACT.md](./MOBILE_NOTIFICATION_CONTRACT.md).
+
+### Next Execution Batch - Windows A For Mobile Phases 5–6
+
+- Define the shared account/onboarding/settings state, validation, persistence,
+  deletion, migration, and privacy-safe observability boundaries required by
+  the permanent native foundation.
+- Define the authenticated plan-generation/lifecycle API and canonical
+  fixtures for preview, save, version/conflict handling, bounded edit,
+  regeneration, pause/resume, preferred-day confirmation, idempotency, and
+  completed-history preservation.
+- Extend Firebase rules/emulator, frontend/domain smoke, backend deterministic
+  gates, QA/admin readback, and cross-language handoff evidence without
+  building temporary SwiftUI.
+- Commit and push one authoritative handoff. Then stay on Mac to implement
+  Mobile Phase 5 and Phase 6 sequentially, checkpointing Phase 5 before
+  continuing but returning to Windows only for blocking shared fixes or the
+  final integration pass.
+- Do not freeze Phase 7 EventKit behavior in this batch. Run an early Mac
+  EventKit permission/free-busy spike before its shared contract is finalized.
+
+### Mobile Phase 5 Native Foundation, Onboarding, And Settings - Planned
+
+- Replace the proof-oriented single-screen shell with permanent Today, Plan,
+  Progress, and Settings navigation.
+- Migrate legacy `KineticCompanion` project/target/scheme/bundle identifiers to
+  the final Kinetic app identity before external distribution, preserving
+  signing, Firebase configuration, entitlements, and tests.
+- Add account creation/recovery, session restoration, native onboarding,
+  progressive permission education, profile/preferences, privacy, support,
+  export/delete, and account-deletion controls.
+- Place the opt-in local evening reminder in its permanent Settings location.
+- Exit only when a new and returning runner can reach the correct owner-scoped
+  native state without the web and the affected accessibility/device checks
+  pass.
+
+### Mobile Phase 6 Native Plan Lifecycle - Planned
+
+- Generate, preview, confirm, save, browse, and maintain the full plan natively.
+- Support bounded move, shorten, replace, skip, availability, preferred-day,
+  future-regeneration, pause, and resume actions.
+- Preserve the shared deterministic planner/validator as the only mutation
+  authority, retain completed history, and make changes explainable,
+  idempotent, conflict-aware, and recoverable.
+- Remove the normal-runner web handoff for preferred-day confirmation and plan
+  maintenance.
+
+### Mobile Phase 7 Apple Calendar And Progress - Planned
+
+- Add EventKit permission/calendar selection and on-device free/busy
+  summarization. Only bounded availability/load/freshness may enter shared
+  requests; event titles, descriptions, attendees, and locations remain local.
+- Add calendar-aware generation/conflict review and consider explicit one-way
+  workout export only after read-side behavior passes. Full two-way sync stays
+  out of user-ready v1.
+- Add native recent workout/check-in history, recovery trend, concise weekly
+  summary, and learned-preference review from shared owner-scoped truth.
+
+### Mobile Phase 8 User-Ready Hardening And External Beta - Planned
+
+- Close offline/retry/partial-sync/account-switch/conflict/migration/upgrade/
+  background-refresh/deletion behavior.
+- Close the critical-flow VoiceOver, Dynamic Type, contrast, reduced-motion,
+  landscape, and device/OS matrix.
+- Configure and prove the production API/Firebase environment, privacy-safe
+  monitoring, feature flags, rollback, privacy disclosures, support, signing,
+  TestFlight, and small external-beta loop.
+- Declare mobile complete only after a fresh external user completes the
+  install-to-deletion journey without the web or developer intervention.
 
 ### Validation-Hardening Checkpoint - Updated 2026-07-13
 
@@ -1210,7 +1338,7 @@ branch was fast-forwarded into `main` on 2026-07-23.
   deletion/readback passed on 2026-07-16. Connected calendar-aware Native
   Today and native event transport also pass. Stale background-delivery repair
   and on-device check-in persistence remain gates assigned to later phases in
-  `MOBILE_COMPANION_PLAN.md`.
+  `MOBILE_APP_PLAN.md`.
 
 ### Mobile Contract Preflight - Updated 2026-07-13
 
@@ -1227,7 +1355,7 @@ branch was fast-forwarded into `main` on 2026-07-23.
   `smoke:mobile-browser` script for the readiness, calendar, intake, check-in,
   and notification state matrix. The command requires Playwright in the
   frontend environment.
-- Extracted the mobile companion Today decision model into shared frontend code
+- Extracted the mobile browser-prototype Today decision model into shared frontend code
   and added it to the default smoke suite so P0 readiness/calendar/intake
   behavior is covered without requiring browser binaries.
 - Extended that model around the actual authenticated web domains the native

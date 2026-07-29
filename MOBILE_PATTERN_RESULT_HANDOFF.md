@@ -11,8 +11,13 @@ controlled mobile beta.
   telemetry, QA readback, and deterministic validation.
 - Part B: native SwiftUI consumption implemented and exercised on Mac,
   simulator, and a signed physical iPhone. The authenticated route/readback
-  matrix and final shared Windows/hosted integration passed; the remaining
-  closure gate is the full authenticated pattern-card accessibility pass.
+  matrix and final shared Windows/hosted integration passed.
+
+Phase 3.5 is functionally complete. On 2026-07-29, product explicitly deferred
+the still-unverified authenticated pattern-card VoiceOver, landscape, and
+small-screen checks to the next phase that changes native iOS UI. They are a
+mandatory Phase 5 entry check and remain required before external beta;
+they are not represented as passed.
 
 Part B must not change the `behavior-pattern-result.v1` vocabulary or create a
 native-only mutation path.
@@ -101,7 +106,7 @@ clean-install, audit, frontend, backend, and Firestore gate.
 
 ## Part B implementation status
 
-The thin native v1 implementation was added on 2026-07-24 before the major
+The initial native v1 implementation was added on 2026-07-24 before the major
 phase-completion test pass. It:
 
 - reads the existing owner-scoped `recommendations` domain on demand, only
@@ -130,9 +135,10 @@ phase-completion test pass. It:
 Focused Swift fixture, strict-decoder, request-privacy, networking, failure,
 audit, and explicit preference-tombstone recovery tests now pass on Mac. The
 Mac run also fixed cancellation propagation and an explicit-confirmation
-compatibility issue with a valid deleted preference envelope. This remains an
-implementation checkpoint, not Phase 3.5 completion evidence, until the
-remaining authenticated accessibility gate passes.
+compatibility issue with a valid deleted preference envelope. This is the
+Phase 3.5 functional completion checkpoint; the deferred UI verification debt
+is carried explicitly into
+[MOBILE_NOTIFICATION_CONTRACT.md](./MOBILE_NOTIFICATION_CONTRACT.md).
 
 ## Mac and physical-device evidence — 2026-07-24
 
@@ -153,7 +159,7 @@ Preferred-day no-native-write proof: reviewed/not_requested audit; web profile r
 /qa/mobile privacy readback: passed for reviewed, confirmed, prompted, caution, applied, review_only, and not_requested states using fixed enum fields only
 Accessibility: maximum simulator Dynamic Type plus increased contrast rendered without clipping; physical controls were tappable
 Kill switch: physical launch with the entry-point flag set to NO passed and was restored to YES; no state was deleted
-Remaining limitations: authenticated pattern-card VoiceOver order, landscape, and small-screen pass
+Deferred validation debt: authenticated pattern-card VoiceOver order, landscape, and small-screen pass; mandatory at the next native-iOS-UI phase and before external beta
 ```
 
 The strict local backend returned HTTP 200 for physical-device `/decision` and
@@ -396,7 +402,7 @@ Part B must:
    rebasing away either half; the final merge target must be synchronized
    `main`.
 2. Read this handoff, [MOBILE_PATTERN_RESULT_CONTRACT.md](./MOBILE_PATTERN_RESULT_CONTRACT.md),
-   the canonical fixture, [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md),
+   the canonical fixture, [MOBILE_APP_PLAN.md](./MOBILE_APP_PLAN.md),
    [ARCHITECTURE.md](./ARCHITECTURE.md), and [QA_MATRIX.md](./QA_MATRIX.md).
 3. Keep the implemented Swift contract, endpoint, routing, scoring
    confirmation, web schedule handoff, caution, and audit boundaries fixed.
@@ -451,14 +457,15 @@ After recording Mac evidence, review the diff, commit, and push the same
 feature branch. Do not merge to `main` unless explicitly requested. The final
 shared Windows/hosted integration rerun happens after Mac evidence is added.
 
-## Copy-ready Mac continuation prompt
+## Archived Phase 3.5 continuation prompt
 
 The following exact prompt is sufficient in a Mac task:
 
 > Continue Phase 3.5 Part B implementation.
 
-On receiving that prompt, start by reading this entire handoff, then fetch the
-authoritative feature-branch tip, run the focused tests and Mac closure matrix,
-record evidence, and make only contract-compatible fixes. Do not redo Part A,
-change the shared vocabulary, broaden scope, or mark Phase 3.5 complete before
-all required evidence passes.
+This prompt is retained for historical recovery only. New work should use the
+Phase 5 prompt in
+[MOBILE_NOTIFICATION_CONTRACT.md](./MOBILE_NOTIFICATION_CONTRACT.md). That
+phase begins by running the deferred pattern-card VoiceOver, landscape, and
+small-screen checks before changing native UI, then repeats affected checks on
+the final Phase 4 surface.

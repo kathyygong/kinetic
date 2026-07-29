@@ -1,10 +1,17 @@
-# Kinetic iOS Companion
+# Kinetic iOS App
 
-This directory contains the bounded Phase 1 HealthKit/Firebase proof, Phase 2A
-native Today surface, Phase 2.5 bounded intake implementation, Phase 3
-check-in implementation, and the Phase 3.5 behavior-pattern result slice
-described in the mobile handoff documents. It is not a full native companion
-app.
+This directory contains Kinetic's primary native product. Its initial
+implementation established the bounded Phase 1 HealthKit/Firebase proof, Phase
+2A native Today surface, Phase 2.5 bounded intake, Phase 3 check-in, and Phase
+3.5 behavior-pattern results. Mobile Phases 5–8 now extend this same app
+through permanent navigation/onboarding/settings, bounded plan ownership,
+Apple Calendar/progress, and user-ready external-beta hardening.
+
+`KineticCompanion`, `com.kinetic.companion`, and the current directory/project
+names are legacy proof-era technical identifiers, not the product role. Mobile
+Phase 5 migrates the product, target, scheme, and bundle identity to the final
+Kinetic app identity before external distribution while deliberately
+preserving Firebase configuration, signing, entitlements, and tests.
 
 ## Implemented Gates
 
@@ -57,8 +64,15 @@ app.
 - Transactional owner-scoped scoring-preference confirmation with idempotent
   retry and privacy-safe native pattern lifecycle audit.
 
-The app does not include general plan editing, onboarding, notifications,
-calendar ingestion, general chat, AI mutation, or raw HealthKit cloud sync. The
+The current app does not yet include permanent navigation, native
+account-creation/onboarding/settings, full bounded plan ownership, notification
+delivery, real Apple Calendar ingestion, or progress views. These are now
+planned in Mobile Phases 5–8 so mobile completion represents an external
+user-ready product rather than the end of the initial proof. General chat,
+autonomous AI mutation, raw HealthKit cloud sync, full two-way Calendar sync,
+Garmin/Oura, coach/social features, and broad push notifications remain out of
+scope. Phase 4 Windows/shared work defines only an opt-in local evening
+check-in reminder; native delivery belongs in permanent Phase 5 Settings. The
 fixed Phase 3 boundary and completed physical-device/live evidence are in
 [`MOBILE_CHECKIN_HANDOFF.md`](../../MOBILE_CHECKIN_HANDOFF.md).
 
@@ -191,16 +205,20 @@ mapping, confirmation grounding, availability/preferred-day transforms,
 workout-swap invariants, HealthKit-preserving recovery merge, atomic workout
 results, idempotent check-in retries, strict pattern route validation,
 free-text request stripping, authenticated behavior networking, and
-pattern-audit privacy. Phase 3.5 tests require a fresh Mac execution before
-the implementation is considered complete. That Mac execution passed on
+pattern-audit privacy. The Phase 3.5 Mac execution passed on
 2026-07-24 at verified-fix commit `b61c4b5`: 4 focused behavior tests, 5
 focused audit tests, all 52 package tests, clean unsigned simulator build and
 launch, signed generic-device build, and rebuilt physical iPhone install and
 launch. Physical scoring, preferred-day, readiness-prompt, and caution routes,
 same-user web preference/schedule state, and privacy-safe `/qa/mobile`
 readback passed. Maximum simulator Dynamic Type plus increased contrast also
-rendered without clipping. Authenticated pattern-card VoiceOver order,
-landscape, and small-screen proof remain. Final shared Windows/hosted
+rendered without clipping. Phase 3.5 is functionally complete; authenticated
+pattern-card VoiceOver order, landscape, and small-screen remain explicitly
+unverified and must run at the start of the next native-iOS-UI phase and before
+external beta. That next UI phase is Mobile Phase 5: native foundation,
+onboarding, and Settings. The notification boundary is governed by
+[`MOBILE_NOTIFICATION_CONTRACT.md`](../../MOBILE_NOTIFICATION_CONTRACT.md).
+Final shared Windows/hosted
 integration and the owner-only emulator suite passed in run
 [30105302955](https://github.com/kathyygong/kinetic/actions/runs/30105302955).
 

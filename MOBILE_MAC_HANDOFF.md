@@ -21,7 +21,7 @@ handoff unless a regression specifically requires it.
 
 Already complete on Windows:
 
-- Mobile product phase and iOS MVP are defined in `MOBILE_COMPANION_PLAN.md`.
+- Mobile product phase and iOS roadmap are defined in `MOBILE_APP_PLAN.md`.
 - Bounded readiness and `health_sync` schema are defined in
   `MOBILE_READINESS_SCHEMA.md`.
 - Swift scaffold lives under `ios/KineticCompanion`.

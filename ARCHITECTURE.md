@@ -240,7 +240,7 @@ tombstones remain deleted after reload and after signing into the same account
 from the second local origin, closing the remote persistence gate.
 
 The selected mobile direction preserves this boundary. Phase 1 now proves that
-the iOS companion uses the same Firebase project, UID ownership model, and
+the iOS app uses the same Firebase project, UID ownership model, and
 user-scoped Kinetic namespace. Its bounded `readiness` and `health_sync`
 documents passed native write, same-user web readback, owner-only rule, retry,
 and deletion-tombstone checks. Any additional mobile-specific state must remain
@@ -314,7 +314,7 @@ unsupported columns such as raw notes. Browser-native HealthKit background
 sync, Garmin, and Oura ingestion are intentionally not implemented in this
 web build.
 
-The native iOS companion now locally summarizes HealthKit sleep, HRV, and
+The native iOS app now locally summarizes HealthKit sleep, HRV, and
 resting heart rate into bounded daily readiness records before Firebase sync.
 HealthKit raw samples stay on device. Freshness and confidence metadata travel
 with the summary so stale or partial data lowers certainty without changing the
@@ -383,7 +383,7 @@ fields from the existing owner-only audit envelope.
 - Hosted beta operations keep strict backend auth, owner-only Firestore rules,
   UID-scoped storage, deletion tombstones, deterministic fallback, and bounded
   AI validation as non-negotiable rollback boundaries.
-- Mobile Companion Phase 1 passed native QA for read-only HealthKit permission,
+- Initial Mobile Phase 1 passed native QA for read-only HealthKit permission,
   bounded daily-summary sync, web readback, retry, and authoritative deletion
   tombstones. Phase 2A's authenticated calendar-aware Today contract now passes
   Windows frontend/backend plus Swift fixture, cache, response, observability,
@@ -392,7 +392,7 @@ fields from the existing owner-only audit envelope.
   readback. Phase 2.5 adds bounded mobile intake, and Phase 3 Parts A/B define
   and implement bounded check-in persistence. Stale background-delivery
   recovery remains later hardening. See
-  [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md).
+  [MOBILE_APP_PLAN.md](./MOBILE_APP_PLAN.md).
 - Mobile Phase 2.5 Part A passed the full Windows frontend/backend/Firestore
   suite on 2026-07-20. The canonical fixture covers all eight tagged routes,
   six review-draft kinds, strict auth, timeout, unavailable/malformed AI,
@@ -405,6 +405,39 @@ fields from the existing owner-only audit envelope.
   fast-forward integration into `main`.
 - Mobile Phase 3.5 Part B passed the 2026-07-24 Mac/package/simulator/signed
   physical-route and same-user readback checkpoint on
-  `codex/mobile-pattern-results`. It remains outside `main` pending the
-  authenticated accessibility pass. Final shared Windows/hosted integration
-  passed at `1b99cfe`.
+  `codex/mobile-pattern-results`. Product accepted functional completion on
+  2026-07-29 and deferred the explicitly unverified authenticated pattern-card
+  VoiceOver/landscape/small-screen checks to Mobile Phase 5 and before external
+  beta. Final shared Windows/hosted integration passed at `1b99cfe`.
+- Mobile Phase 4 starts with a provider-free, local-only evening check-in
+  reminder. `mobile-notification.v1` produces deterministic request-permission,
+  schedule, cancel, or no-op decisions from bounded non-sensitive state.
+  Native code remains the only OS-notification adapter; there is no push
+  service, device-token storage, backend scheduler, or health detail in
+  lock-screen copy.
+- Mobile Phases 5–8 turn the proof shell into a user-ready app without creating
+  a second product authority. Native Today, Plan, Progress, and Settings
+  features consume the same owner-scoped Firebase domains and authenticated
+  backend contracts as web. Account/onboarding UI may collect bounded inputs,
+  but plan generation and mutation still pass through the shared deterministic
+  planner/validator.
+- Native iOS is the primary user-facing product surface. Shared backend,
+  planner, auth, persistence, schema, observability, and eval modules are
+  platform capabilities; web is the secondary runner surface and primary
+  admin/demo/QA/eval surface. A web-only core runner flow is not
+  product-complete.
+- EventKit is a native boundary. Calendar events are read and summarized on
+  device into bounded availability/load/freshness before shared requests are
+  built; titles, descriptions, attendees, and locations do not cross that
+  boundary. Optional one-way workout export must be explicit and idempotent;
+  full two-way synchronization remains outside user-ready v1.
+- The web remains the advanced What-if, deep analytics, admin, QA/eval, demo,
+  and beta-operations surface. Core runner onboarding, plan ownership, Today,
+  check-in, recent progress, settings, and data control cannot depend on a web
+  handoff at mobile completion.
+- Delivery uses coordinated Windows/shared and Mac/native lanes. Shared
+  contracts and harnesses may be batched for one or two coupled phases, then
+  the corresponding SwiftUI/Apple-framework slice is closed on Mac before
+  later contracts freeze. Each Mac batch returns to Windows for final shared
+  and hosted integration. EventKit requires an early Mac spike because its
+  permission and calendar behavior cannot be proven from Windows fixtures.

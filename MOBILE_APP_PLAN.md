@@ -1,43 +1,64 @@
-# Kinetic Mobile Companion Plan
+# Kinetic Mobile App Plan
 
 ## Strategy
 
-Kinetic should become mobile-first without immediately rebuilding the whole
-product as a native app. The web app remains the architecture proof, admin,
-demo, eval, and deeper planning surface. The selected mobile direction is a
-thin iOS companion that proves the mobile-only value loop: HealthKit readiness,
-calendar-aware deterministic recommendations, bounded natural-language intake,
-Firebase sync, and a lightweight recovery/check-in habit.
+Kinetic should become a user-ready native iOS product without duplicating the
+web implementation or weakening the deterministic training authority. The
+completed initial mobile proof retired the highest-risk HealthKit, Firebase, Today,
+intake, check-in, and behavior-learning assumptions. The remaining mobile
+roadmap now closes the complete runner journey from account creation through
+plan ownership, daily use, progress review, and data control.
 
-This phase is intentionally smaller than a full mobile app. It should retire
-the highest-risk assumptions before broader beta: whether Kinetic can read
-health-adjacent data in a privacy-minimized way, keep the deterministic safety
-core authoritative, and make the runner feel helped by opening the app once or
-twice per day.
+The web app remains the architecture proof, demo, admin, QA/eval, advanced
+What-if, and beta-operations surface. A normal runner must not need the web to
+create an account, onboard, generate and safely edit a plan, connect Apple
+Health and Calendar, follow Today, check in, review recent progress, or manage
+their data.
+
+Platform priority:
+
+- Native iOS is Kinetic's primary user-facing product.
+- Core runner functionality is designed mobile-first and is not considered
+  product-complete when it exists only on web.
+- Deterministic planning, validation, persistence, auth, schemas, and evals
+  remain shared platform capabilities rather than being duplicated in Swift.
+- Web may provide deeper or earlier operator/analysis surfaces, but it is a
+  secondary runner surface and the primary admin/demo/QA/eval surface.
 
 ## Product Boundary
 
 Mobile-first:
 
+- Account creation, recovery, sign-in, session restoration, and sign-out.
+- Native onboarding for goal, race date, experience, mileage, personal
+  records, training-day preferences, availability, permission education, plan
+  preview, and confirmation.
+- Permanent Today, Plan, Progress, and Settings navigation.
 - HealthKit readiness sync from bounded daily summaries.
 - Native Today surface with workout, readiness, freshness, confidence, and one
   clear action.
-- Calendar-aware daily recommendations using the existing availability and
-  freshness model. The iOS app does not need to own full calendar management,
-  but beta decisions must respect schedule constraints.
+- Apple Calendar free/busy ingestion using on-device EventKit summarization.
+  Event titles, descriptions, attendees, and locations must not leave the
+  device.
+- Full native plan lifecycle: generation, preview, save, week/workout review,
+  bounded move/shorten/replace/skip actions, future-week regeneration,
+  pause/resume, and change explanation. Deterministic validation remains the
+  only mutation authority.
 - Bounded natural-language intake for schedule, availability, goal, and
   preference updates, with review-only drafts and deterministic validation
   before anything can apply. Recovery, pain, missed-workout, and reflection
   language should route to guided bounded check-in flows instead of ending in
   warnings.
 - Recovery and post-workout check-in loop.
-- Minimal account, sync, privacy, and delete/disconnect controls.
+- Recent workout/check-in history, recovery trend, concise weekly summary, and
+  learned-preference review.
+- Account, sync, permission, privacy, export, delete/disconnect, support, and
+  notification controls.
 
 Remain web:
 
-- Plan generation and deeper plan review.
 - What-if exploration.
-- Weekly/monthly training reviews.
+- Deep monthly analytics and advanced planning experiments.
 - Demo tools, admin proof, eval reports, and beta operations.
 - Admin/QA/eval dashboards for mobile-originated events. The safety checks are
   shared P0 infrastructure; only the reviewer-facing screen stays web. The
@@ -45,47 +66,96 @@ Remain web:
 
 Deferred:
 
-- Full native onboarding and plan editing.
-- Full native calendar account management or Apple Calendar ingestion beyond
-  the existing calendar-aware decision inputs.
-- Garmin, Oura, hosted AI, coach sharing, and broad notification workflows.
+- Full two-way Calendar synchronization; v1 may offer explicit one-way workout
+  export only after read-side availability is stable.
+- Garmin, Oura, hosted AI, coach sharing, social/team features, and broad
+  notification workflows.
+- Apple Watch, widgets, Live Activities, Android, and payments/subscriptions
+  unless a beta business decision requires them.
+- Open-ended AI chat, arbitrary workout authoring, and autonomous AI plan
+  mutation.
 - Raw HealthKit sample upload.
-- Autonomous AI plan mutation.
 
-## Minimum Lovable Mobile MVP
+## User-Ready Native Completion
 
-A signed-in runner opens Kinetic on iPhone and sees:
+Mobile is complete only when an external runner can:
 
-- Today's workout.
-- Recovery/readiness state from a local HealthKit daily summary.
-- Sync freshness and confidence: for example, "Health data synced today" or
-  "Readiness is stale."
-- Calendar context and freshness: for example, "Calendar clear until 11:30 AM"
-  or "Calendar conflict leaves 30 minutes."
-- A clear action: accept today's recommendation, mark complete, or skip.
-- A short explanation grounded in readiness, calendar constraints, plan phase,
-  training history, and confirmed preferences.
-- A natural-language update path for explicit changes such as "I only have 30
-  minutes today"; AI can parse a review-only draft, but deterministic
-  validation owns apply.
-- A natural-language readiness path for notes such as "I slept badly" or "my
-  legs feel heavy"; Kinetic opens perceived-recovery capture rather than
-  inferring hidden readiness values.
-- A privacy screen that explains what Kinetic reads and what it syncs.
-- A useful fallback when HealthKit permission is denied, partial, stale, or
-  unavailable.
+1. install the app, create or recover an account, and finish onboarding;
+2. understand and independently grant or deny HealthKit, Calendar, and
+   notification permissions;
+3. generate, preview, save, browse, and safely edit a training plan without
+   visiting the web;
+4. receive a calendar-aware Today recommendation with honest freshness and
+   fallback behavior;
+5. complete the recovery/workout check-in loop and review recent progress;
+6. change goals, preferences, availability, permissions, and notification
+   settings;
+7. export or delete training data and delete the account;
+8. recover safely from offline, stale, revoked-permission, partial-sync,
+   schema-migration, and retry states.
 
-Lovable means the runner gets a confident morning answer without manual data
-entry and without Kinetic feeling invasive.
+Completion also requires the production backend/environment, accessibility
+matrix, device/OS matrix, privacy disclosures, monitoring, feature flags,
+rollback, TestFlight distribution, and support path needed for an external
+beta. Passing on a developer device alone is not mobile completion.
+
+## Windows And Mac Delivery Model
+
+Mobile delivery uses two coordinated implementation lanes:
+
+- Windows/shared lane: contracts, backend APIs, deterministic planning and
+  validation, Firebase domains/rules, canonical fixtures, TypeScript/browser
+  models, privacy-safe observability, QA/admin readback, and hosted integration.
+- Mac/native lane: Swift models/adapters, SwiftUI product flows, Apple
+  frameworks, entitlements/signing, simulator/device behavior, accessibility,
+  and physical-device proof.
+
+Batching is encouraged inside a coherent dependency set, but the roadmap must
+not implement every remaining Windows phase before exercising the native app.
+SwiftUI navigation, onboarding, EventKit, permissions, background behavior,
+and device UX can invalidate shared assumptions if native validation is
+deferred too long.
+
+Recommended cadence:
+
+1. Complete the Windows/shared contracts and harnesses for a coherent native
+   batch, normally one phase and at most two tightly coupled phases.
+2. Commit and push one authoritative branch with a copy-ready Mac handoff.
+3. Stay on Mac long enough to implement and close those native phases
+   sequentially, using simulator and physical-device checkpoints without
+   returning to Windows between every small task.
+4. Return to Windows for final shared integration, hosted CI, documentation,
+   and the next dependency batch.
+
+For the current roadmap:
+
+- Windows Batch A should define Phase 5 onboarding/settings/auth contracts and
+  the Phase 6 plan-lifecycle API, mutation, versioning, and fixture boundary.
+- Mac Batch A should implement Phase 5 and then Phase 6 against those contracts,
+  with a checkpoint after Phase 5 before continuing.
+- Phase 7 should start with an early Mac EventKit spike before its Windows
+  contract is frozen; Apple permission and calendar behavior are the dominant
+  uncertainty.
+- Phase 8 runs on both lanes continuously and closes only after hosted shared
+  gates plus Mac simulator/device and external-user evidence pass.
+
+Next Windows prompt:
+
+> Continue Windows Batch A for Mobile Phases 5–6.
+
+That batch must stop at shared contracts, backend/Firebase authority, fixtures,
+harnesses, documentation, and a copy-ready Mac handoff. It must not invent
+Apple-framework behavior or build disposable native UI from Windows.
 
 ## Browser UX Prototype
 
 The web app includes a browser-viewable prototype at `/mobile-companion`. It is
 not a production training surface and does not touch user state. Use it to
-review the mobile-first Today hierarchy, HealthKit sync states, calendar
-freshness/conflict states, bounded AI intake review, deterministic validation
-language, check-in actions, and notification candidate before building the
-native SwiftUI shell. The Today decision model is covered by the default
+review and regression-test the mobile-first Today hierarchy, HealthKit sync
+states, calendar freshness/conflict states, bounded AI intake review,
+deterministic validation language, check-in actions, and notification
+candidate alongside the native SwiftUI implementation. The Today decision
+model is covered by the default
 frontend smoke suite, including profile, goal, saved plan, readiness,
 health-sync freshness, calendar freshness, preferences, and workout-history
 inputs. The prototype also exposes stable test hooks plus an optional
@@ -359,14 +429,12 @@ Acceptance:
 Pattern detection must produce a safe product result. Kinetic should not show
 patterns simply because they are interesting.
 
-Status: Mobile Phase 3.5 Part A Windows/shared
-`behavior-pattern-result.v1` implementation completed 2026-07-23. Thin native
-Part B implementation started 2026-07-24: iOS now reads shared recommendation
-history, sanitizes the authenticated request, strictly validates the common
-fixture, renders all routes, confirms only bounded scoring preferences, routes
-preferred-day changes to the authoritative web validator, and reuses existing
-sync/check-in, caution, and audit flows. Mac compile, simulator/device,
-cross-platform readback, accessibility, and final Windows evidence remain.
+Status: Mobile Phase 3.5 `behavior-pattern-result.v1` is functionally complete.
+Part A completed 2026-07-23 and native Part B passed Mac compile,
+simulator/device, cross-platform readback, and final Windows evidence on
+2026-07-24. Authenticated pattern-card VoiceOver, landscape, and small-screen
+remain explicitly unverified; product deferred them on 2026-07-29 to the next
+native-iOS-UI phase and before external beta.
 See [MOBILE_PATTERN_RESULT_CONTRACT.md](./MOBILE_PATTERN_RESULT_CONTRACT.md)
 and [MOBILE_PATTERN_RESULT_HANDOFF.md](./MOBILE_PATTERN_RESULT_HANDOFF.md).
 
@@ -402,6 +470,132 @@ Rules:
 - No medical claims, injury-risk language, or pressure framing.
 - Notification content must not expose sensitive health details on the lock
   screen.
+
+Selected first slice, 2026-07-29:
+
+- Build only an opt-in local evening check-in reminder.
+- Keep morning Today-ready and stale-readiness notifications deferred until
+  usage evidence justifies them.
+- Keep delivery on-device; do not add remote push, device tokens, a backend
+  scheduler, or a new persistence domain.
+- Use fixed generic lock-screen copy.
+- Begin Phase 5 native work by running the deferred Phase 3.5 pattern-card
+  VoiceOver, landscape, and small-screen checks.
+- Do not build the notification preference as a temporary standalone surface.
+  Fold native scheduling and permission UI into the permanent onboarding and
+  Settings architecture in Phase 5.
+
+Windows/shared Part A is defined in
+[MOBILE_NOTIFICATION_CONTRACT.md](./MOBILE_NOTIFICATION_CONTRACT.md).
+
+## Phase 5: Native Foundation, Onboarding, And Settings
+
+Goal: replace the proof-oriented single-screen shell with the permanent native
+product foundation.
+
+Build:
+
+- Account creation, email verification when configured, password recovery,
+  sign-in, session restoration, sign-out, and actionable auth failures.
+- Migrate proof-era `KineticCompanion` product/target/scheme/bundle identifiers
+  to the final Kinetic app identity before external distribution. Preserve
+  signing, Firebase app configuration, entitlements, and test references
+  deliberately during the migration.
+- A stable Today, Plan, Progress, and Settings navigation model.
+- Native onboarding for goal, race date, experience, mileage, personal
+  records, preferred training/long-run days, availability, and plan preview.
+- Progressive HealthKit, Calendar, and notification education; request each
+  system permission only at the moment the user enables its value.
+- Profile, privacy, permission, sync, notification, export, training-data
+  deletion, account deletion, support, and app-version settings.
+- The Phase 4 local evening-check-in reminder inside the permanent Settings
+  model, still off by default and local-only.
+
+Acceptance:
+
+- A new runner can create an account and reach a confirmed onboarding summary
+  without the web.
+- Denied or deferred permissions do not block unrelated onboarding steps.
+- Returning users restore the correct owner-scoped session and route.
+- The deferred Phase 3.5 VoiceOver, Dynamic Type, landscape, and small-screen
+  checks pass on the permanent navigation/onboarding/settings foundation.
+
+## Phase 6: Native Plan Lifecycle
+
+Goal: remove the web dependency from normal plan ownership while retaining one
+deterministic planning authority.
+
+Build:
+
+- Generate, preview, confirm, save, and browse the full plan.
+- Show week and workout detail with phase, duration/distance, pace, and reason.
+- Support bounded move, shorten, replace, skip, availability, and
+  preferred-day actions plus pause/resume.
+- Regenerate future weeks after goal or durable-preference changes without
+  rewriting completed history.
+- Show proposed impact before confirmation and preserve a recoverable prior
+  plan/version where practical.
+- Complete preferred-day behavior-pattern confirmation natively through the
+  same shared validator instead of routing normal users to the web.
+
+Acceptance:
+
+- Every native mutation is grounded in the current owner-scoped goal/plan,
+  deterministically validated, idempotent, auditable, and conflict-aware.
+- Mileage, spacing, taper, race-day, availability, and completed-history
+  invariants cannot be bypassed by UI or AI.
+- A runner can create and maintain a usable plan without the web.
+
+## Phase 7: Apple Calendar And Progress
+
+Goal: make schedule awareness real and make continued use rewarding without
+expanding into invasive analytics.
+
+Build:
+
+- EventKit permission, calendar selection, bounded on-device free/busy
+  summarization, refresh/freshness, revocation, and partial-access handling.
+- Send only availability windows/load/freshness to shared decision and planning
+  contracts; never upload event titles, descriptions, attendees, or locations.
+- Calendar-aware plan generation and explicit conflict review.
+- Optional one-way workout export only after read-side behavior passes; no
+  silent writes and no full two-way synchronization in user-ready v1.
+- Native recent workout/check-in history, recovery trend, concise weekly
+  summary, and learned-preference review.
+
+Acceptance:
+
+- Calendar denial, no calendars, revoked access, stale data, travel/time-zone
+  changes, all-day events, overlapping events, and a real zero-minute window
+  degrade honestly and deterministically.
+- Progress reflects shared owner-scoped history and does not create a
+  mobile-only truth.
+
+## Phase 8: User-Ready Hardening And External Beta
+
+Goal: complete the install-to-deletion journey at production quality.
+
+Build and prove:
+
+- Offline, retry, partial-sync, account-switch, conflict, migration, upgrade,
+  background-refresh, and deletion-tombstone behavior.
+- VoiceOver, Dynamic Type, contrast, reduced motion, keyboard where relevant,
+  landscape, and supported small/large-device behavior across critical flows.
+- Production API/Firebase configuration, HTTPS, rate limiting, secrets,
+  privacy-safe crash/operational monitoring, feature flags, and rollback.
+- Privacy manifest/disclosures, permission copy, terms/privacy/support links,
+  versioning, signing, TestFlight packaging, and release checklist.
+- A small external beta with owned feedback triage and explicit promotion/
+  rollback criteria.
+
+Acceptance:
+
+- A fresh external user can complete the entire User-Ready Native Completion
+  journey without developer help or the web.
+- Critical safety, privacy, auth, deletion, and deterministic contract gates
+  pass on Windows/shared CI, macOS/Swift CI, simulator, and physical devices.
+- Known limitations are explicit, non-blocking, and accepted before beta
+  promotion. Mobile is not declared complete before these gates pass.
 
 ## Technical Architecture
 
@@ -523,17 +717,17 @@ Safety proof:
 
 ## Execution Sequence
 
-Current checkpoint: steps 1 through 6 are implemented, device-validated,
-integrated into `main`, and pushed. Phase 2.5 Parts A and B are repeatable and
-their Windows, Mac, and physical-device gates pass.
+Current checkpoint: companion-proof steps 1 through 8 and Phase 3.5 are
+implemented and device-validated. The Phase 4 shared notification contract is
+implemented on the active feature branch. Mobile completion now requires
+Phases 5 through 8.
 The Phase 1 Mac proof is recorded in
 [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md), and the stable Today contract
-is in [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md). Do not begin
-step 7 or expand the Phase 2.5 boundary without a separate product decision.
+is in [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md).
 
 1. Docs-only phase selection: update PRD, build plan, architecture, runbook,
-   QA matrix, README, and demo script to name Mobile Companion Proof as the
-   selected next phase.
+   QA matrix, README, and demo script to name the initial native mobile proof
+   as the selected next phase.
 2. Schema design: define the iOS readiness summary contract, sync metadata,
    conflict rules, and Firestore rule changes in
    [MOBILE_READINESS_SCHEMA.md](./MOBILE_READINESS_SCHEMA.md).
@@ -557,10 +751,22 @@ step 7 or expand the Phase 2.5 boundary without a separate product decision.
    2026-07-21.
 8. QA and beta proof: add iOS manual QA, privacy checklist, schema tests,
    updated demo script, `/qa/mobile` audit coverage, and beta acceptance notes.
+9. Notification experiment: shared Windows contract first, followed by an
+   opt-in local evening check-in reminder folded into permanent onboarding and
+   Settings. Broader notification candidates require usage evidence.
+10. Native foundation: account creation/recovery, navigation, onboarding,
+    permission education, settings, privacy, support, and data controls.
+11. Native plan lifecycle: generate, preview, save, browse, safely edit,
+    regenerate, pause/resume, and confirm preferences without the web.
+12. Apple Calendar and Progress: EventKit free/busy ingestion, conflict-aware
+    planning, optional explicit one-way export, and shared-history review.
+13. User-ready hardening: complete the accessibility/device, offline/sync,
+    migration, production-operations, privacy, TestFlight, and external-beta
+    gates.
 
 ## Commit Plan
 
-- `docs: select mobile companion proof phase`
+- `docs: select initial native mobile proof phase`
 - `docs: define mobile readiness sync schema`
 - `feat(ios): add HealthKit Firebase sync spike`
 - `test: add mobile readiness schema and Firestore coverage`
@@ -568,3 +774,7 @@ step 7 or expand the Phase 2.5 boundary without a separate product decision.
 - `feat(ios): add bounded intake review`
 - `feat(ios): add recovery check-in loop`
 - `docs: update mobile beta QA and demo proof`
+- `feat(ios): add native onboarding and settings foundation`
+- `feat(ios): add bounded native plan lifecycle`
+- `feat(ios): add Apple Calendar availability and progress`
+- `chore(ios): close user-ready external beta gates`

@@ -12,7 +12,7 @@ review. The current foundation is beta-ready for a small controlled audience,
 not a broad production launch.
 
 The web beta includes Apple Health CSV import as a bounded readiness-input
-bridge. Mobile Companion Phase 1 completed on 2026-07-16: a physical iPhone
+bridge. Initial Mobile Phase 1 completed on 2026-07-16: a physical iPhone
 proved Firebase sign-in, read-only HealthKit summarization, bounded Firestore
 sync, same-user web readback, retry behavior, and deletion tombstones. The
 shared authenticated contract for calendar-aware Native Today completed on
@@ -28,22 +28,26 @@ on the feature branch on 2026-07-20; physical-device recovery and
 completed/skipped workout interaction plus live same-user Recovery,
 training-review, memory, and audit readback passed 2026-07-21. The branch
 was fast-forwarded into `main` on 2026-07-23 after the July dependency blocker
-and hosted Windows integration gate were cleared. Do not expand into a full
-native app, Garmin/Oura ingestion, hosted AI, broad push notifications, coach
-sharing, or autonomous AI plan mutation without another explicit product
-decision.
+and hosted Windows integration gate were cleared. The 2026-07-29 product
+rebaseline authorizes a user-ready native app through onboarding/settings,
+bounded plan ownership, Apple Calendar, progress, and external-beta hardening.
+Garmin/Oura, hosted AI, broad push notifications, coach sharing, full two-way
+Calendar sync, open-ended chat, and autonomous AI plan mutation remain outside
+that authorization.
 
 Mobile Phase 3.5 Part B reached its Mac/physical-device checkpoint on
 2026-07-24: 52 Swift tests, simulator and signed-device builds, strict
 scoring/preferred-day/prompt/caution interaction, same-user web readback, and
-privacy-safe `/qa/mobile` readback passed. Phase 3.5 is not yet beta-ready;
-authenticated pattern-card VoiceOver/landscape/small-screen proof remains.
+privacy-safe `/qa/mobile` readback passed. Phase 3.5 is functionally complete.
+Authenticated pattern-card VoiceOver/landscape/small-screen remains explicitly
+unverified and was deferred on 2026-07-29 to Mobile Phase 5. It
+remains required before external beta.
 Final shared Windows/hosted integration and the owner-only emulator suite
 passed in run
 [30105302955](https://github.com/kathyygong/kinetic/actions/runs/30105302955).
 
 The mobile phase plan lives in
-[MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md). The completed native
+[MOBILE_APP_PLAN.md](./MOBILE_APP_PLAN.md). The completed native
 execution record lives in [MOBILE_MAC_HANDOFF.md](./MOBILE_MAC_HANDOFF.md), and
 the stable Today request/cache/failure boundary lives in
 [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md). The fixed Phase 2.5
@@ -51,6 +55,13 @@ scope and native evidence are in
 [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md). The fixed Phase 3
 boundary and current evidence are in
 [MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
+
+The initial proof is not the user-ready mobile gate. Mobile Phases 5–8 must
+add permanent navigation/onboarding/settings, native plan ownership, Apple
+Calendar and progress, then close production, accessibility/device,
+offline/sync/migration, privacy, TestFlight, support, and install-to-deletion
+external-beta evidence. See
+[MOBILE_APP_PLAN.md](./MOBILE_APP_PLAN.md).
 
 ## Environment posture
 
@@ -154,7 +165,7 @@ Before sending a hosted beta link:
 9. Run the live persistence QA again if repository, auth, rules, or deletion
    behavior changed after the last proof.
 
-## Mobile companion preflight
+## Mobile app preflight
 
 Before inviting mobile beta users:
 
@@ -233,8 +244,10 @@ Contract, deterministic schedule confirmation through the existing intake
 planner, bounded scoring confirmation, prompt/caution-only non-mutation
 routes, and privacy-safe `/qa/mobile` readback. Use
 [MOBILE_PATTERN_RESULT_HANDOFF.md](./MOBILE_PATTERN_RESULT_HANDOFF.md) for the
-Windows evidence and active native Part B closure checklist. Do not call Phase
-3.5 beta-ready until the remaining authenticated accessibility checks pass.
+Windows evidence and the native Part B execution record. The deferred
+authenticated VoiceOver/landscape/small-screen checks are now an entry gate
+for Mobile Phase 5 and remain a pre-external-beta requirement; see
+[MOBILE_NOTIFICATION_CONTRACT.md](./MOBILE_NOTIFICATION_CONTRACT.md).
 Final hosted Windows/owner-only integration passed in run
 [30105302955](https://github.com/kathyygong/kinetic/actions/runs/30105302955);
 Swift suite/app compile, simulator/device routes, same-user preference/

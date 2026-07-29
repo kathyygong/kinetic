@@ -203,7 +203,7 @@ Read these files before editing Swift:
 
 1. `MOBILE_INTAKE_CONTRACT.md`
 2. `MOBILE_INTAKE_HANDOFF.md`
-3. `MOBILE_COMPANION_PLAN.md`
+3. `MOBILE_APP_PLAN.md`
 4. `MOBILE_TODAY_CONTRACT.md`
 5. `MOBILE_READINESS_SCHEMA.md`
 6. `MOBILE_MAC_HANDOFF.md`
@@ -337,7 +337,7 @@ mobile-intake.v1 vocabulary, or broaden the documented scope.
 - Part B implementation, repeatable Mac gates, and physical-device proof:
   completed 2026-07-20.
 - Source-of-truth roadmap:
-  [MOBILE_COMPANION_PLAN.md](./MOBILE_COMPANION_PLAN.md)
+  [MOBILE_APP_PLAN.md](./MOBILE_APP_PLAN.md)
 - Shared intake contract:
   [MOBILE_INTAKE_CONTRACT.md](./MOBILE_INTAKE_CONTRACT.md)
 - Completed Phase 1/2A native proof:
