@@ -137,12 +137,24 @@ failures, 0 warnings, and 14 checks.
 
 The current lockfile passes `npm ci` on the Mac and in
 [GitHub-hosted Windows integration](https://github.com/kathyygong/kinetic/actions/runs/30012524615).
-It retains the Next-only PostCSS `8.5.14` override, pins legacy
-`brace-expansion` at `1.1.16` and `sharp` at `0.35.0`, and resolves unaffected
-modern `brace-expansion` consumers independently. The managed local Windows
+It retains the Next-only PostCSS `8.5.22` override, pins legacy
+`brace-expansion` at `1.1.16` and `sharp` at `0.35.0`, and resolves modern
+`brace-expansion` consumers independently while awaiting a compatible patched
+graph. The managed local Windows
 proxy can still return `E404` for the new Next.js tarball; use the checked-in
 `.github/workflows/windows-integration.yml` gate rather than treating that
 workstation feed limitation as evidence against the lockfile.
+
+On 2026-07-29, GHSA-r28c-9q8g-f849 made the prior PostCSS override vulnerable;
+the override was moved to patched `8.5.22`. The same registry window added
+GHSA-mh99-v99m-4gvg to the transitive ESLint/minimatch/brace-expansion
+development-tool graph. GitHub lists `brace-expansion` `5.0.8` as patched, but
+the npm registry did not yet expose a compatible patched path for the current
+ESLint graph. The audit gate therefore permits only that exact advisory and
+exact 15-package dev-tool graph until 2026-08-15. It emits a warning and still
+fails for any other advisory, direct runtime dependency, package-set change,
+or expiry. Remove the exception as soon as a compatible patched graph is
+published; do not extend it without a new documented security review.
 
 Firebase rule checks:
 
@@ -305,16 +317,18 @@ persistence, authentication, or AI fallback.
 
 ## Dependency posture
 
-The dependency posture passed the 2026-07-23 beta checkpoint:
+The dependency posture passed the 2026-07-23 beta checkpoint and was
+re-triaged on 2026-07-29:
 
-- the connected frontend advisory audit reports no moderate, high, or critical
-  findings;
+- the connected frontend advisory audit has no untriaged moderate, high, or
+  critical findings; its only warning is the exact, expiring
+  GHSA-mh99-v99m-4gvg ESLint dev-tool exception described above;
 - direct frontend dependencies are exact-pinned in `package.json` and
   `package-lock.json`;
 - Next.js and `eslint-config-next` are aligned at patched Active LTS
   `16.2.11`;
 - legacy `brace-expansion` is pinned at `1.1.16`, `sharp` at `0.35.0`, and a
-  Next-only override retains PostCSS `8.5.14`;
+  Next-only override retains patched PostCSS `8.5.22`;
 - direct backend requirements are exact-pinned in `backend/requirements.txt`.
 
 Use `npm run beta:readiness` for the local posture report and
@@ -324,7 +338,7 @@ The `16.2.11` checkpoint passed `npm ci`, the connected audit, lint,
 TypeScript, smoke, production build, beta readiness, backend compile, backend
 gates, backend smoke, and the Auth/Firestore emulator suite on the
 GitHub-hosted Windows runner on 2026-07-23.
-Remove the PostCSS override only after Next itself depends on PostCSS `8.5.10`
+Remove the PostCSS override only after Next itself depends on PostCSS `8.5.18`
 or newer and the same gates pass without the override.
 
 ## Rollback and triage

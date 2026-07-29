@@ -925,14 +925,23 @@ Completed.
   verified versions. The 2026-07-20 hardening checkpoint passed
   `npm run beta:audit`, pinned Next.js and `eslint-config-next` at `16.2.10`,
   refreshed patched Firebase/tooling transitives, and added a Next-only
-  PostCSS `8.5.14` override. Newly published July 2026 advisories changed that
+  PostCSS override. Newly published July 2026 advisories changed that
   result. On 2026-07-22 the vulnerable `brace-expansion` and `sharp` ranges
   were remediated. On 2026-07-23 Next.js and `eslint-config-next` were upgraded
   together to patched Active LTS `16.2.11`; the connected audit and complete
-  GitHub-hosted Windows integration suite passed. The managed workstation
-  proxy still lacks the new tarball, so the checked-in Windows workflow is the
-  reproducible integration authority. Remove the PostCSS override only when
-  the same gates pass against a patched Next manifest that no longer needs it.
+  GitHub-hosted Windows integration suite passed. On 2026-07-29 a new PostCSS
+  advisory was remediated by moving the scoped override to patched `8.5.22`.
+  The same registry update added GHSA-mh99-v99m-4gvg across the transitive
+  ESLint/minimatch/brace-expansion dev-tool graph. GitHub lists
+  `brace-expansion` `5.0.8` as patched, but no compatible patched path is
+  published in the npm graph currently consumed by ESLint. The connected gate
+  has a package-set/advisory-exact exception that expires 2026-08-15; any
+  different advisory, runtime dependency, graph change, or expiry still fails.
+  Remove it as soon as a compatible patched graph is published. The managed
+  workstation proxy still lacks the new Next tarball, so the checked-in Windows
+  workflow is the reproducible integration authority. Remove the PostCSS
+  override only when the same gates pass against a patched Next manifest that
+  no longer needs it.
 - Telemetry QA now exercises every typed product event family, sensitive-key
   rejection, numeric/enum bounding, log capping, and write/remove failure
   isolation through `smoke-instrumentation.ts`.

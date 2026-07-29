@@ -23,7 +23,49 @@ type NpmAuditJson = {
   metadata?: {
     vulnerabilities?: Record<string, number>;
   };
+  vulnerabilities?: Record<
+    string,
+    {
+      isDirect?: boolean;
+      via?: Array<
+        | string
+        | {
+            source?: number;
+            url?: string;
+            range?: string;
+          }
+      >;
+    }
+  >;
 };
+
+const BRACE_EXPANSION_ADVISORY_SOURCE = 1124334;
+const BRACE_EXPANSION_ADVISORY_URL =
+  "https://github.com/advisories/GHSA-mh99-v99m-4gvg";
+const BRACE_EXPANSION_EXCEPTION_EXPIRES_AT = Date.parse(
+  "2026-08-15T00:00:00Z",
+);
+const BRACE_EXPANSION_DEV_GRAPH = new Set([
+  "@eslint/config-array",
+  "@eslint/eslintrc",
+  "@typescript-eslint/eslint-plugin",
+  "@typescript-eslint/parser",
+  "@typescript-eslint/type-utils",
+  "@typescript-eslint/typescript-estree",
+  "@typescript-eslint/utils",
+  "brace-expansion",
+  "eslint",
+  "eslint-config-next",
+  "eslint-plugin-import",
+  "eslint-plugin-jsx-a11y",
+  "eslint-plugin-react",
+  "minimatch",
+  "typescript-eslint",
+]);
+const BRACE_EXPANSION_DIRECT_DEV_TOOLS = new Set([
+  "eslint",
+  "eslint-config-next",
+]);
 
 const args = new Set(process.argv.slice(2));
 const runAudit = args.has("--run-audit");
@@ -257,6 +299,17 @@ function checkNpmAudit(): Finding {
     (vulnerabilities?.critical ?? 0);
 
   if (moderatePlus > 0) {
+    if (isTemporaryBraceExpansionDevToolFinding(parsed, moderatePlus)) {
+      return {
+        status: "warn",
+        check: "npm advisory audit",
+        detail:
+          `${moderatePlus} high findings trace only to the ESLint dev-tool ` +
+          `graph for GHSA-mh99-v99m-4gvg. The registry has not published a ` +
+          `compatible patched dependency path; the narrow exception expires ` +
+          `2026-08-15 and any different advisory still fails.`,
+      };
+    }
     return {
       status: "fail",
       check: "npm advisory audit",
@@ -269,6 +322,49 @@ function checkNpmAudit(): Finding {
     check: "npm advisory audit",
     detail: "no moderate/high/critical vulnerabilities reported by npm audit.",
   };
+}
+
+function isTemporaryBraceExpansionDevToolFinding(
+  audit: NpmAuditJson,
+  moderatePlus: number,
+): boolean {
+  if (Date.now() >= BRACE_EXPANSION_EXCEPTION_EXPIRES_AT) return false;
+  const vulnerabilities = audit.vulnerabilities;
+  if (!vulnerabilities) return false;
+  const names = Object.keys(vulnerabilities);
+  if (
+    names.length !== moderatePlus ||
+    names.length === 0 ||
+    names.some((name) => !BRACE_EXPANSION_DEV_GRAPH.has(name))
+  ) {
+    return false;
+  }
+
+  const direct = names.filter((name) => vulnerabilities[name]?.isDirect);
+  if (
+    direct.length !== BRACE_EXPANSION_DIRECT_DEV_TOOLS.size ||
+    direct.some((name) => !BRACE_EXPANSION_DIRECT_DEV_TOOLS.has(name))
+  ) {
+    return false;
+  }
+
+  const advisoryObjects = names.flatMap((name) =>
+    (vulnerabilities[name]?.via ?? []).filter(
+      (
+        via,
+      ): via is {
+        source?: number;
+        url?: string;
+        range?: string;
+      } => typeof via !== "string",
+    ),
+  );
+  return (
+    advisoryObjects.length === 1 &&
+    advisoryObjects[0]?.source === BRACE_EXPANSION_ADVISORY_SOURCE &&
+    advisoryObjects[0]?.url === BRACE_EXPANSION_ADVISORY_URL &&
+    advisoryObjects[0]?.range === "<=5.0.7"
+  );
 }
 
 function findRepoRoot(): string {
