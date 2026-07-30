@@ -88,6 +88,50 @@ function main(): void {
       }),
     "incomplete onboarding escaped to the product shell",
   );
+  expectRejected(
+    () =>
+      parseMobileFoundationState({
+        ...active,
+        account_state: "deletion_requested",
+      }),
+    "account deletion state omitted its timestamp and domain sweep",
+  );
+  expectRejected(
+    () =>
+      parseMobileFoundationState({
+        ...active,
+        migration: {
+          source: "kinetic_companion_v1",
+          status: "completed",
+          legacy_revision: null,
+        },
+      }),
+    "legacy migration omitted its source revision",
+  );
+  expectRejected(
+    () =>
+      parseMobileFoundationState({
+        ...active,
+        onboarding: {
+          ...active.onboarding,
+          completed_steps: ["goal", "experience"],
+        },
+      }),
+    "completed onboarding omitted required steps",
+  );
+  const completedDeletion = parseMobileFoundationState({
+    ...deletion,
+    revision: deletion.revision + 1,
+    account_state: "deleted",
+    deletion: {
+      ...deletion.deletion,
+      pending_domains: [],
+    },
+  });
+  expect(
+    completedDeletion.account_state === "deleted",
+    "completed account deletion receipt was rejected",
+  );
   console.log(
     "OK - mobile foundation contract covers onboarding, progressive permissions, migration, reminder settings, and deletion",
   );

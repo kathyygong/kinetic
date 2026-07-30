@@ -1288,6 +1288,17 @@ branch was fast-forwarded into `main` on 2026-07-23.
   build, and owner-only emulator gates in
   [run 30553666395](https://github.com/kathyygong/kinetic/actions/runs/30553666395).
   Native implementation remains.
+- A 2026-07-30 robustness pass expanded the backend contract smoke across all
+  eleven lifecycle actions plus strict-auth HTTP, malformed payload, stale
+  version, idempotency, completed-history, race-day, spacing, goal-revision,
+  duplicate-date, and no-op rejection paths. Foundation parsing now enforces
+  onboarding, migration, deletion-state, timestamp, and full-domain-sweep
+  consistency. Firestore emulation covers owner, cross-user read/write,
+  unauthenticated, and unknown-domain behavior for every new Phase 5–6 domain.
+- The same pass replaced vulnerable transitive `brace-expansion`/`minimatch`
+  development-tool versions with tested patched overrides. Clean install,
+  zero-advisory audit, lint, TypeScript, full smoke, production build, connected
+  beta audit, backend gates, and expanded Firebase emulation pass locally.
 
 ### Mobile Phase 5 Native Foundation, Onboarding, And Settings - Planned
 

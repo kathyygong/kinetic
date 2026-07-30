@@ -149,7 +149,9 @@ class MobilePlanLifecycleResponse(StrictModel):
             "duplicate_workout_id",
             "invalid_action_transition",
             "plan_identity_changed",
+            "goal_revision_changed",
             "invalid_action_delta",
+            "duplicate_workout_date",
             "spacing_violation",
             "race_day_missing_or_invalid",
         ]
@@ -226,6 +228,33 @@ def evaluate_mobile_plan_lifecycle(
             base_version,
             None,
             ["plan_identity_changed"],
+            empty_impact,
+        )
+    if current:
+        allowed_goal_revisions = (
+            {current.goal_revision, current.goal_revision + 1}
+            if request.mutation.action == "regenerate_future"
+            else {current.goal_revision}
+        )
+        if proposed.goal_revision not in allowed_goal_revisions:
+            return _response(
+                "rejected",
+                base_version,
+                None,
+                ["goal_revision_changed"],
+                empty_impact,
+            )
+    scheduled_dates = [
+        workout.date
+        for workout in proposed.workouts
+        if workout.status != "skipped"
+    ]
+    if len(scheduled_dates) != len(set(scheduled_dates)):
+        return _response(
+            "rejected",
+            base_version,
+            None,
+            ["duplicate_workout_date"],
             empty_impact,
         )
 
@@ -396,7 +425,13 @@ def _action_delta_is_valid(
 ) -> bool:
     action = request.mutation.action
     if action == "generate":
-        return not current
+        return (
+            not current
+            and all(
+                workout.status == "scheduled"
+                for workout in request.proposed_plan.workouts
+            )
+        )
     changed = {
         workout_id
         for workout_id in set(current) | set(proposed)
@@ -405,7 +440,7 @@ def _action_delta_is_valid(
     if action in ("pause", "resume", "save"):
         return not changed
     if action in ("availability", "preferred_day", "regenerate_future"):
-        return True
+        return bool(changed)
     target_id = request.mutation.target_workout_id
     if target_id is None or changed != {target_id}:
         return False

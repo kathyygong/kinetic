@@ -111,6 +111,7 @@ async function main() {
       "mobile_audit",
     );
     const ownWorkouts = doc(dbA, "users", userA.uid, "kinetic", "workouts");
+    const ownPlan = doc(dbA, "users", userA.uid, "kinetic", "plan");
     const ownSettings = doc(dbA, "users", userA.uid, "kinetic", "settings");
     const ownOnboarding = doc(dbA, "users", userA.uid, "kinetic", "onboarding");
     const ownPlanHistory = doc(dbA, "users", userA.uid, "kinetic", "plan_history");
@@ -156,6 +157,27 @@ async function main() {
       "kinetic",
       "workouts",
     );
+    const foreignPlanFromB = doc(
+      dbB,
+      "users",
+      userA.uid,
+      "kinetic",
+      "plan",
+    );
+    const foreignSettingsFromB = doc(
+      dbB,
+      "users",
+      userA.uid,
+      "kinetic",
+      "settings",
+    );
+    const foreignOnboardingFromB = doc(
+      dbB,
+      "users",
+      userA.uid,
+      "kinetic",
+      "onboarding",
+    );
     const foreignPlanHistoryFromB = doc(
       dbB,
       "users",
@@ -184,6 +206,13 @@ async function main() {
       "kinetic",
       "arbitrary",
     );
+    const guestPlanHistory = doc(
+      dbGuest,
+      "users",
+      userA.uid,
+      "kinetic",
+      "plan_history",
+    );
 
     await setDoc(ownA, { schemaVersion: 1, payload: { name: "A" } });
     await setDoc(ownB, { schemaVersion: 1, payload: { name: "B" } });
@@ -210,6 +239,17 @@ async function main() {
     await setDoc(ownSettings, {
       schemaVersion: 1,
       payload: foundationFixture.active_state,
+      deleted: false,
+      clientUpdatedAt: "2026-07-30T16:00:00.000Z",
+    });
+    await setDoc(ownPlan, {
+      schemaVersion: 1,
+      payload:
+        planLifecycleFixture.commit_move_response &&
+        typeof planLifecycleFixture.commit_move_response === "object" &&
+        "commit_plan" in planLifecycleFixture.commit_move_response
+          ? planLifecycleFixture.commit_move_response.commit_plan
+          : null,
       deleted: false,
       clientUpdatedAt: "2026-07-30T16:00:00.000Z",
     });
@@ -356,6 +396,7 @@ async function main() {
       "owner A should read bounded behavior-pattern result outcomes",
     );
     expect((await getDoc(ownWorkouts)).exists(), "owner A should read workouts");
+    expect((await getDoc(ownPlan)).exists(), "owner A should read current plan");
     expect((await getDoc(ownSettings)).exists(), "owner A should read settings");
     expect((await getDoc(ownOnboarding)).exists(), "owner A should read onboarding");
     expect((await getDoc(ownPlanHistory)).exists(), "owner A should read plan history");
@@ -404,6 +445,10 @@ async function main() {
       "cross-user workouts read",
     );
     await expectDenied(
+      () => getDoc(foreignPlanFromB),
+      "cross-user current plan read",
+    );
+    await expectDenied(
       () => getDoc(foreignPlanHistoryFromB),
       "cross-user plan history read",
     );
@@ -412,8 +457,61 @@ async function main() {
       "cross-user plan operations read",
     );
     await expectDenied(
+      () => getDoc(foreignSettingsFromB),
+      "cross-user settings read",
+    );
+    await expectDenied(
+      () => getDoc(foreignOnboardingFromB),
+      "cross-user onboarding read",
+    );
+    await expectDenied(
       () => getDoc(foreignRecommendationsFromB),
       "cross-user recommendations read",
+    );
+    await expectDenied(
+      () =>
+        setDoc(foreignPlanFromB, {
+          schemaVersion: 1,
+          payload: planLifecycleFixture.commit_move_response,
+          deleted: false,
+        }),
+      "cross-user current plan write",
+    );
+    await expectDenied(
+      () =>
+        setDoc(foreignPlanHistoryFromB, {
+          schemaVersion: 1,
+          payload: { versions: [] },
+          deleted: false,
+        }),
+      "cross-user plan history write",
+    );
+    await expectDenied(
+      () =>
+        setDoc(foreignPlanOperationsFromB, {
+          schemaVersion: 1,
+          payload: { operations: [] },
+          deleted: false,
+        }),
+      "cross-user plan operations write",
+    );
+    await expectDenied(
+      () =>
+        setDoc(foreignSettingsFromB, {
+          schemaVersion: 1,
+          payload: foundationFixture.active_state,
+          deleted: false,
+        }),
+      "cross-user settings write",
+    );
+    await expectDenied(
+      () =>
+        setDoc(foreignOnboardingFromB, {
+          schemaVersion: 1,
+          payload: foundationFixture.new_runner_state,
+          deleted: false,
+        }),
+      "cross-user onboarding write",
     );
     await expectDenied(
       () =>
@@ -453,6 +551,19 @@ async function main() {
       "cross-user health sync write",
     );
     await expectDenied(() => getDoc(guestA), "unauthenticated read");
+    await expectDenied(
+      () => getDoc(guestPlanHistory),
+      "unauthenticated plan history read",
+    );
+    await expectDenied(
+      () =>
+        setDoc(guestPlanHistory, {
+          schemaVersion: 1,
+          payload: { versions: [] },
+          deleted: false,
+        }),
+      "unauthenticated plan history write",
+    );
     await expectDenied(
       () => setDoc(unknownDomainA, { payload: "not allowed" }),
       "unknown domain write",

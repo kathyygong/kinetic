@@ -84,6 +84,37 @@ function main(): void {
       }),
     "duplicate workout identity was accepted",
   );
+  expectRejected(
+    () =>
+      parseMobilePlanLifecycleResponse({
+        ...response,
+        reason_codes: ["not_a_contract_reason"],
+      }),
+    "unknown lifecycle reason code was accepted",
+  );
+  expectRejected(
+    () =>
+      parseMobilePlanLifecycleResponse({
+        ...response,
+        result: "conflict",
+        commit_plan: response.commit_plan,
+        proposed_version: null,
+        persistence: { ...response.persistence, required: false },
+      }),
+    "conflict response exposed a persistable plan",
+  );
+  expectRejected(
+    () =>
+      parseMobilePlanLifecycleResponse({
+        ...response,
+        proposed_version: response.base_version + 2,
+        commit_plan: {
+          ...response.commit_plan!,
+          version: response.base_version + 2,
+        },
+      }),
+    "non-sequential accepted version was accepted",
+  );
   console.log(
     "OK - mobile plan lifecycle contract covers commit packaging, history, versioning, idempotency, and privacy",
   );

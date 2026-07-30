@@ -182,10 +182,26 @@ export function parseMobilePlanLifecycleResponse(
   ], "result");
   equal(response.mutation_performed, false, "mutation flag");
   whole(response.base_version, 0, "base version");
+  const baseVersion = response.base_version as number;
   if (response.proposed_version !== null) {
     whole(response.proposed_version, 1, "proposed version");
   }
-  stringArray(response.reason_codes, "reason codes");
+  enumArray(response.reason_codes, [
+    "accepted",
+    "version_conflict",
+    "idempotency_conflict",
+    "completed_history_changed",
+    "race_day_changed",
+    "invalid_version_increment",
+    "duplicate_workout_id",
+    "invalid_action_transition",
+    "plan_identity_changed",
+    "goal_revision_changed",
+    "invalid_action_delta",
+    "duplicate_workout_date",
+    "spacing_violation",
+    "race_day_missing_or_invalid",
+  ], "reason codes");
   const impact = record(response.impact, "impact");
   exact(impact, [
     "affected_workout_ids",
@@ -198,8 +214,14 @@ export function parseMobilePlanLifecycleResponse(
   whole(impact.completed_workouts_preserved, 0, "completed preserved");
   whole(impact.total_workouts_before, 0, "workouts before");
   whole(impact.total_workouts_after, 0, "workouts after");
-  stringArray(impact.warnings, "warnings");
-  if (response.commit_plan !== null) parseSnapshot(response.commit_plan);
+  enumArray(impact.warnings, [
+    "completed_history_locked",
+    "race_day_locked",
+    "spacing_requires_review",
+    "weekly_growth_requires_review",
+  ], "warnings", true);
+  const commitPlan =
+    response.commit_plan === null ? null : parseSnapshot(response.commit_plan);
   const persistence = record(response.persistence, "persistence");
   exact(persistence, [
     "required",
@@ -221,6 +243,23 @@ export function parseMobilePlanLifecycleResponse(
   ], "transaction preconditions");
   if (persistence.required !== (result === "commit_ready")) {
     throw new Error("Only commit_ready responses require persistence.");
+  }
+  if (
+    (result === "commit_ready" || result === "preview") &&
+    (commitPlan === null ||
+      response.proposed_version !== baseVersion + 1 ||
+      commitPlan.version !== response.proposed_version)
+  ) {
+    throw new Error("Accepted responses require a sequential commit plan.");
+  }
+  if (
+    (result === "conflict" || result === "rejected" || result === "replayed") &&
+    commitPlan !== null
+  ) {
+    throw new Error("Non-accepted responses cannot include a commit plan.");
+  }
+  if (result === "replayed" && response.proposed_version === null) {
+    throw new Error("Replayed responses require the committed version.");
   }
   assertPrivacySafe(response);
   return response as MobilePlanLifecycleResponse;
@@ -342,6 +381,22 @@ function isoDate(value: unknown, label: string): void {
 
 function stringArray(value: unknown, label: string): void {
   if (!Array.isArray(value) || value.some((entry) => typeof entry !== "string")) {
+    throw new Error(`Invalid ${label}.`);
+  }
+}
+
+function enumArray<T extends string>(
+  value: unknown,
+  options: readonly T[],
+  label: string,
+  allowEmpty = false,
+): asserts value is T[] {
+  if (
+    !Array.isArray(value) ||
+    (!allowEmpty && value.length === 0) ||
+    value.some((entry) => typeof entry !== "string" || !options.includes(entry as T)) ||
+    new Set(value).size !== value.length
+  ) {
     throw new Error(`Invalid ${label}.`);
   }
 }

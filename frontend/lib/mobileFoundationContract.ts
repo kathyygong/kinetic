@@ -139,8 +139,17 @@ export function parseMobileFoundationState(value: unknown): MobileFoundationStat
   oneOf(migration.source, ["new_install", "kinetic_companion_v1"], "migration source");
   oneOf(migration.status, ["not_needed", "pending", "completed", "failed"], "migration status");
   nullableInteger(migration.legacy_revision, "legacy revision");
-  if (migration.source === "new_install" && migration.status !== "not_needed") {
+  if (
+    migration.source === "new_install" &&
+    (migration.status !== "not_needed" || migration.legacy_revision !== null)
+  ) {
     throw new Error("New installs cannot have a legacy migration.");
+  }
+  if (
+    migration.source === "kinetic_companion_v1" &&
+    (migration.status === "not_needed" || migration.legacy_revision === null)
+  ) {
+    throw new Error("Legacy migrations require a source revision and status.");
   }
 
   const deletion = object(state.deletion, "deletion");
@@ -148,11 +157,56 @@ export function parseMobileFoundationState(value: unknown): MobileFoundationStat
   nullableTimestamp(deletion.requested_at, "deletion requested_at");
   const deletionScope = oneOf(deletion.scope, ["none", "training_data", "account"], "deletion scope");
   arrayEnum(deletion.pending_domains, FOUNDATION_DOMAINS, "pending domains");
-  if (deletionScope === "none" && deletion.pending_domains.length > 0) {
+  const pendingDomains = deletion.pending_domains as Array<
+    (typeof FOUNDATION_DOMAINS)[number]
+  >;
+  if (deletionScope === "none" && pendingDomains.length > 0) {
     throw new Error("No deletion scope cannot have pending domains.");
   }
-  if (state.account_state === "deleted" && deletion.pending_domains.length > 0) {
+  if (deletionScope === "none" && deletion.requested_at !== null) {
+    throw new Error("No deletion scope cannot have a request timestamp.");
+  }
+  if (deletionScope !== "none" && deletion.requested_at === null) {
+    throw new Error("Deletion work requires a request timestamp.");
+  }
+  if (
+    state.account_state === "active" &&
+    deletionScope === "account"
+  ) {
+    throw new Error("Active accounts cannot have account deletion in progress.");
+  }
+  if (
+    state.account_state === "deletion_requested" &&
+    (deletionScope !== "account" ||
+      !FOUNDATION_DOMAINS.every((domain) =>
+        pendingDomains.includes(domain)))
+  ) {
+    throw new Error("Account deletion must cover every owner-scoped domain.");
+  }
+  if (state.account_state === "deleted" && pendingDomains.length > 0) {
     throw new Error("Deleted accounts cannot retain pending domains.");
+  }
+  if (
+    state.account_state === "deleted" &&
+    deletionScope !== "account"
+  ) {
+    throw new Error("Deleted accounts must retain the account deletion receipt.");
+  }
+  const requiredSteps = [
+    "goal",
+    "experience",
+    "mileage",
+    "personal_records",
+    "schedule",
+  ] as const;
+  const completedSteps = onboarding.completed_steps as Array<
+    (typeof requiredSteps)[number]
+  >;
+  if (
+    onboardingStatus === "completed" &&
+    !requiredSteps.every((step) => completedSteps.includes(step))
+  ) {
+    throw new Error("Completed onboarding is missing a required step.");
   }
   if (state.route !== "onboarding" && onboardingStatus !== "completed") {
     throw new Error("Incomplete onboarding must route to onboarding.");

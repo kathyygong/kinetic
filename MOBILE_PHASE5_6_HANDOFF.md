@@ -5,6 +5,13 @@ Authoritative implementation commit: `2146aee`. Hosted Windows integration,
 including connected dependency audit and owner-only Firebase emulators, passed
 in [run 30553666395](https://github.com/kathyygong/kinetic/actions/runs/30553666395).
 
+The subsequent Windows robustness pass exercises every Phase 6 lifecycle
+action, the strict-auth HTTP boundary, malformed/conflict/replay/invariant
+failures, stricter Phase 5 migration/deletion consistency, and expanded
+owner/cross-user/anonymous Firestore access. It also updates the development
+tool graph to patched `brace-expansion`/`minimatch` releases and passes a
+zero-advisory connected audit.
+
 ## Copy-ready continuation prompt
 
 > Continue Mobile Phase 5 native foundation implementation, then checkpoint it
