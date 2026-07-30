@@ -1284,7 +1284,10 @@ branch was fast-forwarded into `main` on 2026-07-23.
   owner-only settings/onboarding/plan-history/operation domains, canonical
   fixtures, frontend/backend/emulator gates, privacy-safe `/qa/mobile`
   readback, and [MOBILE_PHASE5_6_HANDOFF.md](./MOBILE_PHASE5_6_HANDOFF.md).
-  Native implementation and hosted branch integration remain.
+  Hosted Windows integration passed all frontend, backend, connected-audit,
+  build, and owner-only emulator gates in
+  [run 30553666395](https://github.com/kathyygong/kinetic/actions/runs/30553666395).
+  Native implementation remains.
 
 ### Mobile Phase 5 Native Foundation, Onboarding, And Settings - Planned
 

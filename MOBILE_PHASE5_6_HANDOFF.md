@@ -1,6 +1,9 @@
 # Mobile Phases 5–6 Mac Handoff
 
 Windows Batch A completed on branch `codex/mobile-phase5-6-contracts`.
+Authoritative implementation commit: `2146aee`. Hosted Windows integration,
+including connected dependency audit and owner-only Firebase emulators, passed
+in [run 30553666395](https://github.com/kathyygong/kinetic/actions/runs/30553666395).
 
 ## Copy-ready continuation prompt
 
