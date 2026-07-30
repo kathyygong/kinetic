@@ -1,0 +1,90 @@
+{
+  "schema_version": "mobile-foundation.v1",
+  "active_state": {
+    "schema_version": "mobile-foundation.v1",
+    "revision": 4,
+    "account_state": "active",
+    "onboarding": {
+      "status": "completed",
+      "completed_steps": [
+        "goal",
+        "experience",
+        "mileage",
+        "personal_records",
+        "schedule"
+      ],
+      "deferred_permissions": [
+        "health",
+        "calendar"
+      ]
+    },
+    "route": "today",
+    "permissions": {
+      "health": "not_requested",
+      "calendar": "denied",
+      "notifications": "authorized"
+    },
+    "settings": {
+      "evening_checkin_reminder": {
+        "enabled": true,
+        "local_hour": 19,
+        "local_minute": 30,
+        "delivery": "local_only",
+        "lock_screen_copy": "generic"
+      },
+      "analytics": "privacy_safe"
+    },
+    "migration": {
+      "source": "kinetic_companion_v1",
+      "status": "completed",
+      "legacy_revision": 1
+    },
+    "deletion": {
+      "requested_at": null,
+      "scope": "none",
+      "pending_domains": []
+    }
+  },
+  "new_runner_state": {
+    "schema_version": "mobile-foundation.v1",
+    "revision": 1,
+    "account_state": "active",
+    "onboarding": {
+      "status": "in_progress",
+      "completed_steps": [
+        "goal"
+      ],
+      "deferred_permissions": [
+        "health",
+        "calendar",
+        "notifications"
+      ]
+    },
+    "route": "onboarding",
+    "permissions": {
+      "health": "not_requested",
+      "calendar": "not_requested",
+      "notifications": "not_requested"
+    },
+    "settings": {
+      "evening_checkin_reminder": {
+        "enabled": false,
+        "local_hour": 19,
+        "local_minute": 0,
+        "delivery": "local_only",
+        "lock_screen_copy": "generic"
+      },
+      "analytics": "off"
+    },
+    "migration": {
+      "source": "new_install",
+      "status": "not_needed",
+      "legacy_revision": null
+    },
+    "deletion": {
+      "requested_at": null,
+      "scope": "none",
+      "pending_domains": []
+    }
+  }
+}

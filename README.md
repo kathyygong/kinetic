@@ -128,10 +128,15 @@ Runtime modes are explicit:
   privacy contract passes the default frontend smoke suite.
 - [ ] **Mobile Phase 5 — Native Foundation:** Permanent navigation, account
   creation/recovery, onboarding, progressive permissions, Settings, privacy,
-  support, data controls, and local notification delivery.
+  support, data controls, and local notification delivery. Windows/shared
+  `mobile-foundation.v1`, deletion/migration boundaries, owner-only domains,
+  and audit gates are implemented; native Mac work remains.
 - [ ] **Mobile Phase 6 — Native Plan Lifecycle:** Generate, preview, save,
   browse, safely edit/regenerate, pause/resume, and confirm preferences without
-  a normal-runner web handoff.
+  a normal-runner web handoff. Windows/shared
+  `mobile-plan-lifecycle.v1`, authenticated backend validation, version/
+  idempotency/history boundaries, fixtures, and audit gates are implemented;
+  native Mac work remains.
 - [ ] **Mobile Phase 7 — Apple Calendar And Progress:** Privacy-minimized
   EventKit free/busy ingestion, calendar-aware planning, optional explicit
   one-way export, and shared-history progress.

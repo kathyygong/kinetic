@@ -36,6 +36,8 @@ const FILTERS: Array<{ value: EventFilter; label: string }> = [
   { value: "mobile_intake_lifecycle", label: "Intake" },
   { value: "mobile_checkin_synced", label: "Check-in" },
   { value: "mobile_pattern_result_lifecycle", label: "Patterns" },
+  { value: "mobile_foundation_lifecycle", label: "Foundation" },
+  { value: "mobile_plan_lifecycle", label: "Plan lifecycle" },
 ];
 
 export default function MobileQaPage() {
@@ -135,6 +137,29 @@ export default function MobileQaPage() {
       mutation_state: "review_only",
       deterministic_validation: "not_run",
       source: "deterministic",
+    });
+    trackProductEvent("mobile_foundation_lifecycle", {
+      platform: "ios",
+      action: "session_restored",
+      outcome: "success",
+      account_state: "active",
+      permission_state: "partial",
+      migration_state: "completed",
+      deletion_scope: "none",
+      latency_ms: 210,
+    });
+    trackProductEvent("mobile_plan_lifecycle", {
+      platform: "ios",
+      action: "move",
+      outcome: "success",
+      result: "commit_ready",
+      mutation_state: "applied",
+      deterministic_validation: "passed",
+      failure_state: "none",
+      version_delta: 1,
+      affected_count: 1,
+      completed_preserved: 1,
+      latency_ms: 330,
     });
     void refresh();
   };

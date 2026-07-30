@@ -6,6 +6,7 @@ on:
     branches:
       - codex/mobile-checkin-contract
       - codex/mobile-pattern-results
+      - codex/mobile-phase5-6-contracts
       - main
   pull_request:
     branches:
@@ -100,7 +101,9 @@ jobs:
 
       - name: Run backend smoke suite
         working-directory: backend
-        run: python -m evals._smoke
+        run: |
+          python -m evals._smoke
+          python -m evals.mobile_plan_contract_smoke
 
       - name: Run owner-only Firestore rules suite
         run: npx firebase-tools emulators:exec --only auth,firestore "cd frontend && npm run test:firestore-rules"

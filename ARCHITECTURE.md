@@ -421,6 +421,12 @@ fields from the existing owner-only audit envelope.
   backend contracts as web. Account/onboarding UI may collect bounded inputs,
   but plan generation and mutation still pass through the shared deterministic
   planner/validator.
+- Windows Batch A established `mobile-foundation.v1` and
+  `mobile-plan-lifecycle.v1`. Firebase Auth remains the identity/session
+  authority; owner-scoped Firestore stores foundation and versioned plan
+  documents; authenticated backend validation returns storage-neutral commit
+  packages. Native clients persist only `commit_ready` packages using version
+  and operation-id preconditions while retaining completed history.
 - Native iOS is the primary user-facing product surface. Shared backend,
   planner, auth, persistence, schema, observability, and eval modules are
   platform capabilities; web is the secondary runner surface and primary

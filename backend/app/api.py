@@ -36,6 +36,11 @@ from .mobile_intake import (
     MobileIntakeRequest,
     route_mobile_intake,
 )
+from .mobile_plan import (
+    MobilePlanLifecycleRequest,
+    MobilePlanLifecycleResponse,
+    evaluate_mobile_plan_lifecycle,
+)
 from .training_summary import (
     TrainingSummaryEnvelope,
     TrainingSummaryRequest,
@@ -384,6 +389,23 @@ def parse_natural_language_intake(
     if isinstance(payload, MobileIntakeRequest):
         return route_mobile_intake(payload)
     return parse_intake(payload)
+
+
+@app.post(
+    "/mobile/plan-lifecycle",
+    response_model=MobilePlanLifecycleResponse,
+    dependencies=[RequireAuth],
+)
+def mobile_plan_lifecycle(
+    payload: MobilePlanLifecycleRequest,
+) -> MobilePlanLifecycleResponse:
+    """Validate a native plan preview/commit without writing user state.
+
+    A ``commit_ready`` response is the only plan snapshot a native client may
+    persist. The client writes it with the returned Firestore preconditions.
+    """
+
+    return evaluate_mobile_plan_lifecycle(payload)
 
 
 @app.post(

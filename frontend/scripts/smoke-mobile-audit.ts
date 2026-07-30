@@ -126,6 +126,29 @@ async function main(): Promise<void> {
     deterministic_validation: "not_run",
     source: "deterministic",
   });
+  trackProductEvent("mobile_foundation_lifecycle", {
+    platform: "ios",
+    action: "session_restored",
+    outcome: "success",
+    account_state: "active",
+    permission_state: "partial",
+    migration_state: "completed",
+    deletion_scope: "none",
+    latency_ms: 210,
+  });
+  trackProductEvent("mobile_plan_lifecycle", {
+    platform: "ios",
+    action: "move",
+    outcome: "success",
+    result: "commit_ready",
+    mutation_state: "applied",
+    deterministic_validation: "passed",
+    failure_state: "none",
+    version_delta: 1,
+    affected_count: 1,
+    completed_preserved: 1,
+    latency_ms: 330,
+  });
 
   const mobileEvents = selectMobileAuditEvents(listProductEvents());
   const summary = summarizeMobileAuditEvents(mobileEvents);
@@ -137,8 +160,8 @@ async function main(): Promise<void> {
   for (const name of MOBILE_EVENT_NAMES) {
     expect(summary.names.get(name) === 1, `${name} should appear once in mobile QA`);
   }
-  expect(summary.total === 5, `expected mobile QA total 5, got ${summary.total}`);
-  expect(summary.outcomes.get("success") === 4, "expected four successful mobile events");
+  expect(summary.total === 7, `expected mobile QA total 7, got ${summary.total}`);
+  expect(summary.outcomes.get("success") === 6, "expected six successful mobile events");
   expect(summary.outcomes.get("partial") === 1, "expected one partial sync event");
   expect(
     mobileEvents.some(
@@ -179,6 +202,24 @@ async function main(): Promise<void> {
         event.properties.mutation_state === "review_only",
     ),
     "mobile QA should expose bounded behavior-pattern result outcomes",
+  );
+  expect(
+    mobileEvents.some(
+      (event) =>
+        event.name === "mobile_foundation_lifecycle" &&
+        event.properties.account_state === "active" &&
+        event.properties.migration_state === "completed",
+    ),
+    "mobile QA should expose bounded foundation state",
+  );
+  expect(
+    mobileEvents.some(
+      (event) =>
+        event.name === "mobile_plan_lifecycle" &&
+        event.properties.result === "commit_ready" &&
+        event.properties.completed_preserved === 1,
+    ),
+    "mobile QA should expose bounded plan lifecycle proof",
   );
   expect(summary.latest !== null, "mobile QA should expose latest event freshness");
 

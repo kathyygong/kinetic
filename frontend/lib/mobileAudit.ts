@@ -9,6 +9,8 @@ export const MOBILE_EVENT_NAMES = [
   "mobile_intake_lifecycle",
   "mobile_checkin_synced",
   "mobile_pattern_result_lifecycle",
+  "mobile_foundation_lifecycle",
+  "mobile_plan_lifecycle",
 ] as const satisfies ReadonlyArray<ProductEventName>;
 
 export type MobileEventName = (typeof MOBILE_EVENT_NAMES)[number];

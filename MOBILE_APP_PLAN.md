@@ -129,8 +129,10 @@ Recommended cadence:
 
 For the current roadmap:
 
-- Windows Batch A should define Phase 5 onboarding/settings/auth contracts and
-  the Phase 6 plan-lifecycle API, mutation, versioning, and fixture boundary.
+- Windows Batch A defined Phase 5 onboarding/settings/auth contracts and the
+  Phase 6 plan-lifecycle API, mutation, versioning, and fixture boundary on
+  2026-07-30. See [MOBILE_FOUNDATION_PLAN_CONTRACT.md](./MOBILE_FOUNDATION_PLAN_CONTRACT.md)
+  and [MOBILE_PHASE5_6_HANDOFF.md](./MOBILE_PHASE5_6_HANDOFF.md).
 - Mac Batch A should implement Phase 5 and then Phase 6 against those contracts,
   with a checkpoint after Phase 5 before continuing.
 - Phase 7 should start with an early Mac EventKit spike before its Windows
@@ -139,13 +141,12 @@ For the current roadmap:
 - Phase 8 runs on both lanes continuously and closes only after hosted shared
   gates plus Mac simulator/device and external-user evidence pass.
 
-Next Windows prompt:
+Next Mac prompt:
 
-> Continue Windows Batch A for Mobile Phases 5–6.
+> Continue Mobile Phase 5 native foundation implementation.
 
-That batch must stop at shared contracts, backend/Firebase authority, fixtures,
-harnesses, documentation, and a copy-ready Mac handoff. It must not invent
-Apple-framework behavior or build disposable native UI from Windows.
+Complete and checkpoint Phase 5 before continuing to Phase 6 against the
+Windows/shared contracts. Do not begin Phase 7 EventKit behavior in this pass.
 
 ## Browser UX Prototype
 

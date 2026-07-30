@@ -20,6 +20,8 @@ import {
 } from "firebase/firestore";
 import { loadMobileContractFixtures } from "./smoke-mobile-readiness-contract";
 import { loadMobileCheckinFixture } from "./smoke-mobile-checkin-contract";
+import { loadMobileFoundationFixture } from "./smoke-mobile-foundation-contract";
+import { loadMobilePlanLifecycleFixture } from "./smoke-mobile-plan-lifecycle-contract";
 
 const projectId = "kinetic-rules-test";
 const config = { apiKey: "demo-key", authDomain: "localhost", projectId };
@@ -52,6 +54,8 @@ async function expectDenied(action: () => Promise<unknown>, label: string) {
 async function main() {
   const fixtures = loadMobileContractFixtures();
   const checkinFixture = loadMobileCheckinFixture();
+  const foundationFixture = loadMobileFoundationFixture();
+  const planLifecycleFixture = loadMobilePlanLifecycleFixture();
   const appA = initializeApp(config, "rules-a");
   const appB = initializeApp(config, "rules-b");
   const appGuest = initializeApp(config, "rules-guest");
@@ -107,6 +111,16 @@ async function main() {
       "mobile_audit",
     );
     const ownWorkouts = doc(dbA, "users", userA.uid, "kinetic", "workouts");
+    const ownSettings = doc(dbA, "users", userA.uid, "kinetic", "settings");
+    const ownOnboarding = doc(dbA, "users", userA.uid, "kinetic", "onboarding");
+    const ownPlanHistory = doc(dbA, "users", userA.uid, "kinetic", "plan_history");
+    const ownPlanOperations = doc(
+      dbA,
+      "users",
+      userA.uid,
+      "kinetic",
+      "plan_operations",
+    );
     const ownRecommendations = doc(
       dbA,
       "users",
@@ -141,6 +155,20 @@ async function main() {
       userA.uid,
       "kinetic",
       "workouts",
+    );
+    const foreignPlanHistoryFromB = doc(
+      dbB,
+      "users",
+      userA.uid,
+      "kinetic",
+      "plan_history",
+    );
+    const foreignPlanOperationsFromB = doc(
+      dbB,
+      "users",
+      userA.uid,
+      "kinetic",
+      "plan_operations",
     );
     const foreignRecommendationsFromB = doc(
       dbB,
@@ -178,6 +206,45 @@ async function main() {
       payload: checkinFixture.state.recommendations,
       deleted: false,
       clientUpdatedAt: checkinFixture.now,
+    });
+    await setDoc(ownSettings, {
+      schemaVersion: 1,
+      payload: foundationFixture.active_state,
+      deleted: false,
+      clientUpdatedAt: "2026-07-30T16:00:00.000Z",
+    });
+    await setDoc(ownOnboarding, {
+      schemaVersion: 1,
+      payload: foundationFixture.new_runner_state,
+      deleted: false,
+      clientUpdatedAt: "2026-07-30T16:00:00.000Z",
+    });
+    await setDoc(ownPlanHistory, {
+      schemaVersion: 1,
+      payload: {
+        versions: [planLifecycleFixture.commit_move_response],
+      },
+      deleted: false,
+      clientUpdatedAt: "2026-07-30T16:00:00.000Z",
+    });
+    await setDoc(ownPlanOperations, {
+      schemaVersion: 1,
+      payload: {
+        operations: [
+          {
+            operation_id:
+              planLifecycleFixture.commit_move_request &&
+              typeof planLifecycleFixture.commit_move_request === "object" &&
+              "operation_id" in planLifecycleFixture.commit_move_request
+                ? planLifecycleFixture.commit_move_request.operation_id
+                : "fixture-error",
+            request_fingerprint: "sha256-mobile-move-0001",
+            committed_version: 4,
+          },
+        ],
+      },
+      deleted: false,
+      clientUpdatedAt: "2026-07-30T16:00:00.000Z",
     });
     await setDoc(ownMobileAudit, {
       schemaVersion: 1,
@@ -289,6 +356,13 @@ async function main() {
       "owner A should read bounded behavior-pattern result outcomes",
     );
     expect((await getDoc(ownWorkouts)).exists(), "owner A should read workouts");
+    expect((await getDoc(ownSettings)).exists(), "owner A should read settings");
+    expect((await getDoc(ownOnboarding)).exists(), "owner A should read onboarding");
+    expect((await getDoc(ownPlanHistory)).exists(), "owner A should read plan history");
+    expect(
+      (await getDoc(ownPlanOperations)).exists(),
+      "owner A should read plan operations",
+    );
     expect(
       (await getDoc(ownRecommendations)).exists(),
       "owner A should read recommendations",
@@ -328,6 +402,14 @@ async function main() {
     await expectDenied(
       () => getDoc(foreignWorkoutsFromB),
       "cross-user workouts read",
+    );
+    await expectDenied(
+      () => getDoc(foreignPlanHistoryFromB),
+      "cross-user plan history read",
+    );
+    await expectDenied(
+      () => getDoc(foreignPlanOperationsFromB),
+      "cross-user plan operations read",
     );
     await expectDenied(
       () => getDoc(foreignRecommendationsFromB),
@@ -396,7 +478,7 @@ async function main() {
     );
 
     console.log(
-      "OK - Firestore rules preserve owner-only mobile readiness, check-ins, health sync, audit data, and tombstones",
+      "OK - Firestore rules preserve owner-only mobile foundation, plan lifecycle, readiness, check-ins, health sync, audit data, and tombstones",
     );
   } finally {
     await Promise.all([deleteApp(appA), deleteApp(appB), deleteApp(appGuest)]);

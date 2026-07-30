@@ -1,0 +1,163 @@
+{
+  "schema_version": "mobile-plan-lifecycle.v1",
+  "commit_move_request": {
+    "schema_version": "mobile-plan-lifecycle.v1",
+    "platform": "ios",
+    "mode": "commit",
+    "operation_id": "op-mobile-move-0001",
+    "request_fingerprint": "sha256-mobile-move-0001",
+    "expected_version": 3,
+    "current_plan": {
+      "id": "plan-race-001",
+      "version": 3,
+      "status": "active",
+      "goal_revision": 2,
+      "workouts": [
+        {
+          "id": "workout-completed-001",
+          "date": "2026-08-03",
+          "type": "easy",
+          "status": "completed",
+          "distance_miles": 4,
+          "duration_minutes": 40,
+          "pace_seconds_per_mile": 600,
+          "reason_code": "base_plan"
+        },
+        {
+          "id": "workout-future-002",
+          "date": "2026-08-11",
+          "type": "tempo",
+          "status": "scheduled",
+          "distance_miles": 5,
+          "duration_minutes": 45,
+          "pace_seconds_per_mile": 540,
+          "reason_code": "base_plan"
+        },
+        {
+          "id": "workout-race-003",
+          "date": "2026-09-20",
+          "type": "race",
+          "status": "scheduled",
+          "distance_miles": 13.1,
+          "duration_minutes": 120,
+          "pace_seconds_per_mile": 550,
+          "reason_code": "race_day"
+        }
+      ]
+    },
+    "proposed_plan": {
+      "id": "plan-race-001",
+      "version": 4,
+      "status": "active",
+      "goal_revision": 2,
+      "workouts": [
+        {
+          "id": "workout-completed-001",
+          "date": "2026-08-03",
+          "type": "easy",
+          "status": "completed",
+          "distance_miles": 4,
+          "duration_minutes": 40,
+          "pace_seconds_per_mile": 600,
+          "reason_code": "base_plan"
+        },
+        {
+          "id": "workout-future-002",
+          "date": "2026-08-12",
+          "type": "tempo",
+          "status": "scheduled",
+          "distance_miles": 5,
+          "duration_minutes": 45,
+          "pace_seconds_per_mile": 540,
+          "reason_code": "runner_edit"
+        },
+        {
+          "id": "workout-race-003",
+          "date": "2026-09-20",
+          "type": "race",
+          "status": "scheduled",
+          "distance_miles": 13.1,
+          "duration_minutes": 120,
+          "pace_seconds_per_mile": 550,
+          "reason_code": "race_day"
+        }
+      ]
+    },
+    "mutation": {
+      "action": "move",
+      "target_workout_id": "workout-future-002",
+      "explanation_code": "schedule_change"
+    },
+    "prior_operation": null
+  },
+  "commit_move_response": {
+    "schema_version": "mobile-plan-lifecycle.v1",
+    "result": "commit_ready",
+    "mutation_performed": false,
+    "base_version": 3,
+    "proposed_version": 4,
+    "reason_codes": [
+      "accepted"
+    ],
+    "impact": {
+      "affected_workout_ids": [
+        "workout-future-002"
+      ],
+      "completed_workouts_preserved": 1,
+      "total_workouts_before": 3,
+      "total_workouts_after": 3,
+      "warnings": []
+    },
+    "commit_plan": {
+      "id": "plan-race-001",
+      "version": 4,
+      "status": "active",
+      "goal_revision": 2,
+      "workouts": [
+        {
+          "id": "workout-completed-001",
+          "date": "2026-08-03",
+          "type": "easy",
+          "status": "completed",
+          "distance_miles": 4,
+          "duration_minutes": 40,
+          "pace_seconds_per_mile": 600,
+          "reason_code": "base_plan"
+        },
+        {
+          "id": "workout-future-002",
+          "date": "2026-08-12",
+          "type": "tempo",
+          "status": "scheduled",
+          "distance_miles": 5,
+          "duration_minutes": 45,
+          "pace_seconds_per_mile": 540,
+          "reason_code": "runner_edit"
+        },
+        {
+          "id": "workout-race-003",
+          "date": "2026-09-20",
+          "type": "race",
+          "status": "scheduled",
+          "distance_miles": 13.1,
+          "duration_minutes": 120,
+          "pace_seconds_per_mile": 550,
+          "reason_code": "race_day"
+        }
+      ]
+    },
+    "persistence": {
+      "required": true,
+      "owner_scoped_domains": [
+        "plan",
+        "plan_history",
+        "plan_operations"
+      ],
+      "transaction_preconditions": [
+        "authenticated_owner",
+        "current_version_matches",
+        "operation_id_absent_or_matching"
+      ]
+    }
+  }
+}

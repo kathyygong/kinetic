@@ -254,6 +254,54 @@ type ProductEventProperties = {
     deterministic_validation: "passed" | "failed" | "not_run";
     source: "deterministic" | "ollama";
   };
+  mobile_foundation_lifecycle: {
+    platform: "ios";
+    action:
+      | "session_restored"
+      | "onboarding_completed"
+      | "settings_updated"
+      | "deletion_requested"
+      | "failed";
+    outcome: "success" | "failed" | "invalid";
+    account_state: "active" | "deletion_requested" | "deleted";
+    permission_state: "not_determined" | "denied" | "partial" | "granted";
+    migration_state: "not_needed" | "pending" | "completed" | "failed";
+    deletion_scope: "none" | "training_data" | "account";
+    latency_ms: number;
+  };
+  mobile_plan_lifecycle: {
+    platform: "ios";
+    action:
+      | "generate"
+      | "save"
+      | "move"
+      | "shorten"
+      | "replace"
+      | "skip"
+      | "availability"
+      | "preferred_day"
+      | "regenerate_future"
+      | "pause"
+      | "resume";
+    outcome: "success" | "failed" | "invalid";
+    result: "preview" | "commit_ready" | "replayed" | "conflict" | "rejected";
+    mutation_state: "review_only" | "applied" | "rejected";
+    deterministic_validation: "passed" | "failed";
+    failure_state:
+      | "none"
+      | "auth_required"
+      | "offline"
+      | "timeout"
+      | "backend_unavailable"
+      | "version_conflict"
+      | "idempotency_conflict"
+      | "invalid_response"
+      | "unknown";
+    version_delta: number;
+    affected_count: number;
+    completed_preserved: number;
+    latency_ms: number;
+  };
 };
 
 export type ProductEventName = keyof ProductEventProperties;
@@ -455,6 +503,29 @@ const EVENT_KEYS: {
     "deterministic_validation",
     "source",
   ],
+  mobile_foundation_lifecycle: [
+    "platform",
+    "action",
+    "outcome",
+    "account_state",
+    "permission_state",
+    "migration_state",
+    "deletion_scope",
+    "latency_ms",
+  ],
+  mobile_plan_lifecycle: [
+    "platform",
+    "action",
+    "outcome",
+    "result",
+    "mutation_state",
+    "deterministic_validation",
+    "failure_state",
+    "version_delta",
+    "affected_count",
+    "completed_preserved",
+    "latency_ms",
+  ],
 };
 
 const ENUM_VALUES: Record<string, readonly string[]> = {
@@ -516,6 +587,21 @@ const ENUM_VALUES: Record<string, readonly string[]> = {
     "routed",
     "prompted",
     "caution",
+    "session_restored",
+    "onboarding_completed",
+    "settings_updated",
+    "deletion_requested",
+    "generate",
+    "save",
+    "move",
+    "shorten",
+    "replace",
+    "skip",
+    "availability",
+    "preferred_day",
+    "regenerate_future",
+    "pause",
+    "resume",
     "failed",
     "other",
   ],
@@ -550,6 +636,8 @@ const ENUM_VALUES: Record<string, readonly string[]> = {
     "invalid_payload",
     "state_conflict",
     "permission_denied",
+    "version_conflict",
+    "idempotency_conflict",
     "unknown",
     "other",
   ],
@@ -597,6 +685,17 @@ const ENUM_VALUES: Record<string, readonly string[]> = {
     "rejected",
     "other",
   ],
+  account_state: ["active", "deletion_requested", "deleted", "other"],
+  migration_state: ["not_needed", "pending", "completed", "failed", "other"],
+  deletion_scope: ["none", "training_data", "account", "other"],
+  result: [
+    "preview",
+    "commit_ready",
+    "replayed",
+    "conflict",
+    "rejected",
+    "other",
+  ],
   pattern_family: [
     "heavy_calendar_misses",
     "specific_day_skips",
@@ -629,10 +728,14 @@ const ENUM_VALUES: Record<string, readonly string[]> = {
     "profile",
     "goal",
     "plan",
+    "plan_history",
+    "plan_operations",
     "readiness",
     "workouts",
     "recommendations",
     "preferences",
+    "settings",
+    "onboarding",
     "dismissed_preferences",
     "today",
     "schedule",
@@ -668,6 +771,9 @@ const NUMBER_LIMITS: Record<string, [number, number, number]> = {
   factor_count: [0, 10, 1],
   modified_workout_count: [0, 100, 1],
   dropped_workout_count: [0, 100, 1],
+  version_delta: [0, 100, 1],
+  affected_count: [0, 200, 1],
+  completed_preserved: [0, 200, 1],
 };
 
 const SENSITIVE_KEY_PATTERNS = [
