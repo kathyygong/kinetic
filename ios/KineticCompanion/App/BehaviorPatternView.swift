@@ -2,9 +2,10 @@ import SwiftUI
 
 struct BehaviorPatternView: View {
     @ObservedObject var viewModel: TodayViewModel
+    @ObservedObject var planViewModel: MobilePlanViewModel
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.openURL) private var openURL
     @State private var showingCheckin = false
+    @State private var preferredPattern: BehaviorPattern?
 
     var body: some View {
         NavigationStack {
@@ -28,6 +29,28 @@ struct BehaviorPatternView: View {
             }
             .refreshable {
                 await viewModel.loadBehaviorPatterns()
+            }
+            .sheet(item: Binding(
+                get: { planViewModel.preview.map(BehaviorPlanPreview.init) },
+                set: { if $0 == nil { planViewModel.discardPreview(); preferredPattern = nil } }
+            )) { identified in
+                MobilePlanPreviewView(
+                    preview: identified.value,
+                    isWorking: planViewModel.isWorking,
+                    message: planViewModel.message,
+                    confirm: {
+                        let expectedVersion = identified.value.proposedPlan.version
+                        Task {
+                            await planViewModel.commitPreview()
+                            if planViewModel.plan?.version == expectedVersion,
+                               let pattern = preferredPattern {
+                                viewModel.markBehaviorPatternConfirmed(pattern)
+                                preferredPattern = nil
+                            }
+                        }
+                    },
+                    discard: { planViewModel.discardPreview(); preferredPattern = nil }
+                )
             }
             .sheet(isPresented: $showingCheckin) {
                 MobileCheckinView(
@@ -146,17 +169,20 @@ struct BehaviorPatternView: View {
             if viewModel.behaviorConfirmingIDs.contains(pattern.id) {
                 ProgressView("Saving bounded preference")
             }
-        case .preferredDay(_, _, _, _, _):
+        case .preferredDay(_, _, _, let strategy, let observedDay):
             Text(
-                "Preferred-day confirmation stays on the web in v1 so the existing deterministic plan validator remains the only authority."
+                "This creates a native plan preview. Nothing changes until the shared validator accepts it and you confirm."
             )
             .font(.caption)
             .foregroundStyle(.secondary)
             Button {
                 viewModel.markBehaviorPatternRouted(pattern)
-                openURL(MobileTodayAppConfiguration.webProfileURL)
+                Task {
+                    await planViewModel.previewPreferredDay(strategy: strategy, observedDay: observedDay)
+                    if planViewModel.preview != nil { preferredPattern = pattern }
+                }
             } label: {
-                Label("Open web schedule review", systemImage: "safari")
+                Label(pattern.result.actionLabel, systemImage: "calendar.badge.clock")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
@@ -257,4 +283,9 @@ struct BehaviorPatternView: View {
     private func label(_ value: String) -> String {
         value.replacingOccurrences(of: "_", with: " ").capitalized
     }
+}
+
+private struct BehaviorPlanPreview: Identifiable {
+    var value: MobilePlanPendingPreview
+    var id: String { value.operationID }
 }

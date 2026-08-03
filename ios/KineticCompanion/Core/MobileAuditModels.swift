@@ -7,6 +7,7 @@ enum MobileAuditEventName: String, Codable, CaseIterable {
     case checkinSynced = "mobile_checkin_synced"
     case patternResultLifecycle = "mobile_pattern_result_lifecycle"
     case foundationLifecycle = "mobile_foundation_lifecycle"
+    case planLifecycle = "mobile_plan_lifecycle"
 }
 
 enum MobileFoundationAuditAction: String, Codable { case session, onboarding, settings, deletion }
@@ -24,6 +25,38 @@ struct MobileFoundationLifecycleAudit: MobileAuditPayload {
     var latencyMs: Int
     enum CodingKeys: String, CodingKey {
         case platform, action, outcome, accountState = "account_state", permissionState = "permission_state", migrationState = "migration_state", latencyMs = "latency_ms"
+    }
+}
+
+enum MobilePlanAuditFailureState: String, Codable {
+    case none, authRequired = "auth_required", offline, timeout
+    case backendUnavailable = "backend_unavailable", versionConflict = "version_conflict"
+    case idempotencyConflict = "idempotency_conflict", invalidResponse = "invalid_response", unknown
+}
+
+struct MobilePlanLifecycleAudit: MobileAuditPayload {
+    static let eventName = MobileAuditEventName.planLifecycle
+    var platform = MobilePlatform.ios
+    var action: MobilePlanAction
+    var outcome: MobileDecisionOutcome
+    var result: MobilePlanResult
+    var mutationState: MobileIntakeMutationState
+    var deterministicValidation: DeterministicValidationState
+    var failureState: MobilePlanAuditFailureState
+    var versionDelta: Int
+    var affectedCount: Int
+    var completedPreserved: Int
+    var latencyMs: Int
+
+    enum CodingKeys: String, CodingKey {
+        case platform, action, outcome, result
+        case mutationState = "mutation_state"
+        case deterministicValidation = "deterministic_validation"
+        case failureState = "failure_state"
+        case versionDelta = "version_delta"
+        case affectedCount = "affected_count"
+        case completedPreserved = "completed_preserved"
+        case latencyMs = "latency_ms"
     }
 }
 

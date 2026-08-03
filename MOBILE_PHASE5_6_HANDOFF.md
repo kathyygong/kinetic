@@ -14,9 +14,10 @@ zero-advisory connected audit.
 
 ## Phase 5 native implementation checkpoint — 2026-08-03
 
-Native Phase 5 implementation is now present in this branch, but the phase is
-not marked complete and has not been committed as the formal checkpoint. The
-remaining authenticated and physical-device gates below must pass first.
+Native Phase 5 implementation is committed at `bfbaaef` as an explicit
+implementation checkpoint. By owner decision, the phase is not marked
+complete: the remaining authenticated and physical-device gates below are
+deferred into one combined Phase 5–6 proof pass before merge or Phase 7.
 
 Implemented:
 
@@ -51,7 +52,7 @@ Automated/local evidence:
 
 ```text
 Date: 2026-08-03
-Branch source: codex/mobile-phase5-6-contracts at c9e375a plus uncommitted native implementation
+Branch source: codex/mobile-phase5-6-contracts at bfbaaef
 macOS/Xcode: current Mac; Xcode 26.3 (17C529)
 Focused Phase 3.5 entry tests: BehaviorPatternContractFixtureTests 4/4; MobileAuditModelsTests baseline 5/5
 Baseline complete Swift suite: 52/52
@@ -73,7 +74,7 @@ owner-scoped goal/profile writes, and the focused/full suites pass at 4/4 and
 cleanly at accessibility XXXL with increased contrast; its error/fault log is
 clean after removing a premature Firebase configuration lookup.
 
-Remaining before the formal Phase 5 checkpoint and before starting Phase 6:
+Deferred gates required before declaring Phases 5–6 complete or starting Phase 7:
 
 - authenticated pattern-card VoiceOver order/labels, landscape, and small-screen
   traversal on the carried Phase 3.5 surface;
@@ -87,29 +88,73 @@ Remaining before the formal Phase 5 checkpoint and before starting Phase 6:
 - restore a valid Xcode account/provisioning profile for
   `com.kinetic.companion` without changing bundle identity or entitlements.
 
+## Phase 6 native implementation checkpoint — 2026-08-03
+
+Implemented after the Phase 5 checkpoint:
+
+- strict Swift request/response, exact-key, explicit-null, semantic, and
+  privacy validation for `mobile-plan-lifecycle.v1`;
+- a native deterministic proposal builder derived from the existing shared
+  plan-generator rules and saved owner-scoped goal/profile inputs, including
+  bounded volume/taper/pace rules, preferred-day mapping, hard-effort spacing,
+  stable workout identity, and locked race day;
+- authenticated finite-deadline `POST /mobile/plan-lifecycle` networking;
+- a real Plan tab for native generate, preview, explicit confirm, save/browse,
+  move, shorten, replace, skip, availability, preferred-day, future
+  regeneration, pause, and resume paths;
+- replaced the Phase 3.5 preferred-day pattern Safari handoff with that same
+  native validator/transaction review path and success audit;
+- persistence of only `commit_ready` packages in one owner-scoped Firestore
+  transaction across `plan`, `plan_history`, and `plan_operations`, with a
+  deletion-boundary read, current-version equality, exact replay, and
+  different-fingerprint idempotency conflict handling;
+- fail-closed legacy-plan detection: proof-era data remains untouched until
+  the runner approves a backend-validated native replacement, then the raw
+  prior payload is retained in `plan_history` for recovery;
+- bounded `mobile_plan_lifecycle` native audit output with no operation ID,
+  fingerprint, workout content, date, goal, identity, or health fields.
+
+Automated/local evidence:
+
+```text
+Phase 6 focused Swift tests: 7/7
+Complete Swift suite: 65/65
+Unsigned generic iOS Simulator build: passed
+Concrete iPhone SE (3rd generation), iOS 26.3.1 build/install/launch: passed
+Simulator error/fault log after launch: clean
+```
+
+The Swift gates cover canonical fixture parity, exact endpoint/auth behavior,
+malformed/privacy/persistence rejection, every lifecycle action, deterministic
+generation bounds and spacing, stable SHA-256 fingerprints, stale-version
+conflict, exact-operation replay, different-fingerprint conflict, missing auth,
+and offline failure. The backend remains storage-neutral; SwiftUI never writes
+a proposal directly.
+
+Still open before Phase 6 closeout:
+
+- authenticated owner generate/preview/commit/browse and all-action live
+  readback against the reachable backend and Firestore;
+- owner-only transaction, same-operation retry, cross-user denial, deletion
+  boundary, legacy replacement, and `/qa/mobile` privacy readback;
+- rejected spacing/race/completed-history UI and offline retry interaction;
+- the combined Phase 5–6 VoiceOver, Dynamic Type, contrast, landscape,
+  small-screen, and signed physical-device matrix.
+
 ## Copy-ready continuation prompt
 
-> Continue Mobile Phase 5 native foundation implementation, then checkpoint it
-> before Mobile Phase 6. Read `MOBILE_FOUNDATION_PLAN_CONTRACT.md`,
+> Continue the combined Mobile Phase 5–6 proof pass. Read
+> `MOBILE_FOUNDATION_PLAN_CONTRACT.md`,
 > `MOBILE_NOTIFICATION_CONTRACT.md`, and
-> `MOBILE_PATTERN_RESULT_HANDOFF.md`. Start by running the deferred
-> authenticated pattern-card VoiceOver, Dynamic Type, landscape, and
-> small-screen checks. Migrate the proof-era KineticCompanion identity
-> deliberately, preserving signing, Firebase configuration, entitlements, and
-> tests. Build permanent Today/Plan/Progress/Settings navigation, Firebase Auth
-> account creation/recovery/session restoration, native onboarding,
-> progressive permissions, privacy/support/export/deletion controls, and the
-> local-only evening reminder inside Settings. Consume
-> `mobile-foundation.v1`; do not invent additional persisted identity or
-> permission states. Run the affected accessibility/device checks and commit a
-> Phase 5 checkpoint. Then implement Phase 6 against
-> `mobile-plan-lifecycle.v1`: native generate/preview/save/browse and bounded
-> lifecycle actions must call the authenticated backend validator; persist
-> only `commit_ready` packages in one owner-scoped Firestore transaction with
-> plan history and operation idempotency. Preserve completed workouts and race
-> day, surface conflicts/rejections, and add Swift fixture tests. Do not add
-> EventKit behavior or a second native planning authority. Return to Windows
-> only for a blocking shared-contract fix or final integration.
+> `MOBILE_PATTERN_RESULT_HANDOFF.md`. Restore the Apple signing account and use
+> a disposable authenticated owner against a reachable backend. Run the
+> deferred foundation/pattern accessibility checks plus native plan
+> generate/preview/commit/browse and all eleven lifecycle actions. Prove the
+> owner-only three-document transaction,
+> conflict/replay/offline/deletion/legacy behavior, and privacy-safe
+> `/qa/mobile` readback. Close the combined physical VoiceOver, Dynamic Type,
+> contrast, landscape, and small-screen matrix without changing bundle identity
+> or entitlements. Do not start Phase 7 EventKit until these gates pass.
 
 ## Phase 5 checkpoint evidence
 

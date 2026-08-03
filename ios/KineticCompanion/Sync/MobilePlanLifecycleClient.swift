@@ -1,0 +1,54 @@
+import Foundation
+
+enum MobilePlanNetworkFailure: String, Error, Codable {
+    case authRequired = "auth_required", offline, timeout
+    case backendUnavailable = "backend_unavailable", invalidResponse = "invalid_response", unknown
+}
+
+struct MobilePlanNetworkError: Error, Equatable {
+    var failure: MobilePlanNetworkFailure
+    var status: Int?
+}
+
+protocol MobilePlanLifecycleNetworking {
+    func validate(request: MobilePlanLifecycleRequest, idToken: String) async throws -> MobilePlanLifecycleResponse
+}
+
+final class URLSessionMobilePlanLifecycleClient: MobilePlanLifecycleNetworking {
+    private let baseURL: URL
+    private let session: URLSession
+    private let timeout: TimeInterval
+
+    init(baseURL: URL = MobileTodayAppConfiguration.apiBaseURL, session: URLSession = .shared, timeout: TimeInterval = 30) {
+        self.baseURL = baseURL; self.session = session; self.timeout = timeout
+    }
+
+    func validate(request: MobilePlanLifecycleRequest, idToken: String) async throws -> MobilePlanLifecycleResponse {
+        guard !idToken.isEmpty else { throw MobilePlanNetworkError(failure: .authRequired) }
+        let valid = try request.validated()
+        let url = baseURL.appendingPathComponent("mobile").appendingPathComponent("plan-lifecycle")
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = "POST"; urlRequest.timeoutInterval = timeout
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue("Bearer \(idToken)", forHTTPHeaderField: "Authorization")
+        urlRequest.httpBody = try JSONEncoder().encode(valid)
+        do {
+            let (data, response) = try await session.data(for: urlRequest)
+            guard let http = response as? HTTPURLResponse else { throw MobilePlanNetworkError(failure: .invalidResponse) }
+            guard (200...299).contains(http.statusCode) else {
+                let failure: MobilePlanNetworkFailure = if http.statusCode == 401 || http.statusCode == 403 { .authRequired } else if http.statusCode == 408 || http.statusCode == 504 { .timeout } else if http.statusCode >= 500 { .backendUnavailable } else { .invalidResponse }
+                throw MobilePlanNetworkError(failure: failure, status: http.statusCode)
+            }
+            do { return try MobilePlanLifecycleResponse.decodeStrict(data) }
+            catch { throw MobilePlanNetworkError(failure: .invalidResponse) }
+        } catch let error as MobilePlanNetworkError { throw error }
+        catch let error as URLError {
+            let failure: MobilePlanNetworkFailure = switch error.code {
+            case .timedOut: .timeout
+            case .notConnectedToInternet, .networkConnectionLost, .cannotConnectToHost, .cannotFindHost, .dnsLookupFailed, .internationalRoamingOff: .offline
+            default: .unknown
+            }
+            throw MobilePlanNetworkError(failure: failure)
+        } catch { throw MobilePlanNetworkError(failure: .unknown) }
+    }
+}

@@ -70,11 +70,18 @@ paths continue to work.
   sign-in/session restoration/sign-out, permanent Today/Plan/Progress/Settings
   navigation, native onboarding, progressive permission education, privacy/
   support/data controls, and the opt-in local evening reminder.
+- Strict `mobile-plan-lifecycle.v1` Swift parity, deterministic native plan
+  proposals from saved goal/profile inputs, authenticated backend validation,
+  explicit preview/confirm UI for all eleven lifecycle actions, and atomic
+  owner-scoped plan/history/operation persistence with conflict and replay
+  protection.
+- Preferred-day behavior patterns now open the native plan review/validator
+  path instead of a web profile handoff.
 
-The current app does not yet include full bounded plan ownership, real Apple
-Calendar ingestion, or the Phase 7 progress implementation. Plan and Progress
-tabs are intentionally honest placeholders until those shared authorities are
-implemented. General chat,
+The current app includes the Phase 6 bounded plan-ownership implementation but
+still requires authenticated/physical closeout proof. It does not include real
+Apple Calendar ingestion or the Phase 7 progress implementation; Progress is
+an honest placeholder. General chat,
 autonomous AI mutation, raw HealthKit cloud sync, full two-way Calendar sync,
 Garmin/Oura, coach/social features, and broad push notifications remain out of
 scope. Phase 4 Windows/shared work defines only an opt-in local evening
@@ -200,8 +207,9 @@ swift test
 ```
 
 The Phase 5 focused gate is `swift test --filter
-MobileFoundationContractFixtureTests`; the complete suite currently contains
-57 tests. The authoritative signed-build, simulator/device route, same-user web
+MobileFoundationContractFixtureTests`. The Phase 6 focused gate is `swift test
+--filter MobilePlanLifecycleContractFixtureTests`; the complete suite currently
+contains 65 tests. The authoritative signed-build, simulator/device route, same-user web
 readback, audit privacy, accessibility, rollback-control, and evidence
 checklist is
 [`MOBILE_PATTERN_RESULT_HANDOFF.md`](../../MOBILE_PATTERN_RESULT_HANDOFF.md).
@@ -226,6 +234,9 @@ unverified and must run at the start of the next native-iOS-UI phase and before
 external beta. That next UI phase is Mobile Phase 5: native foundation,
 onboarding, and Settings. The notification boundary is governed by
 [`MOBILE_NOTIFICATION_CONTRACT.md`](../../MOBILE_NOTIFICATION_CONTRACT.md).
+The Phase 5 implementation checkpoint is `bfbaaef`; Phase 6 implementation and
+the combined deferred closeout gates are tracked in
+[`MOBILE_PHASE5_6_HANDOFF.md`](../../MOBILE_PHASE5_6_HANDOFF.md).
 Final shared Windows/hosted
 integration and the owner-only emulator suite passed in run
 [30105302955](https://github.com/kathyygong/kinetic/actions/runs/30105302955).

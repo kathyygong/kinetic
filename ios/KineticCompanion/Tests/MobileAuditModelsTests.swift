@@ -74,9 +74,26 @@ final class MobileAuditModelsTests: XCTestCase {
                 "mobile_intake_lifecycle",
                 "mobile_checkin_synced",
                 "mobile_pattern_result_lifecycle",
-                "mobile_foundation_lifecycle"
+                "mobile_foundation_lifecycle",
+                "mobile_plan_lifecycle"
             ])
         )
+    }
+
+    func testPlanLifecycleAuditUsesOnlyBoundedContractVocabulary() throws {
+        let envelope = MobileAuditEnvelope(properties: MobilePlanLifecycleAudit(
+            action: .move, outcome: .success, result: .commitReady,
+            mutationState: .applied, deterministicValidation: .passed,
+            failureState: .none, versionDelta: 1, affectedCount: 1,
+            completedPreserved: 3, latencyMs: 120
+        ))
+        let payload = try encodedJson(envelope)
+        XCTAssertEqual(payload["name"] as? String, "mobile_plan_lifecycle")
+        let properties = try XCTUnwrap(payload["properties"] as? [String: Any])
+        XCTAssertEqual(Set(properties.keys), ["platform", "action", "outcome", "result", "mutation_state", "deterministic_validation", "failure_state", "version_delta", "affected_count", "completed_preserved", "latency_ms"])
+        XCTAssertEqual(properties["action"] as? String, "move")
+        XCTAssertEqual(properties["result"] as? String, "commit_ready")
+        assertNoSensitiveKeys(properties)
     }
 
     func testFoundationAuditUsesOnlyBoundedContractVocabulary() throws {

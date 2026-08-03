@@ -6,6 +6,7 @@ struct KineticCompanionApp: App {
     private static var firebaseConfigured = false
     @StateObject private var viewModel: TodayViewModel
     @StateObject private var foundationViewModel: MobileFoundationViewModel
+    @StateObject private var planViewModel: MobilePlanViewModel
 
     init() {
         let firebaseConfigured = Self.configureFirebase()
@@ -13,11 +14,12 @@ struct KineticCompanionApp: App {
             wrappedValue: TodayViewModel(firebaseConfigured: firebaseConfigured)
         )
         _foundationViewModel = StateObject(wrappedValue: MobileFoundationViewModel(configured: firebaseConfigured))
+        _planViewModel = StateObject(wrappedValue: MobilePlanViewModel(configured: firebaseConfigured))
     }
 
     var body: some Scene {
         WindowGroup {
-            MobileRootView(foundation: foundationViewModel, today: viewModel)
+            MobileRootView(foundation: foundationViewModel, today: viewModel, plan: planViewModel)
         }
     }
 

@@ -3,6 +3,7 @@ import SwiftUI
 struct MobileRootView: View {
     @ObservedObject var foundation: MobileFoundationViewModel
     @ObservedObject var today: TodayViewModel
+    @ObservedObject var plan: MobilePlanViewModel
 
     var body: some View {
         Group {
@@ -12,13 +13,16 @@ struct MobileRootView: View {
             } else { MobileAuthView(viewModel: foundation) }
         }
         .task { await foundation.restore(); if foundation.isSignedIn { await today.restoreSession() } }
-        .onChange(of: foundation.isSignedIn) { _, signedIn in if signedIn { Task { await today.restoreSession() } } }
+        .onChange(of: foundation.isSignedIn) { _, signedIn in
+            if signedIn { Task { await today.restoreSession(); await plan.restore() } }
+            else { plan.clear() }
+        }
     }
 
     private func productTabs(_ state: MobileFoundationState) -> some View {
         TabView(selection: Binding(get: { state.route == .onboarding ? .today : state.route }, set: { route in Task { await foundation.selectRoute(route) } })) {
-            TodayView(viewModel: today, embeddedInProduct: true).tabItem { Label("Today", systemImage: "figure.run") }.tag(MobileProductRoute.today)
-            PlaceholderProductView(title: "Plan", detail: "Native plan ownership arrives in Phase 6.", icon: "calendar").tabItem { Label("Plan", systemImage: "calendar") }.tag(MobileProductRoute.plan)
+            TodayView(viewModel: today, planViewModel: plan, embeddedInProduct: true).tabItem { Label("Today", systemImage: "figure.run") }.tag(MobileProductRoute.today)
+            MobilePlanView(viewModel: plan).tabItem { Label("Plan", systemImage: "calendar") }.tag(MobileProductRoute.plan)
             PlaceholderProductView(title: "Progress", detail: "Recent check-ins and pattern review stay available from Today while Progress is built.", icon: "chart.line.uptrend.xyaxis").tabItem { Label("Progress", systemImage: "chart.line.uptrend.xyaxis") }.tag(MobileProductRoute.progress)
             MobileSettingsView(foundation: foundation, today: today).tabItem { Label("Settings", systemImage: "gearshape") }.tag(MobileProductRoute.settings)
         }

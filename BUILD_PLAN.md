@@ -1321,12 +1321,12 @@ branch was fast-forwarded into `main` on 2026-07-23.
   target/product/scheme migration while retaining the registered
   `com.kinetic.companion` bundle ID. All 57 Swift tests, a clean unsigned
   simulator build, and a concrete ad-hoc-signed iPhone SE/iOS 26.3.1 install/
-  launch at accessibility XXXL with increased contrast pass. The formal Phase
-  5 checkpoint remains open for
+  launch at accessibility XXXL with increased contrast pass. The implementation
+  checkpoint is committed at `bfbaaef`; formal Phase 5 completion remains open for
   authenticated/physical accessibility, route/auth/deletion/readback, and
   signed-device proof. See [MOBILE_PHASE5_6_HANDOFF.md](./MOBILE_PHASE5_6_HANDOFF.md).
 
-### Mobile Phase 6 Native Plan Lifecycle - Planned
+### Mobile Phase 6 Native Plan Lifecycle - Mac Implementation Checkpoint 2026-08-03
 
 - Generate, preview, confirm, save, browse, and maintain the full plan natively.
 - Support bounded move, shorten, replace, skip, availability, preferred-day,
@@ -1336,6 +1336,21 @@ branch was fast-forwarded into `main` on 2026-07-23.
   idempotent, conflict-aware, and recoverable.
 - Remove the normal-runner web handoff for preferred-day confirmation and plan
   maintenance.
+- Implemented strict `mobile-plan-lifecycle.v1` Swift parity, deterministic
+  native proposals from owner-scoped goal/profile inputs, authenticated
+  backend validation, an explicit preview/confirm Plan tab for all eleven
+  actions, and a single `plan`/`plan_history`/`plan_operations` Firestore
+  transaction that persists only `commit_ready` packages and enforces
+  version/idempotency/deletion gates.
+- Preferred-day behavior-pattern review now opens this native validator path
+  instead of routing normal plan maintenance to the web.
+- Phase 6 focused tests pass 7/7 and the full Swift suite passes 65/65. Clean
+  unsigned generic simulator build plus concrete iPhone SE/iOS 26.3.1
+  build/install/launch and error/fault-log checks pass. Authenticated live
+  owner/cross-user/readback, retry/rejection interaction, and the combined
+  Phase 5–6 signed physical/accessibility matrix remain required before
+  closeout or Phase 7. See
+  [MOBILE_PHASE5_6_HANDOFF.md](./MOBILE_PHASE5_6_HANDOFF.md).
 
 ### Mobile Phase 7 Apple Calendar And Progress - Planned
 

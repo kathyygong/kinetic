@@ -516,6 +516,18 @@ final class TodayViewModel: ObservableObject {
         )
     }
 
+    func markBehaviorPatternConfirmed(_ pattern: BehaviorPattern) {
+        confirmedBehaviorPatternIDs.insert(pattern.id)
+        behaviorMessage = "Preferred-day plan change saved through the native validator."
+        emitBehaviorAudit(
+            action: .confirmed,
+            outcome: .success,
+            pattern: pattern,
+            mutation: .applied,
+            validation: .passed
+        )
+    }
+
     func resetBehaviorPatterns() {
         behaviorLoading = false
         behaviorResponse = nil
@@ -1015,6 +1027,7 @@ final class TodayViewModel: ObservableObject {
 
 struct TodayView: View {
     @ObservedObject var viewModel: TodayViewModel
+    @ObservedObject var planViewModel: MobilePlanViewModel
     var embeddedInProduct = false
     @State private var email = ""
     @State private var password = ""
@@ -1196,10 +1209,10 @@ struct TodayView: View {
             }
             .buttonStyle(.bordered)
             .sheet(isPresented: $showingBehaviorPatterns) {
-                BehaviorPatternView(viewModel: viewModel)
+                BehaviorPatternView(viewModel: viewModel, planViewModel: planViewModel)
             }
             Text(
-                "Review never writes. Scoring preferences require confirmation; schedule changes stay in the deterministically validated web flow."
+                "Review never writes. Scoring and preferred-day changes require confirmation; plan changes use the native deterministic validator."
             )
             .font(.caption)
             .foregroundStyle(.secondary)
