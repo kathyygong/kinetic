@@ -3,26 +3,26 @@ import SwiftUI
 
 @main
 struct KineticCompanionApp: App {
+    private static var firebaseConfigured = false
     @StateObject private var viewModel: TodayViewModel
+    @StateObject private var foundationViewModel: MobileFoundationViewModel
 
     init() {
         let firebaseConfigured = Self.configureFirebase()
         _viewModel = StateObject(
             wrappedValue: TodayViewModel(firebaseConfigured: firebaseConfigured)
         )
+        _foundationViewModel = StateObject(wrappedValue: MobileFoundationViewModel(configured: firebaseConfigured))
     }
 
     var body: some Scene {
         WindowGroup {
-            TodayView(viewModel: viewModel)
-                .task {
-                    await viewModel.restoreSession()
-                }
+            MobileRootView(foundation: foundationViewModel, today: viewModel)
         }
     }
 
     private static func configureFirebase() -> Bool {
-        if FirebaseApp.app() != nil {
+        if firebaseConfigured {
             return true
         }
         guard
@@ -32,6 +32,7 @@ struct KineticCompanionApp: App {
             return false
         }
         FirebaseApp.configure(options: options)
+        firebaseConfigured = true
         return true
     }
 }

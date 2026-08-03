@@ -26,6 +26,12 @@
 		B40000000000000000000002 /* BehaviorPatternClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000002 /* BehaviorPatternClient.swift */; };
 		B40000000000000000000003 /* FirestoreBehaviorPreferenceClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000003 /* FirestoreBehaviorPreferenceClient.swift */; };
 		B40000000000000000000004 /* BehaviorPatternView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000004 /* BehaviorPatternView.swift */; };
+		B50000000000000000000001 /* MobileFoundationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A50000000000000000000001 /* MobileFoundationModels.swift */; };
+		B50000000000000000000002 /* MobileNotificationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A50000000000000000000002 /* MobileNotificationModels.swift */; };
+		B50000000000000000000003 /* FirestoreFoundationClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A50000000000000000000003 /* FirestoreFoundationClient.swift */; };
+		B50000000000000000000004 /* LocalEveningReminderClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A50000000000000000000004 /* LocalEveningReminderClient.swift */; };
+		B50000000000000000000005 /* MobileFoundationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A50000000000000000000005 /* MobileFoundationViewModel.swift */; };
+		B50000000000000000000006 /* MobileFoundationViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A50000000000000000000006 /* MobileFoundationViews.swift */; };
 		0D12F96022DCA9EF3C28C083 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 6985C3D2B62E235EA17E146B /* FirebaseAuth */; };
 		19A41C44B7B7EAC0027B8530 /* KineticCompanionApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88DE97D168A7D0850DD4C339 /* KineticCompanionApp.swift */; };
 		3C51B6B1E9756E35B77D4245 /* HealthKitReadinessStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC5EA145914F61B82E2A2012 /* HealthKitReadinessStore.swift */; };
@@ -61,7 +67,13 @@
 		A40000000000000000000002 /* BehaviorPatternClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BehaviorPatternClient.swift; sourceTree = "<group>"; };
 		A40000000000000000000003 /* FirestoreBehaviorPreferenceClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreBehaviorPreferenceClient.swift; sourceTree = "<group>"; };
 		A40000000000000000000004 /* BehaviorPatternView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BehaviorPatternView.swift; sourceTree = "<group>"; };
-		48A776192600D3C0D26B0392 /* KineticCompanion.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KineticCompanion.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A50000000000000000000001 /* MobileFoundationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileFoundationModels.swift; sourceTree = "<group>"; };
+		A50000000000000000000002 /* MobileNotificationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileNotificationModels.swift; sourceTree = "<group>"; };
+		A50000000000000000000003 /* FirestoreFoundationClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreFoundationClient.swift; sourceTree = "<group>"; };
+		A50000000000000000000004 /* LocalEveningReminderClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalEveningReminderClient.swift; sourceTree = "<group>"; };
+		A50000000000000000000005 /* MobileFoundationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileFoundationViewModel.swift; sourceTree = "<group>"; };
+		A50000000000000000000006 /* MobileFoundationViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileFoundationViews.swift; sourceTree = "<group>"; };
+		48A776192600D3C0D26B0392 /* Kinetic.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kinetic.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		548BC69A4C8329E046EC1A47 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		70ED0161ECBE4358A3ED7DE2 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
 		88DE97D168A7D0850DD4C339 /* KineticCompanionApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KineticCompanionApp.swift; sourceTree = "<group>"; };
@@ -92,6 +104,8 @@
 		0374A3DD96495D6C05A5F8BA /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				A50000000000000000000001 /* MobileFoundationModels.swift */,
+				A50000000000000000000002 /* MobileNotificationModels.swift */,
 				A40000000000000000000001 /* BehaviorPatternModels.swift */,
 				918FAE71321C37EDF1A06DCC /* MobileAuditModels.swift */,
 				A30000000000000000000001 /* MobileCheckinModels.swift */,
@@ -110,6 +124,8 @@
 		2334E79EED3B015E956CF00E /* Sync */ = {
 			isa = PBXGroup;
 			children = (
+				A50000000000000000000003 /* FirestoreFoundationClient.swift */,
+				A50000000000000000000004 /* LocalEveningReminderClient.swift */,
 				A40000000000000000000002 /* BehaviorPatternClient.swift */,
 				A40000000000000000000003 /* FirestoreBehaviorPreferenceClient.swift */,
 				A30000000000000000000002 /* FirestoreMobileCheckinClient.swift */,
@@ -126,7 +142,7 @@
 		308D2943E88021B480C81BED /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				48A776192600D3C0D26B0392 /* KineticCompanion.app */,
+				48A776192600D3C0D26B0392 /* Kinetic.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -155,6 +171,8 @@
 		94C8973B391732B25B35429F /* App */ = {
 			isa = PBXGroup;
 			children = (
+				A50000000000000000000005 /* MobileFoundationViewModel.swift */,
+				A50000000000000000000006 /* MobileFoundationViews.swift */,
 				A40000000000000000000004 /* BehaviorPatternView.swift */,
 				548BC69A4C8329E046EC1A47 /* DesignTokens.swift */,
 				88DE97D168A7D0850DD4C339 /* KineticCompanionApp.swift */,
@@ -184,9 +202,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		46ED850EA46C50F0F962EEB9 /* KineticCompanion */ = {
+		46ED850EA46C50F0F962EEB9 /* Kinetic */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 580536F2821565B90B94B775 /* Build configuration list for PBXNativeTarget "KineticCompanion" */;
+			buildConfigurationList = 580536F2821565B90B94B775 /* Build configuration list for PBXNativeTarget "Kinetic" */;
 			buildPhases = (
 				EA51485081C9C148532D3D57 /* Sources */,
 				013EAA03501627ED725EFE2E /* Frameworks */,
@@ -196,14 +214,14 @@
 			);
 			dependencies = (
 			);
-			name = KineticCompanion;
+			name = Kinetic;
 			packageProductDependencies = (
 				E679B639CC0FF1FBAED8E561 /* FirebaseCore */,
 				6985C3D2B62E235EA17E146B /* FirebaseAuth */,
 				E991FB28542A45F8BDE245BA /* FirebaseFirestore */,
 			);
-			productName = KineticCompanion;
-			productReference = 48A776192600D3C0D26B0392 /* KineticCompanion.app */;
+			productName = Kinetic;
+			productReference = 48A776192600D3C0D26B0392 /* Kinetic.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -242,7 +260,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				46ED850EA46C50F0F962EEB9 /* KineticCompanion */,
+				46ED850EA46C50F0F962EEB9 /* Kinetic */,
 			);
 		};
 /* End PBXProject section */
@@ -263,6 +281,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B50000000000000000000001 /* MobileFoundationModels.swift in Sources */,
+				B50000000000000000000002 /* MobileNotificationModels.swift in Sources */,
+				B50000000000000000000003 /* FirestoreFoundationClient.swift in Sources */,
+				B50000000000000000000004 /* LocalEveningReminderClient.swift in Sources */,
+				B50000000000000000000005 /* MobileFoundationViewModel.swift in Sources */,
+				B50000000000000000000006 /* MobileFoundationViews.swift in Sources */,
 				AAD4C8C83D1EB82AE7C18583 /* DesignTokens.swift in Sources */,
 				B40000000000000000000001 /* BehaviorPatternModels.swift in Sources */,
 				B40000000000000000000002 /* BehaviorPatternClient.swift in Sources */,
@@ -322,7 +346,7 @@
 					"-ObjC",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.kinetic.companion;
-				PRODUCT_NAME = KineticCompanion;
+				PRODUCT_NAME = Kinetic;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.9;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -410,7 +434,7 @@
 					"-ObjC",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.kinetic.companion;
-				PRODUCT_NAME = KineticCompanion;
+				PRODUCT_NAME = Kinetic;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.9;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -492,7 +516,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		580536F2821565B90B94B775 /* Build configuration list for PBXNativeTarget "KineticCompanion" */ = {
+		580536F2821565B90B94B775 /* Build configuration list for PBXNativeTarget "Kinetic" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				74B441BD10C193FD00D92288 /* Debug */,

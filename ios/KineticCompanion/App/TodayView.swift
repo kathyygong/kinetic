@@ -1015,6 +1015,7 @@ final class TodayViewModel: ObservableObject {
 
 struct TodayView: View {
     @ObservedObject var viewModel: TodayViewModel
+    var embeddedInProduct = false
     @State private var email = ""
     @State private var password = ""
     @State private var showingReconnectConfirmation = false
@@ -1034,7 +1035,7 @@ struct TodayView: View {
             }
             .navigationTitle(viewModel.isSignedIn ? "Today" : "Kinetic")
             .toolbar {
-                if viewModel.isSignedIn {
+                if viewModel.isSignedIn && !embeddedInProduct {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button {
                             viewModel.signOut()

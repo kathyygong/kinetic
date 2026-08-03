@@ -6,6 +6,25 @@ enum MobileAuditEventName: String, Codable, CaseIterable {
     case intakeLifecycle = "mobile_intake_lifecycle"
     case checkinSynced = "mobile_checkin_synced"
     case patternResultLifecycle = "mobile_pattern_result_lifecycle"
+    case foundationLifecycle = "mobile_foundation_lifecycle"
+}
+
+enum MobileFoundationAuditAction: String, Codable { case session, onboarding, settings, deletion }
+enum MobileFoundationAuditOutcome: String, Codable { case success, failed, deferred, retry }
+enum MobileFoundationPermissionAggregate: String, Codable { case none, partial, complete }
+
+struct MobileFoundationLifecycleAudit: MobileAuditPayload {
+    static let eventName = MobileAuditEventName.foundationLifecycle
+    var platform = MobilePlatform.ios
+    var action: MobileFoundationAuditAction
+    var outcome: MobileFoundationAuditOutcome
+    var accountState: MobileAccountState
+    var permissionState: MobileFoundationPermissionAggregate
+    var migrationState: MobileMigrationState
+    var latencyMs: Int
+    enum CodingKeys: String, CodingKey {
+        case platform, action, outcome, accountState = "account_state", permissionState = "permission_state", migrationState = "migration_state", latencyMs = "latency_ms"
+    }
 }
 
 enum MobilePlatform: String, Codable {

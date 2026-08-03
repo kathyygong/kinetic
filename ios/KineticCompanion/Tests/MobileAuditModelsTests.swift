@@ -73,9 +73,28 @@ final class MobileAuditModelsTests: XCTestCase {
                 "mobile_decision_validated",
                 "mobile_intake_lifecycle",
                 "mobile_checkin_synced",
-                "mobile_pattern_result_lifecycle"
+                "mobile_pattern_result_lifecycle",
+                "mobile_foundation_lifecycle"
             ])
         )
+    }
+
+    func testFoundationAuditUsesOnlyBoundedContractVocabulary() throws {
+        let envelope = MobileAuditEnvelope(
+            properties: MobileFoundationLifecycleAudit(
+                action: .onboarding,
+                outcome: .deferred,
+                accountState: .active,
+                permissionState: .partial,
+                migrationState: .completed,
+                latencyMs: 120
+            )
+        )
+        let payload = try encodedJson(envelope)
+        XCTAssertEqual(payload["name"] as? String, "mobile_foundation_lifecycle")
+        let properties = try XCTUnwrap(payload["properties"] as? [String: Any])
+        XCTAssertEqual(Set(properties.keys), ["platform", "action", "outcome", "account_state", "permission_state", "migration_state", "latency_ms"])
+        assertNoSensitiveKeys(properties)
     }
 
     func testPatternResultAuditUsesOnlyContractVocabulary() throws {

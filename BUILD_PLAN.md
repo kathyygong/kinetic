@@ -1300,7 +1300,7 @@ branch was fast-forwarded into `main` on 2026-07-23.
   zero-advisory audit, lint, TypeScript, full smoke, production build, connected
   beta audit, backend gates, and expanded Firebase emulation pass locally.
 
-### Mobile Phase 5 Native Foundation, Onboarding, And Settings - Planned
+### Mobile Phase 5 Native Foundation, Onboarding, And Settings - Mac Implementation Checkpoint 2026-08-03
 
 - Replace the proof-oriented single-screen shell with permanent Today, Plan,
   Progress, and Settings navigation.
@@ -1314,6 +1314,17 @@ branch was fast-forwarded into `main` on 2026-07-23.
 - Exit only when a new and returning runner can reach the correct owner-scoped
   native state without the web and the affected accessibility/device checks
   pass.
+- Implemented the strict Swift foundation/notification contracts, paired
+  owner-scoped settings/onboarding restore and migration, Firebase auth flows,
+  permanent tabs, onboarding/permission education, local evening reminder,
+  bounded foundation audit, data controls, and deliberate `Kinetic`
+  target/product/scheme migration while retaining the registered
+  `com.kinetic.companion` bundle ID. All 57 Swift tests, a clean unsigned
+  simulator build, and a concrete ad-hoc-signed iPhone SE/iOS 26.3.1 install/
+  launch at accessibility XXXL with increased contrast pass. The formal Phase
+  5 checkpoint remains open for
+  authenticated/physical accessibility, route/auth/deletion/readback, and
+  signed-device proof. See [MOBILE_PHASE5_6_HANDOFF.md](./MOBILE_PHASE5_6_HANDOFF.md).
 
 ### Mobile Phase 6 Native Plan Lifecycle - Planned
 

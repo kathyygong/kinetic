@@ -7,11 +7,11 @@ implementation established the bounded Phase 1 HealthKit/Firebase proof, Phase
 through permanent navigation/onboarding/settings, bounded plan ownership,
 Apple Calendar/progress, and user-ready external-beta hardening.
 
-`KineticCompanion`, `com.kinetic.companion`, and the current directory/project
-names are legacy proof-era technical identifiers, not the product role. Mobile
-Phase 5 migrates the product, target, scheme, and bundle identity to the final
-Kinetic app identity before external distribution while deliberately
-preserving Firebase configuration, signing, entitlements, and tests.
+The Phase 5 app target, product, and shared scheme are now named `Kinetic`.
+The registered `com.kinetic.companion` bundle identifier and the existing
+directory/project/source-module names remain deliberately stable so Firebase,
+signing, HealthKit entitlements, package imports, and cross-platform fixture
+paths continue to work.
 
 ## Implemented Gates
 
@@ -63,12 +63,18 @@ preserving Firebase configuration, signing, entitlements, and tests.
   existing readiness/check-in prompts, and fixed discomfort caution.
 - Transactional owner-scoped scoring-preference confirmation with idempotent
   retry and privacy-safe native pattern lifecycle audit.
+- Strict `mobile-foundation.v1` Swift fixture parity, paired owner-scoped
+  settings/onboarding persistence, copy-then-validate proof-state migration,
+  and bounded foundation lifecycle audit.
+- Firebase account creation, verification-email request, password recovery,
+  sign-in/session restoration/sign-out, permanent Today/Plan/Progress/Settings
+  navigation, native onboarding, progressive permission education, privacy/
+  support/data controls, and the opt-in local evening reminder.
 
-The current app does not yet include permanent navigation, native
-account-creation/onboarding/settings, full bounded plan ownership, notification
-delivery, real Apple Calendar ingestion, or progress views. These are now
-planned in Mobile Phases 5–8 so mobile completion represents an external
-user-ready product rather than the end of the initial proof. General chat,
+The current app does not yet include full bounded plan ownership, real Apple
+Calendar ingestion, or the Phase 7 progress implementation. Plan and Progress
+tabs are intentionally honest placeholders until those shared authorities are
+implemented. General chat,
 autonomous AI mutation, raw HealthKit cloud sync, full two-way Calendar sync,
 Garmin/Oura, coach/social features, and broad push notifications remain out of
 scope. Phase 4 Windows/shared work defines only an opt-in local evening
@@ -95,7 +101,7 @@ fixed Phase 3 boundary and completed physical-device/live evidence are in
 
 1. Open `KineticCompanion.xcodeproj`.
 2. Add the Firebase iOS app configuration as
-   `Config/GoogleService-Info.plist`, select the `KineticCompanion` target, and
+   `Config/GoogleService-Info.plist`, select the `Kinetic` target, and
    keep the real file untracked.
 3. Select an Apple development team and run on an iPhone or supported
    simulator.
@@ -178,7 +184,7 @@ Compile the unsigned simulator target with:
 ```bash
 xcodebuild \
   -project KineticCompanion.xcodeproj \
-  -scheme KineticCompanion \
+  -scheme Kinetic \
   -destination 'generic/platform=iOS Simulator' \
   CODE_SIGNING_ALLOWED=NO \
   build
@@ -193,7 +199,9 @@ swift test --filter MobileAuditModelsTests
 swift test
 ```
 
-The authoritative signed-build, simulator/device route, same-user web
+The Phase 5 focused gate is `swift test --filter
+MobileFoundationContractFixtureTests`; the complete suite currently contains
+57 tests. The authoritative signed-build, simulator/device route, same-user web
 readback, audit privacy, accessibility, rollback-control, and evidence
 checklist is
 [`MOBILE_PATTERN_RESULT_HANDOFF.md`](../../MOBILE_PATTERN_RESULT_HANDOFF.md).
