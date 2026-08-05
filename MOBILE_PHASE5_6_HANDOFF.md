@@ -141,6 +141,58 @@ Still open before Phase 6 closeout:
 - the combined Phase 5–6 VoiceOver, Dynamic Type, contrast, landscape,
   small-screen, and signed physical-device matrix.
 
+## Combined closeout pass — 2026-08-05
+
+The Mac closeout reran every automated gate named by the shared contract and
+closed the owner-isolation, deterministic-authority, dependency, and unsigned
+runtime portions of the combined proof pass.
+
+Passed in this pass:
+
+```text
+Swift package suite: 65/65
+Frontend ESLint: passed
+Frontend TypeScript compile: passed
+Frontend complete smoke suite: passed
+Frontend Next.js 16.3.0 production build with non-secret demo Firebase config: passed
+Backend Python 3.12 compileall: passed
+Backend deterministic round-trip smoke: passed
+Backend mobile plan authority/strict-auth HTTP smoke: passed
+Firebase Auth + Firestore emulator owner/cross-user/anonymous rules suite: passed
+Connected npm audit: 0 vulnerabilities
+iPhone SE (3rd generation), iOS 26.3 simulator clean build/install/launch: passed
+Standard and Accessibility XXXL, dark mode, and increased-contrast signed-out layouts: rendered without an app crash or fault
+```
+
+The emulator suite proves authenticated owner access and cross-user/anonymous
+denial for foundation, plan, plan-history, plan-operation, readiness, check-in,
+health-sync, audit, and tombstone documents. The Swift/backend suites prove all
+eleven plan actions plus stale-version, exact replay, different-fingerprint,
+completed-history, race-day, spacing, malformed-response, missing-auth, and
+offline failure behavior. These automated results do not substitute for the
+still-required native authenticated interaction and atomic live-readback gate.
+
+The connected advisory feed published newer findings after the Windows pass.
+The closeout updates Next/eslint-config-next to 16.3.0, PostCSS to 8.5.23,
+minimatch to 10.2.5, and brace-expansion to 5.0.9. A clean `npm ci`, complete
+frontend regression pass, production build, emulator rules suite, and connected
+zero-vulnerability audit all pass on the updated lockfile.
+
+External blockers observed on 2026-08-05:
+
+- the paired iPhone 17 is available, but `security find-identity` reports zero
+  valid signing identities;
+- `xcodebuild -allowProvisioningUpdates` fails with `No Accounts` and no
+  development profile for `com.kinetic.companion`;
+- macOS denies Simulator landscape automation because the invoking process has
+  not been granted Accessibility control.
+
+Therefore Phases 5–6 are not yet declared complete and Phase 7 remains gated.
+After adding the Apple developer account/profile in Xcode, finish the disposable
+authenticated-owner interaction/readback, rejected/offline UI, VoiceOver order,
+landscape, and signed physical-device matrix. Do not change the bundle identity
+or entitlements to work around signing.
+
 ## Copy-ready continuation prompt
 
 > Continue the combined Mobile Phase 5–6 proof pass. Read
