@@ -419,8 +419,13 @@ fields from the existing owner-only audit envelope.
   a second product authority. Native Today, Plan, Progress, and Settings
   features consume the same owner-scoped Firebase domains and authenticated
   backend contracts as web. Account/onboarding UI may collect bounded inputs,
-  but plan generation and mutation still pass through the shared deterministic
-  planner/validator.
+  but plan generation and mutation pass through shared authenticated services.
+  `mobile-plan-generation.v1` is the required FastAPI generation authority and
+  the current Windows Batch B deliverable;
+  `mobile-plan-lifecycle.v1` independently validates preview/commit candidates
+  and returns storage-neutral commit packages. Web and Swift clients must not
+  carry production copies of mileage, pace, taper, workout-scheduling, or
+  future-regeneration rules.
 - Windows Batch A established `mobile-foundation.v1` and
   `mobile-plan-lifecycle.v1`. Firebase Auth remains the identity/session
   authority; owner-scoped Firestore stores foundation and versioned plan
@@ -447,3 +452,7 @@ fields from the existing owner-only audit envelope.
   later contracts freeze. Each Mac batch returns to Windows for final shared
   and hosted integration. EventKit requires an early Mac spike because its
   permission and calendar behavior cannot be proven from Windows fixtures.
+- Mobile Phases 5–6 use an explicit three-stage closeout: Windows establishes
+  shared generation, Mac removes native generation and completes live/device
+  proof, then Windows performs final documentation, emulator, dependency, and
+  hosted integration. Neither of the first two stages alone closes the phases.

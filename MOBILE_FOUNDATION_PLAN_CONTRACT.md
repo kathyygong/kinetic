@@ -1,6 +1,7 @@
 # Mobile Foundation And Plan Lifecycle Contract
 
-Status: Windows Batch A contract, schema version 1, 2026-07-30.
+Status: Windows Batch A lifecycle contract implemented; Windows Batch B shared
+generation contract required for Phase 6 closeout, 2026-08-06.
 
 This contract is the shared boundary for Mobile Phase 5 native foundation and
 Mobile Phase 6 native plan ownership. It defines native inputs, shared
@@ -52,6 +53,26 @@ Migration from proof-era state is copy-then-validate:
 4. Persist the new revision before marking migration complete.
 5. Keep legacy state readable until the first successful Phase 5 restore.
 
+## Phase 6 Shared Generation
+
+`mobile-plan-generation.v1` is the required authenticated FastAPI boundary for
+initial generation and future regeneration. Windows Batch B owns its Pydantic
+models, canonical fixture, deterministic implementation, strict-auth/privacy
+gates, web-runtime migration, and chained proof that every returned candidate
+is accepted or safely rejected by the independent lifecycle validator.
+
+The request contains only bounded planning inputs: race distance, target date,
+experience, weekly mileage, preferred days, personal-best seconds, goal
+revision, an explicit generation mode, and the current plan when regenerating.
+The response is storage-neutral and returns a candidate plan plus bounded
+explanation/version metadata. It never writes Firestore.
+
+Initial and future plan generation must call this shared service. Production
+web code and Swift must not independently calculate training weeks, mileage,
+paces, taper, workout dates, or regenerated futures. The current Swift
+`MobilePlanProposalBuilder.generate()` is an implementation checkpoint to be
+removed during Mac Batch B after this endpoint is available.
+
 ## Phase 6 Plan Lifecycle
 
 `mobile-plan-lifecycle.v1` is implemented in TypeScript and Pydantic, with one
@@ -61,7 +82,8 @@ canonical fixture consumed by both languages. The authenticated endpoint is:
 
 Supported action names are `generate`, `save`, `move`, `shorten`, `replace`,
 `skip`, `availability`, `preferred_day`, `regenerate_future`, `pause`, and
-`resume`.
+`resume`. The lifecycle `generate` action validates an initial candidate; it
+does not construct that candidate.
 
 The native app builds an explicit proposal for review. The backend is the
 deterministic validation authority. It returns one of `preview`,
@@ -85,11 +107,12 @@ and race-day changes. It reports bounded impact and advisory spacing/growth
 warnings without emitting runner identity, notes, biometrics, pain, or medical
 data.
 
-Generation and future regeneration must still run through the existing
-deterministic planner/validator inputs. The native UI may collect and preview
-bounded changes, but neither UI code nor AI output can directly create a
-persistable plan snapshot. Completed workout identity/content is immutable
-across all future regeneration.
+The native UI may collect and preview bounded edits, but neither UI code nor AI
+output can become the generation authority or directly create a persistable
+snapshot. The required flow is shared generation, lifecycle preview, explicit
+confirmation, lifecycle commit packaging, then one owner-scoped Firestore
+transaction. Completed workout identity/content is immutable across all future
+regeneration.
 
 ## Privacy-safe observability
 
@@ -119,6 +142,7 @@ From `backend`:
 
 ```powershell
 .\.venv\Scripts\python.exe -m compileall app evals
+.\.venv\Scripts\python.exe -m evals.mobile_plan_generation_contract_smoke
 .\.venv\Scripts\python.exe -m evals.mobile_plan_contract_smoke
 .\.venv\Scripts\python.exe -m evals._smoke
 ```

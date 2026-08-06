@@ -1,9 +1,10 @@
-# Mobile Phases 5–6 Mac Handoff
+# Mobile Phases 5–6 Cross-Platform Closeout
 
 Windows Batch A completed on branch `codex/mobile-phase5-6-contracts`.
-Authoritative implementation commit: `2146aee`. Hosted Windows integration,
-including connected dependency audit and owner-only Firebase emulators, passed
-in [run 30553666395](https://github.com/kathyygong/kinetic/actions/runs/30553666395).
+The hardened Windows baseline is `c9e375a`; hosted integration, including the
+connected dependency audit and expanded owner/cross-user/anonymous Firebase
+emulators, passed in
+[run 30557508276](https://github.com/kathyygong/kinetic/actions/runs/30557508276).
 
 The subsequent Windows robustness pass exercises every Phase 6 lifecycle
 action, the strict-auth HTTP boundary, malformed/conflict/replay/invariant
@@ -11,6 +12,63 @@ failures, stricter Phase 5 migration/deletion consistency, and expanded
 owner/cross-user/anonymous Firestore access. It also updates the development
 tool graph to patched `brace-expansion`/`minimatch` releases and passes a
 zero-advisory connected audit.
+
+Mac implementation checkpoints `bfbaaef` and `f52dc39`, followed by automated
+closeout commit `1435369`, added most Phase 5–6 native surfaces. Hosted Windows
+integration for that combined tree passed in
+[run 31008015360](https://github.com/kathyygong/kinetic/actions/runs/31008015360).
+The phases are still open: the Mac implementation copied full plan-generation
+rules into Swift, authenticated live/device proof remains incomplete, and
+account deletion currently stops at a retryable boundary.
+
+## Authoritative execution sequence
+
+Complete these stages in order. A green result in the first Windows stage is a
+dependency handoff, not the final Windows integration.
+
+1. **Windows Batch B — shared authority.** Work on
+   `codex/mobile-phase5-6-closeout`. Add authenticated
+   `mobile-plan-generation.v1` to FastAPI as the single runtime authority for
+   initial and future generation. Keep `/mobile/plan-lifecycle`
+   storage-neutral and independently validating, migrate the web runtime away
+   from local TypeScript generation, add canonical/chained/auth/privacy gates,
+   run the Windows suite, update this file, commit, and push.
+2. **Mac Batch B — native correction and closeout.** Fetch the Windows Batch B
+   commit. Replace Swift generation with the authenticated shared-generation
+   client, retain only bounded review proposals that still pass through the
+   lifecycle validator, finish retryable Firebase account deletion, and run
+   the automated plus authenticated simulator/physical-device matrix below.
+   Commit and push the Mac evidence to the same closeout branch.
+3. **Final Windows integration — mandatory.** Fetch the Mac closeout commit,
+   reconcile all documentation and fixtures, run the full frontend, backend,
+   Firebase emulator, dependency-audit, and hosted Windows workflow, and record
+   the exact final commit and run. Do not declare Phases 5–6 complete, merge,
+   or start Phase 7 until this final return-to-Windows stage is green.
+
+## Platform ownership
+
+- **Windows/shared:** generation and lifecycle contracts, FastAPI authority,
+  web runtime, canonical fixtures, deterministic/security tests, Firebase
+  rules/emulators, dependency audit, documentation reconciliation, hosted CI,
+  and final integration.
+- **Mac/native:** Swift contract clients and view models, SwiftUI flows,
+  Firebase client transactions, account-deletion interaction, Xcode signing,
+  simulator/physical-device behavior, accessibility, and live readback.
+- **Never duplicate:** mileage, pace, taper, workout scheduling, or future
+  regeneration rules in Swift. The lifecycle endpoint validates a candidate;
+  it does not generate one.
+
+## Windows Batch B exit evidence
+
+- Strict `mobile-plan-generation.v1` request/response fixture and parsers.
+- Authenticated FastAPI initial-generation and future-regeneration endpoint.
+- Deterministic bounds, invariant, malformed, privacy, and anonymous-auth
+  tests, including generator-output acceptance by `/mobile/plan-lifecycle`.
+- Production web generation calls the shared authority; the TypeScript planner
+  is no longer a production runtime authority.
+- Clean install/audit, lint, TypeScript, complete smoke, production build,
+  backend compile/evals, and owner/cross-user/anonymous emulator results.
+- One pushed Windows handoff commit. Mac work must start from that commit.
 
 ## Phase 5 native implementation checkpoint — 2026-08-03
 
@@ -94,10 +152,11 @@ Implemented after the Phase 5 checkpoint:
 
 - strict Swift request/response, exact-key, explicit-null, semantic, and
   privacy validation for `mobile-plan-lifecycle.v1`;
-- a native deterministic proposal builder derived from the existing shared
-  plan-generator rules and saved owner-scoped goal/profile inputs, including
-  bounded volume/taper/pace rules, preferred-day mapping, hard-effort spacing,
-  stable workout identity, and locked race day;
+- a native deterministic proposal builder copied from the shared
+  plan-generator rules. This historical checkpoint includes full
+  volume/taper/pace/scheduling authority in Swift and is therefore explicitly
+  nonconforming; Mac Batch B must replace its generation paths with the shared
+  service;
 - authenticated finite-deadline `POST /mobile/plan-lifecycle` networking;
 - a real Plan tab for native generate, preview, explicit confirm, save/browse,
   move, shorten, replace, skip, availability, preferred-day, future
@@ -125,11 +184,12 @@ Simulator error/fault log after launch: clean
 ```
 
 The Swift gates cover canonical fixture parity, exact endpoint/auth behavior,
-malformed/privacy/persistence rejection, every lifecycle action, deterministic
-generation bounds and spacing, stable SHA-256 fingerprints, stale-version
+malformed/privacy/persistence rejection, every lifecycle action, the temporary
+native generation implementation, stable SHA-256 fingerprints, stale-version
 conflict, exact-operation replay, different-fingerprint conflict, missing auth,
 and offline failure. The backend remains storage-neutral; SwiftUI never writes
-a proposal directly.
+a proposal directly. These tests do not make Swift generation authoritative;
+the generation code must still be removed.
 
 Still open before Phase 6 closeout:
 
@@ -143,9 +203,10 @@ Still open before Phase 6 closeout:
 
 ## Combined closeout pass — 2026-08-05
 
-The Mac closeout reran every automated gate named by the shared contract and
-closed the owner-isolation, deterministic-authority, dependency, and unsigned
-runtime portions of the combined proof pass.
+The Mac closeout reran every automated gate then available and closed the
+dependency and unsigned-runtime portions of the proof pass. It added useful
+owner-isolation coverage, but it did not close deterministic authority because
+full generation remained duplicated in Swift.
 
 Passed in this pass:
 
@@ -193,20 +254,19 @@ authenticated-owner interaction/readback, rejected/offline UI, VoiceOver order,
 landscape, and signed physical-device matrix. Do not change the bundle identity
 or entitlements to work around signing.
 
-## Copy-ready continuation prompt
+## Continuation prompts
 
-> Continue the combined Mobile Phase 5–6 proof pass. Read
-> `MOBILE_FOUNDATION_PLAN_CONTRACT.md`,
-> `MOBILE_NOTIFICATION_CONTRACT.md`, and
-> `MOBILE_PATTERN_RESULT_HANDOFF.md`. Restore the Apple signing account and use
-> a disposable authenticated owner against a reachable backend. Run the
-> deferred foundation/pattern accessibility checks plus native plan
-> generate/preview/commit/browse and all eleven lifecycle actions. Prove the
-> owner-only three-document transaction,
-> conflict/replay/offline/deletion/legacy behavior, and privacy-safe
-> `/qa/mobile` readback. Close the combined physical VoiceOver, Dynamic Type,
-> contrast, landscape, and small-screen matrix without changing bundle identity
-> or entitlements. Do not start Phase 7 EventKit until these gates pass.
+Current Windows task:
+
+> Continue Windows Batch B on `codex/mobile-phase5-6-closeout`. Read `MOBILE_PHASE5_6_HANDOFF.md`.
+
+Next Mac task, only after the Windows Batch B commit is pushed:
+
+> Continue Mobile Phases 5–6 closeout on Mac. Read `MOBILE_PHASE5_6_HANDOFF.md`.
+
+Final Windows task, only after the Mac closeout commit is pushed:
+
+> Complete final Windows integration for Mobile Phases 5–6. Read `MOBILE_PHASE5_6_HANDOFF.md`.
 
 ## Phase 5 checkpoint evidence
 
@@ -240,6 +300,8 @@ or entitlements to work around signing.
 
 ## Stop conditions
 
-Do not start Phase 7 EventKit implementation in this pass. Record native
+Do not start Phase 7 EventKit implementation. Do not mark Phases 5–6 complete
+after Windows Batch B or after the Mac pass alone. Completion requires the
+final return-to-Windows integration and its green hosted run. Record native
 permission/free-busy uncertainties for the separate early Mac spike instead of
 encoding them into these schemas.

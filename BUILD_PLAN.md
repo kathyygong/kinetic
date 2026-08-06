@@ -1266,10 +1266,11 @@ branch was fast-forwarded into `main` on 2026-07-23.
 - Define the shared account/onboarding/settings state, validation, persistence,
   deletion, migration, and privacy-safe observability boundaries required by
   the permanent native foundation.
-- Define the authenticated plan-generation/lifecycle API and canonical
+- Define the authenticated plan lifecycle/validation API and canonical
   fixtures for preview, save, version/conflict handling, bounded edit,
   regeneration, pause/resume, preferred-day confirmation, idempotency, and
-  completed-history preservation.
+  completed-history preservation. Callable shared generation remained a
+  follow-up dependency discovered during native implementation.
 - Extend Firebase rules/emulator, frontend/domain smoke, backend deterministic
   gates, QA/admin readback, and cross-language handoff evidence without
   building temporary SwiftUI.
@@ -1286,8 +1287,8 @@ branch was fast-forwarded into `main` on 2026-07-23.
   readback, and [MOBILE_PHASE5_6_HANDOFF.md](./MOBILE_PHASE5_6_HANDOFF.md).
   Hosted Windows integration passed all frontend, backend, connected-audit,
   build, and owner-only emulator gates in
-  [run 30553666395](https://github.com/kathyygong/kinetic/actions/runs/30553666395).
-  Native implementation remains.
+  [run 30557508276](https://github.com/kathyygong/kinetic/actions/runs/30557508276).
+  Native implementation followed in the Mac checkpoints below.
 - A 2026-07-30 robustness pass expanded the backend contract smoke across all
   eleven lifecycle actions plus strict-auth HTTP, malformed payload, stale
   version, idempotency, completed-history, race-day, spacing, goal-revision,
@@ -1351,6 +1352,51 @@ branch was fast-forwarded into `main` on 2026-07-23.
   Phase 5–6 signed physical/accessibility matrix remain required before
   closeout or Phase 7. See
   [MOBILE_PHASE5_6_HANDOFF.md](./MOBILE_PHASE5_6_HANDOFF.md).
+
+### Windows B For Mobile Phases 5–6 - In Progress 2026-08-06
+
+- Work from `codex/mobile-phase5-6-closeout`, based on Mac automated-closeout
+  commit `1435369`. Preserve the divergent documentation correction at
+  `77c4164` and reconcile its authority/ordering intent manually rather than
+  overwriting the Mac evidence.
+- Add strict authenticated `mobile-plan-generation.v1` to FastAPI as the only
+  production runtime authority for initial generation and future
+  regeneration. Keep `/mobile/plan-lifecycle` storage-neutral and independently
+  validating.
+- Migrate production web generation away from local TypeScript calculation.
+  Add canonical fixtures plus deterministic, bounds, malformed, privacy,
+  anonymous-auth, regeneration-history, and generator-to-lifecycle gates.
+- Do not change native iOS in this Windows batch. Exit with a pushed shared
+  handoff commit only after clean install/audit, lint, TypeScript, full smoke,
+  production build, backend compile/evals, and Firebase emulator gates pass.
+- This is a dependency handoff, not final integration and not Phase 5–6
+  completion.
+
+### Mac B For Mobile Phases 5–6 - Required After Windows B
+
+- Fetch the Windows Batch B commit and replace full Swift plan generation with
+  an authenticated `mobile-plan-generation.v1` client. Retain bounded native
+  edit proposals only when the independent lifecycle validator still approves
+  preview and commit packages.
+- Finish retryable account deletion through owner-domain cleanup,
+  reauthentication handling, and Firebase Auth identity deletion.
+- Complete the disposable authenticated-owner plan/foundation readback,
+  conflict/replay/offline/deletion/legacy checks, `/qa/mobile` privacy proof,
+  VoiceOver/Dynamic Type/contrast/landscape/small-screen matrix, and signed
+  physical-device build/install/launch.
+- Commit and push the Mac closeout evidence to the same closeout branch. Do not
+  start Phase 7.
+
+### Final Windows Integration For Mobile Phases 5–6 - Mandatory
+
+- Fetch the Mac closeout commit and reconcile contracts, fixtures,
+  architecture, build plan, QA matrix, iOS README, and handoff evidence.
+- Rerun the complete frontend/backend suite, connected dependency audit,
+  owner/cross-user/anonymous Firebase emulators, and GitHub-hosted Windows
+  workflow against the combined tree.
+- Record the exact final commit and hosted run. Only a green final Windows pass
+  may mark Phases 5–6 complete or make the branch eligible for merge. A green
+  Windows Batch B run or Mac-only pass is insufficient.
 
 ### Mobile Phase 7 Apple Calendar And Progress - Planned
 

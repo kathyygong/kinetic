@@ -130,23 +130,30 @@ Recommended cadence:
 For the current roadmap:
 
 - Windows Batch A defined Phase 5 onboarding/settings/auth contracts and the
-  Phase 6 plan-lifecycle API, mutation, versioning, and fixture boundary on
-  2026-07-30. See [MOBILE_FOUNDATION_PLAN_CONTRACT.md](./MOBILE_FOUNDATION_PLAN_CONTRACT.md)
-  and [MOBILE_PHASE5_6_HANDOFF.md](./MOBILE_PHASE5_6_HANDOFF.md).
-- Mac Batch A should implement Phase 5 and then Phase 6 against those contracts,
-  with a checkpoint after Phase 5 before continuing.
+  Phase 6 lifecycle validator on 2026-07-30. Mac checkpoints `bfbaaef`,
+  `f52dc39`, and `1435369` implemented most native surfaces but also copied the
+  plan generator into Swift and left authenticated physical closeout open.
+- Windows Batch B on `codex/mobile-phase5-6-closeout` must add authenticated
+  `mobile-plan-generation.v1`, migrate the production web runtime to it, and
+  prove its output through the independent lifecycle validator.
+- Mac Batch B then removes Swift generation, finishes account deletion, and
+  completes authenticated simulator/physical-device and accessibility proof.
+- A final return to Windows is mandatory for documentation reconciliation,
+  complete shared/emulator/dependency gates, and a green hosted integration
+  run. Only that final Windows pass can close Phases 5–6.
 - Phase 7 should start with an early Mac EventKit spike before its Windows
   contract is frozen; Apple permission and calendar behavior are the dominant
   uncertainty.
 - Phase 8 runs on both lanes continuously and closes only after hosted shared
   gates plus Mac simulator/device and external-user evidence pass.
 
-Next Mac prompt:
+Current Windows prompt:
 
-> Continue Mobile Phase 5 native foundation implementation.
+> Continue Windows Batch B on `codex/mobile-phase5-6-closeout`. Read
+> `MOBILE_PHASE5_6_HANDOFF.md`.
 
-Complete and checkpoint Phase 5 before continuing to Phase 6 against the
-Windows/shared contracts. Do not begin Phase 7 EventKit behavior in this pass.
+The next Mac and final Windows prompts are defined in the handoff. Do not begin
+Phase 7 EventKit behavior before both have completed.
 
 ## Browser UX Prototype
 
@@ -525,6 +532,11 @@ Acceptance:
 
 Goal: remove the web dependency from normal plan ownership while retaining one
 deterministic planning authority.
+
+Entry gate: the authenticated shared generator must be callable. The lifecycle
+endpoint validates candidates but does not generate them. Swift must not
+calculate training weeks, mileage, pace, taper, workout dates, or regenerated
+future schedules.
 
 Build:
 
