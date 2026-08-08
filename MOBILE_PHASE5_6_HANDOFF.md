@@ -140,26 +140,25 @@ compile, 18-group/498-assertion evaluator report, round-trip smoke, generation
 and lifecycle contract smokes; and Firebase Auth/Firestore owner,
 cross-user, and anonymous rules.
 
-The Batch B handoff is **not green yet**. Commit `6f42396` is pushed to
-`origin/codex/mobile-phase5-6-closeout`. Hosted macOS run
+The Batch B handoff is **not green yet**. The implementation and CI fixes are
+pushed to `origin/codex/mobile-phase5-6-closeout`. Hosted macOS run
 [31233321534](https://github.com/kathyygong/kinetic/actions/runs/31233321534)
 passes the complete Swift package suite and unsigned simulator build. Its
 predecessor exposed only a missing untracked Firebase plist; the workflow now
 seeds the checked-in non-secret example for build validation.
 
 Hosted Windows run
-[31233321463](https://github.com/kathyygong/kinetic/actions/runs/31233321463)
+[31233620976](https://github.com/kathyygong/kinetic/actions/runs/31233620976)
 passes checkout, toolchain setup, and a clean locked `npm ci`, then correctly
-stops at the connected advisory gate before later checks. The two root findings
-are `js-yaml@4.3.0`, which has a compatible `4.3.1` fix, and transitive
-`nanoid@3.3.16`, whose advisory requires unpublished compatible `3.3.17` and
-reports no compatible fix through PostCSS/Next/Tailwind. The configured local
-proxy still lacks locked `next@16.3.0`, and direct npmjs access from this host
-fails TLS, so a verified lockfile refresh cannot be produced locally.
-Dependency versions and the lockfile remain unchanged. Windows/shared
-dependency remediation is the only prerequisite that must finish before Mac
-Batch B starts; do not suppress the audit or force Nano ID onto an incompatible
-major.
+stops at the connected advisory gate before later checks. The compatible
+`js-yaml` fix is locked at `4.3.1`; the hosted audit reduced from two findings
+to one. The sole remaining finding is transitive `nanoid@3.3.16`, whose
+advisory requires unpublished compatible `3.3.17` and reports no compatible
+fix through PostCSS/Next/Tailwind. The configured local proxy still lacks
+locked `next@16.3.0`, and direct npmjs access from this host fails TLS.
+Windows/shared Nano ID remediation is the only prerequisite that must finish
+before Mac Batch B starts; do not suppress the audit or force Nano ID onto an
+incompatible major.
 
 ## Phase 5 native implementation checkpoint — 2026-08-03
 

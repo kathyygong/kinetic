@@ -139,9 +139,10 @@ For the current roadmap:
   validator, hardened action-specific deltas/full-plan invariants, added shared
   week-phase metadata and adversarial regressions, and defined hosted macOS CI
   plus branch/workflow routing. Hosted macOS Swift/simulator proof is green in
-  run 31233321534. Hosted Windows clean install passes, but run 31233321463 is
-  blocked by new JS-YAML and no-compatible-fix Nano ID advisories; Windows
-  dependency remediation remains the sole prerequisite before Mac closeout.
+  run 31233321534. JS-YAML is patched to 4.3.1 and hosted Windows clean install
+  passes, but run 31233620976 remains blocked by the no-compatible-fix Nano ID
+  advisory; that Windows dependency remediation is the sole prerequisite
+  before Mac closeout.
 - Mac Batch B then removes Swift generation and native phase/taper heuristics,
   completes personal-record/availability onboarding plus plan preview/summary,
   profile/settings editing, full training-data export, and account deletion,

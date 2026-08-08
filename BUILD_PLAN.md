@@ -1358,13 +1358,12 @@ branch was fast-forwarded into `main` on 2026-07-23.
 The shared generator, web migration, lifecycle hardening, adversarial fixtures,
 hosted macOS workflow, and branch routing below are pushed through `6f42396`.
 Hosted macOS run 31233321534 passes Swift tests and the unsigned simulator
-build. Hosted Windows run 31233321463 passes a clean locked install but stops
-at two new root advisories: JS-YAML has a compatible fix, while Nano ID has no
-published compatible fix and propagates through PostCSS/Next/Tailwind. The
-local proxy lacks locked Next 16.3.0 and direct npmjs TLS fails, so the lockfile
-cannot be safely refreshed from this host. Windows/shared dependency
-remediation must finish before Mac Batch B starts; do not weaken the audit or
-force an incompatible Nano ID major.
+build. JS-YAML is patched to 4.3.1. Hosted Windows run 31233620976 passes a
+clean locked install and confirms the audit dropped from two findings to one;
+the remaining Nano ID advisory has no published compatible fix and propagates
+through PostCSS/Next/Tailwind. The local proxy lacks locked Next 16.3.0 and
+direct npmjs TLS fails. Windows/shared Nano ID remediation must finish before
+Mac Batch B starts; do not weaken the audit or force an incompatible major.
 
 - Work from `codex/mobile-phase5-6-closeout`, based on Mac automated-closeout
   commit `1435369`. Preserve the divergent documentation correction at
