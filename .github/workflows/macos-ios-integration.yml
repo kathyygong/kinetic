@@ -37,6 +37,10 @@ jobs:
         working-directory: ios/KineticCompanion
         run: swift test
 
+      - name: Seed non-secret Firebase config for build validation
+        working-directory: ios/KineticCompanion
+        run: cp Config/GoogleService-Info.plist.example Config/GoogleService-Info.plist
+
       - name: Build unsigned Kinetic simulator target
         working-directory: ios/KineticCompanion
         run: >-
