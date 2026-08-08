@@ -1,7 +1,9 @@
 # Mobile Foundation And Plan Lifecycle Contract
 
 Status: Windows Batch A lifecycle contract implemented; Windows Batch B shared
-generation contract required for Phase 6 closeout, 2026-08-06.
+generation and lifecycle hardening implemented locally on
+`codex/mobile-phase5-6-closeout` on 2026-08-07. Dependency audit/hosted handoff
+evidence remains open, followed by Mac Batch B and final Windows integration.
 
 This contract is the shared boundary for Mobile Phase 5 native foundation and
 Mobile Phase 6 native plan ownership. It defines native inputs, shared
@@ -61,11 +63,17 @@ models, canonical fixture, deterministic implementation, strict-auth/privacy
 gates, web-runtime migration, and chained proof that every returned candidate
 is accepted or safely rejected by the independent lifecycle validator.
 
-The request contains only bounded planning inputs: race distance, target date,
-experience, weekly mileage, preferred days, personal-best seconds, goal
-revision, an explicit generation mode, and the current plan when regenerating.
+The authenticated endpoint is `POST /mobile/plan-generation`.
+
+The request contains only bounded planning inputs: an explicit planning date,
+race distance, target date, experience, weekly mileage, preferred days,
+personal-best seconds, goal revision, an explicit generation mode, and the
+current plan when regenerating. The planning date removes clock-dependent
+generation behavior and is not identity or health data.
 The response is storage-neutral and returns a candidate plan plus bounded
-explanation/version metadata. It never writes Firestore.
+explanation/version metadata. It also returns authoritative week-phase metadata
+(`build`, `recovery`, `taper`, or `race`) so web and Swift do not independently
+derive training phases or taper length. It never writes Firestore.
 
 Initial and future plan generation must call this shared service. Production
 web code and Swift must not independently calculate training weeks, mileage,
@@ -103,9 +111,27 @@ a replay; reusing the operation ID for different content is a conflict.
 
 The shared gate rejects stale versions, non-sequential versions, duplicate
 workout IDs, invalid pause/resume transitions, edits to completed workouts,
-and race-day changes. It reports bounded impact and advisory spacing/growth
-warnings without emitting runner identity, notes, biometrics, pain, or medical
-data.
+and race-day changes. Windows Batch B must also make every action delta
+explicit:
+
+- `move`, `availability`, and `preferred_day` may change only the permitted
+  target date and matching reason metadata;
+- `shorten` may only reduce the target workout's duration/load inside shared
+  safety bounds;
+- `replace` may only change the target workout through a bounded replacement
+  validated against plan load and spacing;
+- `regenerate_future` may change only eligible future workouts returned by the
+  shared generator and may never rewrite completed history or race identity;
+- `pause`, `resume`, and `save` may change status only.
+
+Every `commit_ready` candidate must rerun the complete mileage progression,
+weekly load, taper, hard-spacing, race-day, availability, and completed-history
+invariants. Advisory warnings may explain a safe accepted result; they may not
+stand in for enforcement of a safety invariant. The regression suite must
+include the rejected 29-mile/300-minute `availability` mutation discovered in
+the 2026-08-06 review plus unrelated-field and multi-workout bypass attempts.
+Responses remain bounded and exclude runner identity, notes, biometrics, pain,
+or medical data.
 
 The native UI may collect and preview bounded edits, but neither UI code nor AI
 output can become the generation authority or directly create a persistable
@@ -113,6 +139,29 @@ snapshot. The required flow is shared generation, lifecycle preview, explicit
 confirmation, lifecycle commit packaging, then one owner-scoped Firestore
 transaction. Completed workout identity/content is immutable across all future
 regeneration.
+
+The current storage-neutral design protects normal product flows from UI/AI
+bypass but does not make Firestore rules a plan-invariant enforcement engine:
+an authenticated owner can write an allowlisted owner-scoped domain directly.
+Before external beta, the Windows/shared lane must record an explicit threat
+model decision: either move validated plan commit into an authenticated
+server-side transaction, or accept and document that invariant authority is a
+trusted-client guarantee rather than protection against a tampered client. The
+Mac client follows that decision; it does not define a separate policy.
+
+## Closeout ownership
+
+- **Windows/shared Batch B:** FastAPI generation, authoritative phase metadata,
+  lifecycle delta/full-plan enforcement, canonical fixtures, adversarial
+  regressions, production-web migration, workflow/branch routing, Firebase
+  emulators, and hosted Windows plus macOS workflow definitions.
+- **Mac/native Batch B:** shared-generation client, removal of native generation
+  and phase/taper heuristics, bounded edit UI, complete onboarding/profile/data
+  export and account deletion, Swift parity tests, simulator/physical-device
+  behavior, accessibility, signing, and live readback.
+- **Final Windows integration:** reconcile both lanes, rerun shared/emulator/
+  dependency gates, require green hosted Windows and macOS jobs, and record the
+  exact evidence before Phases 5–6 close.
 
 ## Privacy-safe observability
 
@@ -147,10 +196,21 @@ From `backend`:
 .\.venv\Scripts\python.exe -m evals._smoke
 ```
 
+The generation/lifecycle smoke must include action-delta adversarial cases and
+generator-to-lifecycle chaining, not only one valid example per action.
+
 With Firebase emulators:
 
 ```powershell
 npx firebase-tools emulators:exec --only auth,firestore "cd frontend && npm run test:firestore-rules"
+```
+
+From hosted macOS CI after the Windows workflow definition is pushed:
+
+```bash
+cd ios/KineticCompanion
+swift test
+xcodebuild -project KineticCompanion.xcodeproj -scheme Kinetic -sdk iphonesimulator build
 ```
 
 ## Explicit non-goals

@@ -105,10 +105,10 @@ export default function IntakePanel({
     }
   }
 
-  function confirmDraft() {
+  async function confirmDraft() {
     if (!draftState || !validation?.valid) return;
     try {
-      const state = buildConfirmedIntakeState({
+      const state = await buildConfirmedIntakeState({
         draft: draftState.response.draft,
         sourceText: draftState.sourceText,
         today,

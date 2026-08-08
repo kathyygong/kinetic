@@ -2,7 +2,7 @@
 // reasoning summary.
 //
 // Inputs:
-//   - The user's plan week (from generateTrainingPlan)
+//   - The user's plan week (from the shared generation service)
 //   - Per-day calendar availability (from /availability/week)
 //   - Travel events (from /travel)
 //

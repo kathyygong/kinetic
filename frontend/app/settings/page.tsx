@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { applyPreferredDays, generateTrainingPlan } from "@/lib/planGenerator";
+import { fetchSharedTrainingPlan } from "@/lib/api";
 import { getUserProfile } from "@/lib/profileStorage";
 import { clearSavedPlan, getGoal, goalSignature, saveGoal } from "@/lib/storage";
 import type {
@@ -74,6 +74,11 @@ const PR_FIELDS: Array<{ key: keyof CurrentPRs; label: string }> = [
 export default function SettingsPage() {
   const [goal, setGoal] = useState<Goal>(DEFAULT_GOAL);
   const [saved, setSaved] = useState(false);
+  const [preview, setPreview] = useState<{
+    weeks: number;
+    peakWeeklyMiles: number;
+    longestRun: number;
+  } | null>(null);
 
   // Load any previously saved goal.
   useEffect(() => {
@@ -114,33 +119,48 @@ export default function SettingsPage() {
   };
 
   // Live plan preview — only meaningful once the user has picked a date.
-  const preview = useMemo(() => {
-    if (!goal.target_date) return null;
-    try {
-      const plan = applyPreferredDays(
-        generateTrainingPlan(goal),
-        getUserProfile()?.preferred_training_days,
-      );
-      if (plan.length === 0) return null;
-      const peakWeeklyMiles = plan.reduce((max, w) => {
-        const mi = w.workouts.reduce((s, x) => s + x.distance, 0);
-        return mi > max ? mi : max;
-      }, 0);
-      const longestRun = plan.reduce((max, w) => {
-        const mi = w.workouts.reduce(
-          (m, x) => (x.type === "long run" && x.distance > m ? x.distance : m),
-          0
-        );
-        return mi > max ? mi : max;
-      }, 0);
-      return {
-        weeks: plan.length,
-        peakWeeklyMiles: Math.round(peakWeeklyMiles),
-        longestRun: Math.round(longestRun * 10) / 10,
-      };
-    } catch {
-      return null;
+  useEffect(() => {
+    if (!goal.target_date) {
+      setPreview(null);
+      return;
     }
+    let cancelled = false;
+    const profile = getUserProfile();
+    const previewProfile = profile
+      ? {
+          ...profile,
+          experience_level: goal.experience_level,
+          weekly_mileage: goal.weekly_mileage,
+          personal_bests: goal.current_prs,
+        }
+      : null;
+    void fetchSharedTrainingPlan(goal, previewProfile)
+      .then((plan) => {
+        if (cancelled || plan.length === 0) return;
+        const peakWeeklyMiles = plan.reduce((max, w) => {
+          const mi = w.workouts.reduce((s, x) => s + x.distance, 0);
+          return mi > max ? mi : max;
+        }, 0);
+        const longestRun = plan.reduce((max, w) => {
+          const mi = w.workouts.reduce(
+            (m, x) =>
+              x.type === "long run" && x.distance > m ? x.distance : m,
+            0,
+          );
+          return mi > max ? mi : max;
+        }, 0);
+        setPreview({
+          weeks: plan.length,
+          peakWeeklyMiles: Math.round(peakWeeklyMiles),
+          longestRun: Math.round(longestRun * 10) / 10,
+        });
+      })
+      .catch(() => {
+        if (!cancelled) setPreview(null);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [goal]);
 
   // Sanity warnings. Empty array means the form looks fine.

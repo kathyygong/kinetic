@@ -1353,7 +1353,14 @@ branch was fast-forwarded into `main` on 2026-07-23.
   closeout or Phase 7. See
   [MOBILE_PHASE5_6_HANDOFF.md](./MOBILE_PHASE5_6_HANDOFF.md).
 
-### Windows B For Mobile Phases 5–6 - In Progress 2026-08-06
+### Windows B For Mobile Phases 5–6 - Implemented Locally, Handoff Gate Open 2026-08-07
+
+The shared generator, web migration, lifecycle hardening, adversarial fixtures,
+hosted macOS workflow, and branch routing below are implemented locally. The
+clean install/audit and first hosted evidence remain open because the configured
+package proxy lacks locked Next 16.3.0, direct npmjs TLS fails on the Windows
+host, and the reachable audit reports a new no-compatible-fix Nano ID advisory.
+Mac Batch B must not start until the handoff status is green.
 
 - Work from `codex/mobile-phase5-6-closeout`, based on Mac automated-closeout
   commit `1435369`. Preserve the divergent documentation correction at
@@ -1363,9 +1370,24 @@ branch was fast-forwarded into `main` on 2026-07-23.
   production runtime authority for initial generation and future
   regeneration. Keep `/mobile/plan-lifecycle` storage-neutral and independently
   validating.
+- Harden lifecycle validation before it may return `commit_ready`. Define
+  permitted field deltas for every action and rerun full mileage, weekly-load,
+  taper, hard-spacing, race-day, availability, and completed-history invariants
+  on the complete candidate. Add a regression for the 2026-08-06 review case
+  where an `availability` proposal incorrectly accepted a 29-mile/300-minute
+  workout, plus unrelated-field and multi-workout bypass cases.
+- Add authoritative build/recovery/taper/race phase and bounded explanation
+  metadata to the shared generation boundary. Web and Swift must render that
+  metadata and must not independently infer phase or taper policy.
 - Migrate production web generation away from local TypeScript calculation.
   Add canonical fixtures plus deterministic, bounds, malformed, privacy,
   anonymous-auth, regeneration-history, and generator-to-lifecycle gates.
+- Add a hosted macOS workflow for Swift package tests and an unsigned simulator
+  build on iOS-affecting pull requests. Windows/shared owns the workflow
+  definition; Mac/native owns keeping the Xcode project, scheme, package
+  resolution, and tests compatible with it.
+- Add `codex/mobile-phase5-6-closeout` to the required workflow routing and make
+  its local/remote upstream and push target unambiguous before the handoff.
 - Do not change native iOS in this Windows batch. Exit with a pushed shared
   handoff commit only after clean install/audit, lint, TypeScript, full smoke,
   production build, backend compile/evals, and Firebase emulator gates pass.
@@ -1378,6 +1400,13 @@ branch was fast-forwarded into `main` on 2026-07-23.
   an authenticated `mobile-plan-generation.v1` client. Retain bounded native
   edit proposals only when the independent lifecycle validator still approves
   preview and commit packages.
+- Remove native build/recovery/taper/race inference, including display-only
+  phase heuristics, and render the authoritative shared metadata.
+- Complete Phase 5 onboarding and settings scope before closeout: optional
+  personal records, bounded availability, shared-authority plan preview,
+  confirmed onboarding summary, editable profile/planning inputs, and a real
+  owner-scoped training-data export. Keep the existing foundation receipt only
+  if it is labeled separately from training-data export.
 - Finish retryable account deletion through owner-domain cleanup,
   reauthentication handling, and Firebase Auth identity deletion.
 - Complete the disposable authenticated-owner plan/foundation readback,
@@ -1392,11 +1421,24 @@ branch was fast-forwarded into `main` on 2026-07-23.
 - Fetch the Mac closeout commit and reconcile contracts, fixtures,
   architecture, build plan, QA matrix, iOS README, and handoff evidence.
 - Rerun the complete frontend/backend suite, connected dependency audit,
-  owner/cross-user/anonymous Firebase emulators, and GitHub-hosted Windows
-  workflow against the combined tree.
-- Record the exact final commit and hosted run. Only a green final Windows pass
-  may mark Phases 5–6 complete or make the branch eligible for merge. A green
-  Windows Batch B run or Mac-only pass is insufficient.
+  owner/cross-user/anonymous Firebase emulators, GitHub-hosted Windows workflow,
+  and hosted macOS Swift/simulator workflow against the combined tree.
+- Record the exact final commit and both hosted runs. Only a green final Windows
+  pass with green macOS evidence may mark Phases 5–6 complete or make the branch
+  eligible for merge. A green Windows Batch B run or Mac-only pass is
+  insufficient.
+
+### Product Evidence Gate Before Mobile Phase 7 - Required
+
+- After final Phase 5–6 integration, install the signed closeout build for 3–5
+  target runners and run moderated onboarding-to-check-in sessions.
+- Mac/native owns build installation and the native sessions. Windows/shared
+  owns privacy-safe `/qa/mobile` audit/readback support.
+- Record onboarding completion, plan-preview confirmation, independent Today
+  and check-in use, and any web/developer handoff. Fix only blockers or clear
+  safety/trust failures; do not expand the feature roadmap from this gate.
+- Phase 7 may begin when the core journey works without developer help and no
+  Phase 5–6 safety/privacy correction remains.
 
 ### Mobile Phase 7 Apple Calendar And Progress - Planned
 

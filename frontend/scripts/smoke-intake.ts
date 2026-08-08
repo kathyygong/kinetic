@@ -15,6 +15,7 @@ function expect(condition: unknown, message: string) {
   if (!condition) throw new Error(message);
 }
 
+async function main(): Promise<void> {
 const source =
   "Move my race to 2026-10-18, make it a half marathon, run Monday Wednesday Saturday, and I only have 30 minutes Wednesday.";
 const draft: IntakeDraft = {
@@ -94,13 +95,17 @@ const validation = validateIntakeDraft(
 );
 expect(validation.valid, validation.errors.join(" "));
 
-const confirmed = buildConfirmedIntakeState({
+const confirmed = await buildConfirmedIntakeState({
   draft,
   sourceText: source,
   today: "2026-06-29",
   currentGoal: goal,
   currentProfile: profile,
   currentPlan,
+  generatedPlan: generateTrainingPlan({
+    ...goal,
+    weekly_mileage: 32,
+  }),
 });
 expect(
   JSON.stringify({ draft, goal, profile, currentPlan }) === before,
@@ -207,7 +212,7 @@ if (swapSource && emptySwapDay) {
     currentPlan,
   );
   expect(swapValidation.valid, swapValidation.errors.join(" "));
-  const swapped = buildConfirmedIntakeState({
+  const swapped = await buildConfirmedIntakeState({
     draft: swapDraft,
     sourceText: swapText,
     today: "2026-06-29",
@@ -234,3 +239,9 @@ if (swapSource && emptySwapDay) {
 console.log(
   "OK - intake drafts stay grounded, immutable, and deterministic on confirmation",
 );
+}
+
+void main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

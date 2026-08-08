@@ -598,20 +598,33 @@ Any AI-generated suggestion that could affect training must pass deterministic v
   [MOBILE_NOTIFICATION_CONTRACT.md](./MOBILE_NOTIFICATION_CONTRACT.md).
 - Mobile Phase 5: permanent native foundation. Add account creation/recovery,
   Today/Plan/Progress/Settings navigation, onboarding, progressive permissions,
-  profile/privacy/support/data controls, and the opt-in local reminder in its
-  permanent Settings location. Migrate the proof-era `KineticCompanion`
+  personal records, bounded availability, shared plan preview/confirmed
+  summary, editable profile inputs, full training-data export,
+  privacy/support/data controls, and the opt-in local reminder in its permanent
+  Settings location. Migrate the proof-era `KineticCompanion`
   product/target/scheme/bundle identifiers to the final Kinetic app identity
   before external distribution.
 - Mobile Phase 6: native plan lifecycle. Generate, preview, save, browse, and
   safely maintain plans through bounded, deterministically validated actions;
   remove the normal-runner web handoff for plan maintenance and preferred-day
-  confirmation.
+  confirmation. Windows/shared owns the authenticated generator, authoritative
+  phase metadata, action-specific/full-plan lifecycle enforcement, adversarial
+  tests, web migration, and hosted workflow routing. Mac/native consumes those
+  contracts, removes native generation/phase inference, and closes native,
+  accessibility, signing, deletion, export, and live-device proof. Final
+  Windows integration requires green hosted Windows and macOS runs.
+- Before Mobile Phase 7, run a moderated 3–5-runner signed-build evidence gate
+  for onboarding, plan-preview confirmation, independent Today/check-in use,
+  and absence of web/developer handoffs. This is not external beta and does not
+  authorize feature expansion.
 - Mobile Phase 7: Apple Calendar and Progress. Add on-device EventKit
   free/busy summarization, calendar-aware generation/conflict review, optional
   explicit one-way workout export, and shared-history progress views.
 - Mobile Phase 8: user-ready hardening and external beta. Close accessibility,
   device/OS, offline/sync, migration, production operations, privacy,
-  TestFlight, support, and install-to-deletion beta evidence.
+  TestFlight, support, install-to-deletion beta evidence, and the explicit plan
+  commit threat-model decision: server-side validated transaction or documented
+  trusted-client-only invariant enforcement.
 - Mobile completion means a fresh external runner completes the core journey
   without the web or developer help. The initial proof and notification
   contract alone are not mobile completion.

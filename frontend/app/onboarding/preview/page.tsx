@@ -6,9 +6,9 @@ import { useEffect, useMemo, useState } from "react";
 import { motion, type Variants } from "framer-motion";
 
 import OnboardingProgress from "@/components/OnboardingProgress";
+import { fetchSharedTrainingPlan } from "@/lib/api";
 import { projectRaceTime, formatPace } from "@/lib/paceCalculator";
 import {
-  generateTrainingPlan,
   type PlanWeek,
   type Workout,
   type WorkoutType,
@@ -90,6 +90,8 @@ const WORKOUT_DISPLAY_ORDER: WorkoutType[] = [
 export default function OnboardingPreviewPage() {
   const router = useRouter();
   const [goal, setGoal] = useState<Goal | null>(null);
+  const [plan, setPlan] = useState<PlanWeek[]>([]);
+  const [planError, setPlanError] = useState(false);
   // Drives the page-exit fade on "Start training".
   const [isExiting, setIsExiting] = useState(false);
 
@@ -102,10 +104,29 @@ export default function OnboardingPreviewPage() {
     setGoal(stored);
   }, [router]);
 
+  useEffect(() => {
+    if (!goal) return;
+    let cancelled = false;
+    setPlanError(false);
+    void fetchSharedTrainingPlan(goal)
+      .then((weeks) => {
+        if (!cancelled) setPlan(weeks);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPlan([]);
+          setPlanError(true);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [goal]);
+
   // Derive everything from the goal in a single memoized pass so we don't
   // re-run the plan generator on each render.
   const summary = useMemo(() => {
-    if (!goal) return null;
+    if (!goal || plan.length === 0) return null;
 
     const projectedSec = projectRaceTime(
       goal.race_distance,
@@ -113,7 +134,6 @@ export default function OnboardingPreviewPage() {
       goal.experience_level
     );
 
-    const plan: PlanWeek[] = generateTrainingPlan(goal);
     const totalWeeks = plan.length;
     const peakWeek = pickPeakWeek(plan);
     const peakMileage = peakWeek
@@ -132,7 +152,7 @@ export default function OnboardingPreviewPage() {
       raceDateLabel: formatLongDate(goal.target_date),
       hasAnyPR: hasAnyPR(goal),
     };
-  }, [goal]);
+  }, [goal, plan]);
 
   const handleStart = () => {
     if (isExiting) return;
@@ -160,6 +180,13 @@ export default function OnboardingPreviewPage() {
         <motion.div variants={itemVariants}>
           <OnboardingProgress current={4} />
         </motion.div>
+
+        {planError && (
+          <p className="mt-6 text-center text-sm text-amber-700 dark:text-amber-300">
+            Your plan couldn&apos;t be generated right now. Check your connection
+            and try again.
+          </p>
+        )}
 
         {/* Header */}
         <motion.div variants={itemVariants} className="mt-10 text-center">
@@ -314,7 +341,7 @@ export default function OnboardingPreviewPage() {
           <motion.button
             type="button"
             onClick={handleStart}
-            disabled={!goal || isExiting}
+            disabled={!goal || !summary || isExiting}
             whileHover={{ y: -1 }}
             whileTap={{ y: 0, scale: 0.97 }}
             transition={{ duration: 0.18, ease: PREMIUM_EASE }}

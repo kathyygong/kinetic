@@ -7,6 +7,7 @@ on:
       - codex/mobile-checkin-contract
       - codex/mobile-pattern-results
       - codex/mobile-phase5-6-contracts
+      - codex/mobile-phase5-6-closeout
       - main
   pull_request:
     branches:
@@ -103,6 +104,7 @@ jobs:
         working-directory: backend
         run: |
           python -m evals._smoke
+          python -m evals.mobile_plan_generation_contract_smoke
           python -m evals.mobile_plan_contract_smoke
 
       - name: Run owner-only Firestore rules suite

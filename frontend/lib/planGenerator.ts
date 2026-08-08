@@ -1,4 +1,8 @@
-// Simple, deterministic training plan generator for Kinetic.
+// Legacy deterministic fixture/demo generator for Kinetic.
+//
+// Production web plan creation uses authenticated mobile-plan-generation.v1.
+// Keep this pure implementation only for smoke fixtures and synthetic demo
+// seeding until those test helpers are migrated or retired.
 //
 // Input: a Goal (see lib/types.ts).
 // Output: an array of weeks, each with 3–5 workouts.

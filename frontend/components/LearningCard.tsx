@@ -343,7 +343,7 @@ export default function MemoryCenter({
     [togglePattern],
   );
 
-  const confirmPreferredDays = useCallback(() => {
+  const confirmPreferredDays = useCallback(async () => {
     const pattern = reviewingPattern;
     if (!pattern || pattern.result.kind !== "preferred_day_review") return;
     try {
@@ -361,7 +361,7 @@ export default function MemoryCenter({
         reviewDays,
         minimumDays,
       );
-      const confirmed = buildConfirmedIntakeState({
+      const confirmed = await buildConfirmedIntakeState({
         draft: review.draft,
         sourceText: review.sourceText,
         today: new Date().toISOString().slice(0, 10),

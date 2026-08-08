@@ -5,8 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 
 import {
   formatPace,
-  applyPreferredDays,
-  generateTrainingPlan,
   type PlanWeek,
   type WeekPhase,
   type WorkoutType,
@@ -44,6 +42,7 @@ import {
 } from "@/lib/weeklyRecalibrationTrace";
 import {
   fetchWeeklyReasoning,
+  fetchSharedTrainingPlan,
   type WeeklyReasoningResponse,
 } from "@/lib/api";
 import { trackProductEvent } from "@/lib/instrumentation";
@@ -59,6 +58,7 @@ export default function PlanPage() {
   const [savedPlan, setSavedPlan] = useState<SavedPlan | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [workoutLog, setWorkoutLog] = useState<WorkoutLogEntry[]>([]);
+  const [sharedBasePlan, setSharedBasePlan] = useState<PlanWeek[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -77,6 +77,21 @@ export default function PlanPage() {
     setHydrated(true);
   }, []);
 
+  useEffect(() => {
+    if (!goal) return;
+    let cancelled = false;
+    void fetchSharedTrainingPlan(goal, profile)
+      .then((weeks) => {
+        if (!cancelled) setSharedBasePlan(weeks);
+      })
+      .catch(() => {
+        if (!cancelled) setSharedBasePlan([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [goal, profile]);
+
   // Use the saved calendar-aware plan when available and matched to the
   // current plan inputs (goal + profile preferences); otherwise fall
   // back to the deterministic base. The dashboard regenerates the saved
@@ -87,12 +102,8 @@ export default function PlanPage() {
     if (savedPlan && savedPlan.goalSig === planSignature(goal, profile)) {
       return { plan: savedPlan.weeks, isCalendarAware: true };
     }
-    const base = applyPreferredDays(
-      generateTrainingPlan(goal),
-      profile?.preferred_training_days,
-    );
-    return { plan: base, isCalendarAware: false };
-  }, [goal, savedPlan, profile]);
+    return { plan: sharedBasePlan, isCalendarAware: false };
+  }, [goal, savedPlan, profile, sharedBasePlan]);
 
   // Wait for client hydration before deciding empty vs filled state, so SSR
   // and the first client render agree.
@@ -151,6 +162,7 @@ export default function PlanPage() {
           <MidPlanProgressCard
             goal={goal}
             plan={plan}
+            basePlan={sharedBasePlan}
             planStart={savedPlan?.planStart ?? startOfWeek().toISOString()}
             log={workoutLog}
           />
@@ -170,6 +182,7 @@ export default function PlanPage() {
             goal={goal}
             profile={profile}
             savedPlan={savedPlan}
+            basePlan={sharedBasePlan}
           />
         </RevealSection>
       ) : null}
@@ -431,17 +444,19 @@ function MileageSparkline({
 function MidPlanProgressCard({
   goal,
   plan,
+  basePlan,
   planStart,
   log,
 }: {
   goal: Goal;
   plan: PlanWeek[];
+  basePlan: PlanWeek[];
   planStart: string;
   log: WorkoutLogEntry[];
 }) {
   const progress = useMemo<MidPlanProgress | null>(
-    () => buildMidPlanProgress(goal, plan, planStart, log),
-    [goal, plan, planStart, log],
+    () => buildMidPlanProgress(goal, plan, planStart, log, new Date(), basePlan),
+    [goal, plan, basePlan, planStart, log],
   );
   if (!progress) return null;
 
@@ -669,21 +684,19 @@ function ThisWeeksAdaptationCard({
   goal,
   profile,
   savedPlan,
+  basePlan,
 }: {
   goal: Goal;
   profile: UserProfile | null;
   savedPlan: SavedPlan | null;
+  basePlan: PlanWeek[];
 }) {
   const trace = useMemo<WeeklyRecalibrationTrace | null>(() => {
     if (!savedPlan) return null;
     if (savedPlan.goalSig !== planSignature(goal, profile)) return null;
     const adjustedWeek = savedPlan.weeks[0];
     if (!adjustedWeek) return null;
-    const baseWeeks = applyPreferredDays(
-      generateTrainingPlan(goal),
-      profile?.preferred_training_days,
-    );
-    const originalWeek = baseWeeks[0];
+    const originalWeek = basePlan[0];
     if (!originalWeek) return null;
     return buildWeeklyRecalibrationTrace({
       originalWeek,
@@ -693,7 +706,7 @@ function ThisWeeksAdaptationCard({
         (e) => e.weekIndex === 0,
       ),
     });
-  }, [goal, profile, savedPlan]);
+  }, [goal, profile, savedPlan, basePlan]);
 
   const aligned = !trace || !hasRecalibrationChanges(trace);
 

@@ -5,11 +5,8 @@ import {
   type DayLabel,
   type EasyOnlyDay,
 } from "@/lib/planAdjuster";
-import {
-  applyPreferredDays,
-  generateTrainingPlan,
-} from "@/lib/planGenerator";
 import { emptyProfile, saveUserProfile } from "@/lib/profileStorage";
+import type { PlanWeek } from "@/lib/planGenerator";
 import { startOfWeek } from "@/lib/scheduling";
 import {
   planSignature,
@@ -207,13 +204,14 @@ export function validateIntakeDraft(
   return { valid: errors.length === 0, errors: [...new Set(errors)] };
 }
 
-export function buildConfirmedIntakeState({
+export async function buildConfirmedIntakeState({
   draft,
   sourceText,
   today,
   currentGoal,
   currentProfile,
   currentPlan,
+  generatedPlan,
 }: {
   draft: IntakeDraft;
   sourceText: string;
@@ -221,7 +219,9 @@ export function buildConfirmedIntakeState({
   currentGoal: Goal | null;
   currentProfile: UserProfile | null;
   currentPlan: SavedPlan | null;
-}): ConfirmedIntakeState {
+  /** Test-only deterministic injection; production callers use shared FastAPI. */
+  generatedPlan?: PlanWeek[];
+}): Promise<ConfirmedIntakeState> {
   const validation = validateIntakeDraft(
     draft,
     sourceText,
@@ -281,10 +281,10 @@ export function buildConfirmedIntakeState({
   let savedPlan = currentPlan ? structuredClone(currentPlan) : null;
 
   if (goal && (planInputsChanged || !savedPlan)) {
-    const weeks = applyPreferredDays(
-      generateTrainingPlan(goal),
-      profile.preferred_training_days,
-    );
+    const weeks = generatedPlan ?? (await (async () => {
+      const { fetchSharedTrainingPlan } = await import("@/lib/api");
+      return fetchSharedTrainingPlan(goal, profile);
+    })());
     savedPlan = {
       planStart: currentPlan?.planStart ?? startOfWeek().toISOString(),
       goalSig: planSignature(goal, profile),

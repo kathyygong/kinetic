@@ -158,10 +158,82 @@ def main() -> None:
         and result.reason_codes == ["invalid_action_delta"],
         "no-op availability commit advanced the plan version",
     )
+    _exercise_adversarial_deltas(request_data)
     print(
         "OK - backend mobile plan authority covers all lifecycle actions, "
         "strict auth, versions, history, race day, spacing, idempotency, "
-        "and commit preconditions"
+        "load invariants, action deltas, and commit preconditions"
+    )
+
+
+def _exercise_adversarial_deltas(base: dict) -> None:
+    oversized = _request_for_action(base, "availability")
+    oversized["proposed_plan"]["workouts"][1].update(
+        {"distance_miles": 29, "duration_minutes": 300}
+    )
+    result = evaluate_mobile_plan_lifecycle(
+        MobilePlanLifecycleRequest.model_validate(oversized)
+    )
+    _expect(
+        result.result == "rejected"
+        and result.reason_codes == ["invalid_action_delta"],
+        "availability accepted the 29-mile/300-minute regression",
+    )
+
+    unrelated = _request_for_action(base, "preferred_day")
+    unrelated["proposed_plan"]["workouts"][1]["type"] = "easy"
+    result = evaluate_mobile_plan_lifecycle(
+        MobilePlanLifecycleRequest.model_validate(unrelated)
+    )
+    _expect(
+        result.result == "rejected"
+        and result.reason_codes == ["invalid_action_delta"],
+        "preferred-day mutation changed an unrelated workout field",
+    )
+
+    multi = _request_for_action(base, "availability")
+    extra = copy.deepcopy(multi["proposed_plan"]["workouts"][1])
+    extra.update(
+        {
+            "id": "workout-future-extra-004",
+            "date": "2026-08-14",
+            "type": "easy",
+            "reason_code": "availability",
+        }
+    )
+    multi["proposed_plan"]["workouts"].append(extra)
+    result = evaluate_mobile_plan_lifecycle(
+        MobilePlanLifecycleRequest.model_validate(multi)
+    )
+    _expect(
+        result.result == "rejected"
+        and result.reason_codes == ["invalid_action_delta"],
+        "single-workout availability changed multiple workouts",
+    )
+
+    replace_load = _request_for_action(base, "replace")
+    replace_load["proposed_plan"]["workouts"][1].update(
+        {"distance_miles": 29, "duration_minutes": 300}
+    )
+    result = evaluate_mobile_plan_lifecycle(
+        MobilePlanLifecycleRequest.model_validate(replace_load)
+    )
+    _expect(
+        result.result == "rejected"
+        and result.reason_codes == ["invalid_action_delta"]
+        and result.impact.warnings == ["weekly_growth_requires_review"],
+        "replace bypassed the full-plan load validator",
+    )
+
+    regenerated_status = _request_for_action(base, "regenerate_future")
+    regenerated_status["proposed_plan"]["workouts"][1]["status"] = "completed"
+    result = evaluate_mobile_plan_lifecycle(
+        MobilePlanLifecycleRequest.model_validate(regenerated_status)
+    )
+    _expect(
+        result.result == "rejected"
+        and result.reason_codes == ["invalid_action_delta"],
+        "future regeneration fabricated completed history",
     )
 
 

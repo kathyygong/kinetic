@@ -1,7 +1,7 @@
 // Build a calendar-aware training plan covering ALL weeks.
 //
 // This is the central function that ties together:
-//   - The deterministic base plan from `generateTrainingPlan(goal)`
+//   - The deterministic base plan returned by the shared generation service
 //   - Per-day calendar availability fetched from `/availability/week`
 //   - Travel events from `/travel`
 //
@@ -95,7 +95,7 @@ export function bucketDaysByWeek(
 /**
  * Run the calendar-aware adjustment pipeline for the entire plan.
  *
- * @param basePlan         Output of `generateTrainingPlan(goal)`.
+ * @param basePlan         Output of the shared generation service.
  * @param weekAvailabilities  One availability array per week, in order.
  *                            Use `bucketDaysByWeek` to build this.
  * @param travel            Travel events from `/travel`.

@@ -69,7 +69,7 @@ Kinetic is designed as a hybrid deterministic + AI product.
 
 ### 3-layer architecture
 
-1. **Deterministic safety core** — owns plan generation, recovery classification, candidate scoring, mileage caps, calendar-aware adjustments, and every persisted workout decision.
+1. **Deterministic safety core** — the authenticated shared FastAPI generator owns production plan creation and authoritative week phases; independent validators own recovery classification, candidate scoring, mileage/load/taper/spacing gates, calendar-aware adjustments, and every persisted workout decision.
 2. **Bounded AI reasoning layer** — explains decisions, summarizes recalibrations/training reviews, and parses supported intake into reviewable drafts. AI output is typed, schema-validated, timeout-protected, grounded, and safe to discard.
 3. **Local-first persistence and privacy layer** — keeps the app usable offline through localStorage, mirrors authenticated training domains to user-scoped Firebase documents, enforces owner-only Firestore rules, and records only sanitized local product events.
 
@@ -130,13 +130,20 @@ Runtime modes are explicit:
   creation/recovery, onboarding, progressive permissions, Settings, privacy,
   support, data controls, and local notification delivery. Windows/shared
   `mobile-foundation.v1`, deletion/migration boundaries, owner-only domains,
-  and audit gates are implemented; native Mac work remains.
+  and audit gates plus the Mac implementation checkpoint are present. Mac B
+  must finish personal-record/availability onboarding, shared plan preview and
+  confirmation, editable profile inputs, training-data export, account
+  deletion, accessibility, signing, and live readback.
 - [ ] **Mobile Phase 6 — Native Plan Lifecycle:** Generate, preview, save,
   browse, safely edit/regenerate, pause/resume, and confirm preferences without
-  a normal-runner web handoff. Windows/shared
-  `mobile-plan-lifecycle.v1`, authenticated backend validation, version/
-  idempotency/history boundaries, fixtures, and audit gates are implemented;
-  native Mac work remains.
+  a normal-runner web handoff. Windows B owns shared generation, authoritative
+  phase metadata, action-specific/full-plan lifecycle enforcement, adversarial
+  gates, production-web migration, and hosted workflow routing. Mac B then
+  removes native generation/phase heuristics and closes native/device proof;
+  final Windows integration requires green hosted Windows and macOS runs.
+- [ ] **Pre-Phase 7 Product Evidence:** After Phases 5–6 close, run moderated
+  signed-build onboarding-to-check-in sessions with 3–5 target runners. Validate
+  independent core-loop use before expanding into Calendar/Progress.
 - [ ] **Mobile Phase 7 — Apple Calendar And Progress:** Privacy-minimized
   EventKit free/busy ingestion, calendar-aware planning, optional explicit
   one-way export, and shared-history progress.

@@ -11,12 +11,11 @@ import {
   apiFetch,
   fetchDailyReasoning,
   fetchMobileTodayDecision,
+  fetchSharedTrainingPlan,
   type DailyReasoning,
 } from "@/lib/api";
 import { formatPace } from "@/lib/paceCalculator";
 import {
-  applyPreferredDays,
-  generateTrainingPlan,
   type PlanWeek,
   type Workout,
   type WorkoutType,
@@ -694,10 +693,19 @@ export default function DashboardPage() {
     if (!user || !goal) return;
     let cancelled = false;
     (async () => {
-      const base = applyPreferredDays(
-        generateTrainingPlan(goal),
-        profile?.preferred_training_days,
-      );
+      let base: PlanWeek[];
+      try {
+        base = await fetchSharedTrainingPlan(goal, profile);
+      } catch {
+        trackProductEvent("weekly_plan_recalibrated", {
+          surface: "dashboard",
+          outcome: "shared_authority_unavailable",
+          total_changes: 0,
+          easy_only_day_count: 0,
+        });
+        return;
+      }
+      if (cancelled) return;
       if (base.length === 0) return;
       const planStart = startOfWeek();
       const planStartIso = isoDate(planStart);

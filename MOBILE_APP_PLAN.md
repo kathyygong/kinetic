@@ -133,14 +133,25 @@ For the current roadmap:
   Phase 6 lifecycle validator on 2026-07-30. Mac checkpoints `bfbaaef`,
   `f52dc39`, and `1435369` implemented most native surfaces but also copied the
   plan generator into Swift and left authenticated physical closeout open.
-- Windows Batch B on `codex/mobile-phase5-6-closeout` must add authenticated
-  `mobile-plan-generation.v1`, migrate the production web runtime to it, and
-  prove its output through the independent lifecycle validator.
-- Mac Batch B then removes Swift generation, finishes account deletion, and
-  completes authenticated simulator/physical-device and accessibility proof.
+- Windows Batch B on `codex/mobile-phase5-6-closeout` has implemented
+  authenticated `mobile-plan-generation.v1`, migrated production web
+  generation to it, chained its output through the independent lifecycle
+  validator, hardened action-specific deltas/full-plan invariants, added shared
+  week-phase metadata and adversarial regressions, and defined hosted macOS CI
+  plus branch/workflow routing. Its dependency audit and hosted handoff proof
+  remain open as recorded in the handoff; Mac closeout must not start yet.
+- Mac Batch B then removes Swift generation and native phase/taper heuristics,
+  completes personal-record/availability onboarding plus plan preview/summary,
+  profile/settings editing, full training-data export, and account deletion,
+  and completes authenticated simulator/physical-device and accessibility
+  proof.
 - A final return to Windows is mandatory for documentation reconciliation,
-  complete shared/emulator/dependency gates, and a green hosted integration
-  run. Only that final Windows pass can close Phases 5–6.
+  complete shared/emulator/dependency gates, and green hosted Windows and
+  macOS integration runs. Only final Windows reconciliation with both hosted
+  jobs green can close Phases 5–6.
+- After Phase 5–6 closeout, run a moderated 3–5-runner product-evidence gate
+  before committing to the full Phase 7 build. Mac owns signed native sessions;
+  Windows/shared owns privacy-safe audit/readback. This is not external beta.
 - Phase 7 should start with an early Mac EventKit spike before its Windows
   contract is frozen; Apple permission and calendar behavior are the dominant
   uncertainty.
@@ -153,7 +164,8 @@ Current Windows prompt:
 > `MOBILE_PHASE5_6_HANDOFF.md`.
 
 The next Mac and final Windows prompts are defined in the handoff. Do not begin
-Phase 7 EventKit behavior before both have completed.
+Phase 7 EventKit behavior before both have completed and the pre-Phase-7
+product-evidence gate has passed.
 
 ## Browser UX Prototype
 
@@ -523,6 +535,12 @@ Acceptance:
 
 - A new runner can create an account and reach a confirmed onboarding summary
   without the web.
+- Personal records and bounded availability are captured or explicitly skipped,
+  and the runner reviews a shared-authority plan preview before onboarding is
+  marked complete.
+- Profile/Settings can update the bounded planning inputs collected during
+  onboarding, and training-data export includes the documented owner-scoped
+  runner domains rather than only a foundation receipt.
 - Denied or deferred permissions do not block unrelated onboarding steps.
 - Returning users restore the correct owner-scoped session and route.
 - The deferred Phase 3.5 VoiceOver, Dynamic Type, landscape, and small-screen
@@ -536,7 +554,8 @@ deterministic planning authority.
 Entry gate: the authenticated shared generator must be callable. The lifecycle
 endpoint validates candidates but does not generate them. Swift must not
 calculate training weeks, mileage, pace, taper, workout dates, or regenerated
-future schedules.
+future schedules. That prohibition includes display-only build/recovery/taper/
+race phase inference; phase metadata comes from the shared generation contract.
 
 Build:
 
@@ -557,7 +576,26 @@ Acceptance:
   deterministically validated, idempotent, auditable, and conflict-aware.
 - Mileage, spacing, taper, race-day, availability, and completed-history
   invariants cannot be bypassed by UI or AI.
+- Availability, preferred-day, replace, shorten, and regeneration actions may
+  change only their explicitly allowed fields, and adversarial unrelated-field
+  or oversized-load proposals are rejected before `commit_ready`.
 - A runner can create and maintain a usable plan without the web.
+
+## Pre-Phase 7 Product Evidence Gate
+
+Goal: validate the core native loop before investing in Calendar/Progress.
+
+- Install the signed Phase 5–6 closeout build for 3–5 target runners and run a
+  moderated onboarding-to-check-in session.
+- Record onboarding completion, plan-preview confirmation, independent Today
+  and check-in completion, and every web/developer handoff.
+- Use only the existing privacy-safe audit/readback vocabulary; do not add raw
+  health, workout, identity, or note telemetry.
+- Fix only blockers or clear trust/usability failures. Do not broaden the
+  roadmap from this small evidence gate.
+
+Phase 7 may proceed when the core journey works without developer help and no
+safety/privacy issue requires a Phase 5–6 correction.
 
 ## Phase 7: Apple Calendar And Progress
 
@@ -596,6 +634,10 @@ Build and prove:
   landscape, and supported small/large-device behavior across critical flows.
 - Production API/Firebase configuration, HTTPS, rate limiting, secrets,
   privacy-safe crash/operational monitoring, feature flags, and rollback.
+- Resolve the plan-commit threat model: either use an authenticated server-side
+  validated transaction or explicitly accept/document trusted-client-only
+  invariant enforcement. Owner-only Firestore rules alone do not validate plan
+  mileage, taper, spacing, or action deltas.
 - Privacy manifest/disclosures, permission copy, terms/privacy/support links,
   versioning, signing, TestFlight packaging, and release checklist.
 - A small external beta with owned feedback triage and explicit promotion/
@@ -771,9 +813,11 @@ is in [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md).
     permission education, settings, privacy, support, and data controls.
 11. Native plan lifecycle: generate, preview, save, browse, safely edit,
     regenerate, pause/resume, and confirm preferences without the web.
-12. Apple Calendar and Progress: EventKit free/busy ingestion, conflict-aware
+12. Product evidence gate: moderated signed-build onboarding-to-check-in
+    sessions with 3–5 target runners; fix blockers without expanding scope.
+13. Apple Calendar and Progress: EventKit free/busy ingestion, conflict-aware
     planning, optional explicit one-way export, and shared-history review.
-13. User-ready hardening: complete the accessibility/device, offline/sync,
+14. User-ready hardening: complete the accessibility/device, offline/sync,
     migration, production-operations, privacy, TestFlight, and external-beta
     gates.
 

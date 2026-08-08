@@ -16,12 +16,11 @@ export const GOAL_STORAGE_KEY = "kinetic_goal";
 export const PLAN_STORAGE_KEY = "kinetic_plan";
 
 /**
- * Bumped any time the deterministic plan generator changes shape (volume
- * caps, growth curves, race-specific tuning, etc.) so cached plans built
+ * Bumped any time the shared deterministic plan contract changes shape so cached plans built
  * by a prior version are treated as stale and regenerated on next render.
  * Both `goalSignature` and `planSignature` fold this in.
  */
-const PLAN_GENERATOR_VERSION = 2;
+const PLAN_GENERATOR_VERSION = 3;
 
 /** Persist the user's goal to localStorage. */
 export function saveGoal(goal: Goal): void {

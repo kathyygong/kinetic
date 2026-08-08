@@ -19,7 +19,20 @@ integration for that combined tree passed in
 [run 31008015360](https://github.com/kathyygong/kinetic/actions/runs/31008015360).
 The phases are still open: the Mac implementation copied full plan-generation
 rules into Swift, authenticated live/device proof remains incomplete, and
-account deletion currently stops at a retryable boundary.
+account deletion currently stops at a retryable boundary. The 2026-08-06
+roadmap/implementation review also found three closeout gaps that became
+required work rather than later polish:
+
+- broad lifecycle actions previously changed unrelated workout load fields;
+  an adversarial `availability` proposal changing a 5-mile/45-minute workout
+  to 29 miles/300 minutes returned `commit_ready` without a warning. Windows
+  Batch B now rejects this and the related unrelated-field/multi-workout paths;
+- Swift still derives training phase/taper labels locally, which is another
+  copy of shared planning policy even after full native generation is removed;
+- native onboarding does not yet capture personal records or availability,
+  does not show the required plan preview/confirmed summary before completion,
+  and the current export is a foundation receipt rather than training-data
+  export.
 
 ## Authoritative execution sequence
 
@@ -30,33 +43,43 @@ dependency handoff, not the final Windows integration.
    `codex/mobile-phase5-6-closeout`. Add authenticated
    `mobile-plan-generation.v1` to FastAPI as the single runtime authority for
    initial and future generation. Keep `/mobile/plan-lifecycle`
-   storage-neutral and independently validating, migrate the web runtime away
-   from local TypeScript generation, add canonical/chained/auth/privacy gates,
-   run the Windows suite, update this file, commit, and push.
+   storage-neutral and independently validating, but close the action-delta
+   and full-plan-invariant gaps before it can return `commit_ready`. Add
+   authoritative week-phase/explanation metadata so clients never infer taper
+   policy. Migrate the web runtime away from local TypeScript generation, add
+   canonical/chained/auth/privacy/adversarial gates, add the closeout branch to
+   hosted workflow triggers, align the local/remote branch target, run the
+   Windows suite, update this file, commit, and push.
 2. **Mac Batch B — native correction and closeout.** Fetch the Windows Batch B
    commit. Replace Swift generation with the authenticated shared-generation
-   client, retain only bounded review proposals that still pass through the
-   lifecycle validator, finish retryable Firebase account deletion, and run
-   the automated plus authenticated simulator/physical-device matrix below.
-   Commit and push the Mac evidence to the same closeout branch.
+   client; remove native taper/phase derivation and render shared metadata.
+   Retain only bounded review proposals that still pass through the lifecycle
+   validator. Complete the missing onboarding personal-record, availability,
+   plan-preview, confirmed-summary, profile/settings, and training-data-export
+   journey; finish retryable Firebase account deletion; and run the automated
+   plus authenticated simulator/physical-device matrix below. Commit and push
+   the Mac evidence to the same closeout branch.
 3. **Final Windows integration — mandatory.** Fetch the Mac closeout commit,
    reconcile all documentation and fixtures, run the full frontend, backend,
-   Firebase emulator, dependency-audit, and hosted Windows workflow, and record
-   the exact final commit and run. Do not declare Phases 5–6 complete, merge,
-   or start Phase 7 until this final return-to-Windows stage is green.
+   Firebase emulator, dependency-audit, hosted Windows workflow, and hosted
+   macOS Swift/simulator workflow, and record the exact final commit and runs.
+   Do not declare Phases 5–6 complete, merge, or begin the pre-Phase-7 product
+   evidence gate until this final return-to-Windows stage is green.
 
 ## Platform ownership
 
 - **Windows/shared:** generation and lifecycle contracts, FastAPI authority,
   web runtime, canonical fixtures, deterministic/security tests, Firebase
-  rules/emulators, dependency audit, documentation reconciliation, hosted CI,
+  rules/emulators, dependency audit, documentation reconciliation, hosted
+  Windows CI, the hosted macOS workflow definition, branch/workflow routing,
   and final integration.
 - **Mac/native:** Swift contract clients and view models, SwiftUI flows,
-  Firebase client transactions, account-deletion interaction, Xcode signing,
+  Firebase client transactions, onboarding/profile/data-export UX,
+  account-deletion interaction, Xcode project/scheme health, signing,
   simulator/physical-device behavior, accessibility, and live readback.
 - **Never duplicate:** mileage, pace, taper, workout scheduling, or future
-  regeneration rules in Swift. The lifecycle endpoint validates a candidate;
-  it does not generate one.
+  regeneration rules in Swift, including display-only phase/taper heuristics.
+  The lifecycle endpoint validates a candidate; it does not generate one.
 
 ## Windows Batch B exit evidence
 
@@ -64,11 +87,68 @@ dependency handoff, not the final Windows integration.
 - Authenticated FastAPI initial-generation and future-regeneration endpoint.
 - Deterministic bounds, invariant, malformed, privacy, and anonymous-auth
   tests, including generator-output acceptance by `/mobile/plan-lifecycle`.
+- Action-specific lifecycle deltas: `availability` and `preferred_day` may
+  change only permitted scheduling fields/reason codes; `regenerate_future`
+  may replace only eligible future workouts; replace/shorten actions remain
+  bounded; every candidate reruns mileage, spacing, taper, race-day,
+  availability, and completed-history validation.
+- Negative regression proving the rejected 29-mile/300-minute availability
+  mutation and equivalent unrelated-field or multi-workout bypass attempts.
+- Shared week phase and bounded explanation metadata; neither web nor Swift
+  derives build/recovery/taper/race policy independently.
 - Production web generation calls the shared authority; the TypeScript planner
   is no longer a production runtime authority.
+- A hosted macOS workflow runs Swift package tests and an unsigned simulator
+  build for iOS-affecting pull requests. The Mac lane remains responsible for
+  keeping its project, scheme, package resolution, and tests green.
+- The closeout branch has an unambiguous upstream/push target and is included in
+  the hosted workflow triggers.
 - Clean install/audit, lint, TypeScript, complete smoke, production build,
   backend compile/evals, and owner/cross-user/anonymous emulator results.
 - One pushed Windows handoff commit. Mac work must start from that commit.
+
+### Windows Batch B implementation status — 2026-08-07
+
+Implemented on `codex/mobile-phase5-6-closeout`:
+
+- authenticated, storage-neutral `POST /mobile/plan-generation` with strict
+  Pydantic inputs, an explicit deterministic planning date, initial/future
+  modes, bounded pace/load/taper logic, immutable completed/race preservation,
+  and authoritative week phase/explanation metadata;
+- a canonical generation fixture plus strict web response parser/converter,
+  all-race/all-experience bounds coverage, malformed/privacy/anonymous-auth
+  gates, deterministic replay, regeneration-history checks, and
+  generator-to-lifecycle chaining;
+- production dashboard, onboarding preview, plan fallback/baseline, Settings
+  preview, and confirmed intake generation now call the authenticated shared
+  authority. The TypeScript generator remains only for smoke fixtures and
+  explicit synthetic demo seeding;
+- lifecycle actions now enforce single-target permitted fields/reason codes or
+  bounded future replacement, then rerun workout coherence, absolute load,
+  weekly growth/recovery, taper, spacing, race-day, and completed-history
+  checks before `commit_ready`;
+- adversarial rejection coverage for the 29-mile/300-minute availability case,
+  preferred-day unrelated fields, multi-workout availability, oversized
+  replace, and fabricated completed history;
+- `.github/workflows/macos-ios-integration.yml`, closeout-branch workflow
+  routing, and the generation smoke in hosted Windows integration.
+
+Local gates passed before the clean-install attempt removed the prior local
+dependency tree: frontend lint (three subsequently removed unused-constant
+warnings, zero errors), TypeScript, full smoke, production build; backend
+compile, 18-group/498-assertion evaluator report, round-trip smoke, generation
+and lifecycle contract smokes; and Firebase Auth/Firestore owner,
+cross-user, and anonymous rules.
+
+The Batch B handoff is **not green yet**. The configured Microsoft npm proxy
+does not contain locked `next@16.3.0`; direct npmjs retries fail on this host
+with a TLS handshake error. A lockfile-only audit through the reachable proxy
+also reports five new high advisories: `js-yaml@4.3.0` has a compatible fix,
+while `nanoid@3.3.16` reports no available compatible fix because the advisory
+requires `3.3.17` and that version is not published in the reachable registry.
+Dependency versions and the lockfile remain unchanged. Do not start Mac Batch B until a
+clean locked install/audit and the first hosted Windows/macOS evidence are
+green and recorded here.
 
 ## Phase 5 native implementation checkpoint — 2026-08-03
 
@@ -134,6 +214,11 @@ clean after removing a premature Firebase configuration lookup.
 
 Deferred gates required before declaring Phases 5–6 complete or starting Phase 7:
 
+- complete onboarding fields and flow: optional personal records, bounded
+  availability, shared-authority plan preview, confirmed summary, and editable
+  Profile/Settings planning inputs;
+- replace the foundation-only receipt with documented owner-scoped
+  training-data export, or retain the receipt as a separately labeled artifact;
 - authenticated pattern-card VoiceOver order/labels, landscape, and small-screen
   traversal on the carried Phase 3.5 surface;
 - authenticated new-account, recovery, returning-session, sign-out, and
@@ -193,6 +278,10 @@ the generation code must still be removed.
 
 Still open before Phase 6 closeout:
 
+- Windows Batch B shared generation, authoritative phase metadata, hardened
+  action deltas/full-plan invariants, and adversarial lifecycle regressions;
+- Mac Batch B removal of full native generation and display-only phase/taper
+  inference;
 - authenticated owner generate/preview/commit/browse and all-action live
   readback against the reachable backend and Firestore;
 - owner-only transaction, same-operation retry, cross-user denial, deletion
@@ -275,7 +364,14 @@ Final Windows task, only after the Mac closeout commit is pushed:
   account-switch results.
 - `mobile-foundation.v1` Swift Codable fixture tests.
 - Today/Plan/Progress/Settings route and restoration results.
+- Onboarding captures goal, race date, experience, mileage, optional personal
+  records, preferred training/long-run days, and bounded availability; it shows
+  a shared-authority plan preview and confirmed summary before completion.
 - Onboarding with each permission denied/deferred plus notification opt-in.
+- Profile/Settings can review and change the same bounded planning inputs
+  without requiring the web.
+- Training-data export contains the documented owner-scoped runner domains;
+  the foundation receipt is not represented as full training-data export.
 - Training-data deletion and account-deletion retry/tombstone results.
 - Deferred authenticated pattern-card and affected foundation VoiceOver,
   Dynamic Type, landscape, and small-screen evidence.
@@ -292,6 +388,10 @@ Final Windows task, only after the Mac closeout commit is pushed:
   idempotency conflict, offline/retry, and rejected invariant UI.
 - Completed-history, race-day, mileage/spacing/taper, availability, and
   preferred-day preservation checks.
+- Adversarial lifecycle proposals cannot use availability, preferred-day,
+  replace, or regeneration actions to change unrelated load/status fields.
+- Shared phase/taper metadata renders identically on web and iOS; no Swift
+  planning or display heuristic independently assigns plan phases.
 - Owner-only `plan`, `plan_history`, and `plan_operations` transaction
   readback plus cross-user denial.
 - Privacy-safe `/qa/mobile` readback for foundation and plan lifecycle events.
@@ -305,3 +405,10 @@ after Windows Batch B or after the Mac pass alone. Completion requires the
 final return-to-Windows integration and its green hosted run. Record native
 permission/free-busy uncertainties for the separate early Mac spike instead of
 encoding them into these schemas.
+
+After final Phase 5–6 integration, run a small moderated product-evidence gate
+with 3–5 target runners before committing to the full Phase 7 build. The Mac
+lane owns signed build installation and moderated native sessions; the
+Windows/shared lane owns privacy-safe audit/readback support. Capture onboarding
+completion, plan-preview confirmation, independent Today/check-in use, and any
+web/developer handoff. This is not an external beta and must not expand scope.

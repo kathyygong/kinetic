@@ -7,7 +7,7 @@
 // (ISO date) if provided; otherwise we fall back to week 1.
 
 import { getTrainingPacesAtProgress, type TrainingPaces } from "./paceCalculator";
-import { generateTrainingPlan, type PlanWeek, type Workout, type WorkoutType } from "./planGenerator";
+import type { PlanWeek, Workout, WorkoutType } from "./planGenerator";
 import type { Goal } from "./types";
 
 export type SegmentKind =
@@ -77,7 +77,7 @@ export function getTodaysWorkout(
   now: Date = new Date(),
   options?: { planStart?: string | Date; weekIndex?: number }
 ): TodaysWorkout {
-  const weeks = plan ?? generateTrainingPlan(goal);
+  const weeks = plan ?? [];
 
   const resolvedWeekIndex = resolveWeekIndex(weeks.length, now, options);
   const week = weeks[resolvedWeekIndex];

@@ -8,10 +8,7 @@
 //
 // All helpers are SSR-safe (no-op when window is undefined).
 
-import {
-  generateTrainingPlan,
-  type PlanWeek,
-} from "./planGenerator";
+import type { PlanWeek } from "./planGenerator";
 import type { SavedPlan } from "./storage";
 import type { Goal } from "./types";
 
@@ -193,10 +190,9 @@ export function findTodayLogEntry(
  * moved (present in saved but not in base, or vice versa).
  */
 export function buildAdaptationSet(
-  goal: Goal,
+  base: PlanWeek[],
   savedPlan: PlanWeek[],
 ): Set<string> {
-  const base = generateTrainingPlan(goal);
   const set = new Set<string>();
 
   for (let i = 0; i < savedPlan.length; i++) {
@@ -287,6 +283,7 @@ export function buildMidPlanProgress(
   planStartIso: string,
   log: WorkoutLogEntry[],
   now: Date = new Date(),
+  basePlan: PlanWeek[] = plan,
 ): MidPlanProgress | null {
   if (plan.length < 2) return null;
 
@@ -327,7 +324,7 @@ export function buildMidPlanProgress(
       if (e.acceptedAdjustment === true) engineAcceptedKeys.add(key);
     }
   }
-  const adaptedKeys = buildAdaptationSet(goal, plan);
+  const adaptedKeys = buildAdaptationSet(basePlan, plan);
 
   let workoutsDue = 0;
   let workoutsCompleted = 0;

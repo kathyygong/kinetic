@@ -41,6 +41,11 @@ from .mobile_plan import (
     MobilePlanLifecycleResponse,
     evaluate_mobile_plan_lifecycle,
 )
+from .mobile_plan_generation import (
+    MobilePlanGenerationRequest,
+    MobilePlanGenerationResponse,
+    generate_mobile_plan,
+)
 from .training_summary import (
     TrainingSummaryEnvelope,
     TrainingSummaryRequest,
@@ -406,6 +411,19 @@ def mobile_plan_lifecycle(
     """
 
     return evaluate_mobile_plan_lifecycle(payload)
+
+
+@app.post(
+    "/mobile/plan-generation",
+    response_model=MobilePlanGenerationResponse,
+    dependencies=[RequireAuth],
+)
+def mobile_plan_generation(
+    payload: MobilePlanGenerationRequest,
+) -> MobilePlanGenerationResponse:
+    """Generate a deterministic, storage-neutral mobile/web plan candidate."""
+
+    return generate_mobile_plan(payload)
 
 
 @app.post(

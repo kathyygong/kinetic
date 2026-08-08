@@ -1,0 +1,48 @@
+name: macOS iOS integration
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/mobile-phase5-6-closeout
+      - main
+    paths:
+      - "ios/**"
+      - ".github/workflows/macos-ios-integration.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "ios/**"
+      - ".github/workflows/macos-ios-integration.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos-ios-integration-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Swift package and unsigned simulator build
+    runs-on: macos-15
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Run Swift package tests
+        working-directory: ios/KineticCompanion
+        run: swift test
+
+      - name: Build unsigned Kinetic simulator target
+        working-directory: ios/KineticCompanion
+        run: >-
+          xcodebuild
+          -project KineticCompanion.xcodeproj
+          -scheme Kinetic
+          -destination 'generic/platform=iOS Simulator'
+          CODE_SIGNING_ALLOWED=NO
+          build

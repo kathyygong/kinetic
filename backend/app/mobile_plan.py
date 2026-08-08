@@ -9,8 +9,8 @@ output) from bypassing plan invariants.
 
 from __future__ import annotations
 
-from collections import Counter
-from datetime import date
+from collections import Counter, defaultdict
+from datetime import date, timedelta
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -364,6 +364,14 @@ def evaluate_mobile_plan_lifecycle(
             ["spacing_violation"],
             impact,
         )
+    if "weekly_growth_requires_review" in warnings:
+        return _response(
+            "rejected",
+            base_version,
+            None,
+            ["invalid_action_delta"],
+            impact,
+        )
     result = "preview" if request.mode == "preview" else "commit_ready"
     return _response(
         result,
@@ -439,8 +447,21 @@ def _action_delta_is_valid(
     }
     if action in ("pause", "resume", "save"):
         return not changed
-    if action in ("availability", "preferred_day", "regenerate_future"):
-        return bool(changed)
+    if action == "regenerate_future":
+        if not changed:
+            return False
+        for workout_id in changed:
+            before = current.get(workout_id)
+            after = proposed.get(workout_id)
+            if before and (before.status == "completed" or before.type == "race"):
+                return False
+            if after and (
+                after.type == "race"
+                or after.status != "scheduled"
+                or after.reason_code != "future_regeneration"
+            ):
+                return False
+        return True
     target_id = request.mutation.target_workout_id
     if target_id is None or changed != {target_id}:
         return False
@@ -453,10 +474,21 @@ def _action_delta_is_valid(
     changed_fields = {
         key for key in before_data if before_data[key] != after_data[key]
     }
-    if action == "move":
+    if action in ("move", "availability", "preferred_day"):
+        expected_reason = (
+            "availability"
+            if action == "availability"
+            else "preferred_day"
+            if action == "preferred_day"
+            else "runner_edit"
+        )
         return (
             changed_fields <= {"date", "reason_code"}
             and "date" in changed_fields
+            and before.type != "race"
+            and before.status == "scheduled"
+            and after.status == "scheduled"
+            and after.reason_code == expected_reason
         )
     if action == "shorten":
         return (
@@ -467,6 +499,10 @@ def _action_delta_is_valid(
             }
             and after.distance_miles <= before.distance_miles
             and after.duration_minutes < before.duration_minutes
+            and before.status == "scheduled"
+            and after.status == "scheduled"
+            and before.type != "race"
+            and after.reason_code == "runner_edit"
         )
     if action == "replace":
         return (
@@ -479,14 +515,98 @@ def _action_delta_is_valid(
                 "reason_code",
             }
             and "type" in changed_fields
+            and before.type != "race"
+            and after.type != "race"
+            and before.status == "scheduled"
+            and after.status == "scheduled"
+            and after.reason_code == "runner_edit"
         )
     if action == "skip":
         return (
             changed_fields <= {"status", "reason_code"}
             and before.status == "scheduled"
             and after.status == "skipped"
+            and before.type != "race"
+            and after.reason_code == "runner_edit"
         )
     return False
+
+
+def _plan_invariants_are_valid(plan: MobilePlanSnapshot) -> bool:
+    """Apply load, coherence, weekly-growth, and taper gates to every plan."""
+
+    active = [workout for workout in plan.workouts if workout.status != "skipped"]
+    if any(
+        workout.distance_miles <= 0
+        or workout.duration_minutes <= 0
+        or (workout.type != "race" and workout.distance_miles > 22)
+        or (workout.type != "race" and workout.duration_minutes > 240)
+        for workout in active
+    ):
+        return False
+    race_distances = {3.1, 6.2, 13.1, 26.2}
+    if any(
+        workout.type == "race"
+        and not any(abs(workout.distance_miles - expected) < 0.01 for expected in race_distances)
+        for workout in active
+    ):
+        return False
+    for workout in active:
+        if workout.pace_seconds_per_mile is None:
+            return False
+        expected_minutes = (
+            workout.distance_miles * workout.pace_seconds_per_mile / 60
+        )
+        if not (expected_minutes * 0.55 <= workout.duration_minutes <= expected_minutes * 1.45):
+            return False
+
+    weekly: dict[date, list[MobilePlanWorkout]] = defaultdict(list)
+    for workout in active:
+        monday = workout.date - timedelta(days=workout.date.weekday())
+        weekly[monday].append(workout)
+    ordered_weeks = sorted(weekly)
+    totals = [sum(item.distance_miles for item in weekly[start]) for start in ordered_weeks]
+    training_totals = [
+        sum(item.distance_miles for item in weekly[start] if item.type != "race")
+        for start in ordered_weeks
+    ]
+    if any(total > 80 for total in totals):
+        return False
+    for workouts in weekly.values():
+        if sum(item.type == "long_run" for item in workouts) > 1:
+            return False
+        if sum(item.type in ("tempo", "intervals") for item in workouts) > 2:
+            return False
+    for index in range(1, len(training_totals)):
+        previous = training_totals[index - 1]
+        current = training_totals[index]
+        if previous == 0 or current == 0:
+            continue
+        if current <= max(previous * 1.25, previous + 5):
+            continue
+        recovery_rebound = (
+            index >= 2
+            and previous <= training_totals[index - 2] * 0.85 + 1.0
+            and current <= max(
+                training_totals[index - 2] * 1.15,
+                training_totals[index - 2] + 5,
+            )
+        )
+        if not recovery_rebound:
+            return False
+
+    race = next((workout for workout in active if workout.type == "race"), None)
+    if race:
+        taper_length = 1 if race.distance_miles < 10 else 2 if race.distance_miles < 20 else 3
+        pre_race_totals = [
+            sum(item.distance_miles for item in weekly[start] if item.type != "race")
+            for start in ordered_weeks
+            if start <= race.date
+        ]
+        taper = pre_race_totals[-taper_length:]
+        if any(right > left + 0.5 for left, right in zip(taper, taper[1:])):
+            return False
+    return True
 
 
 def _advisory_warnings(
@@ -504,9 +624,7 @@ def _advisory_warnings(
     )
     if any((right - left).days < 2 for left, right in zip(scheduled, scheduled[1:])):
         warnings.append("spacing_requires_review")
-    # A detailed mileage/taper gate remains in the existing planner.  Flag
-    # obvious outliers here so native previews cannot silently normalize them.
-    if any(workout.distance_miles > 30 for workout in plan.workouts):
+    if not _plan_invariants_are_valid(plan):
         warnings.append("weekly_growth_requires_review")
     return warnings
 

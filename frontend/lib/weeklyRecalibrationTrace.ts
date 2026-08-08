@@ -4,7 +4,7 @@
 // changes the plan. So we hand it a structured "before / after" view of
 // the current week, derived from:
 //
-//   - The deterministic base plan from `generateTrainingPlan(goal)`
+//   - The deterministic base plan from the shared generation service
 //   - The saved calendar-aware plan from `SavedPlan.weeks[0]`
 //   - Reasoning strings + easy-only days from the same `SavedPlan`
 //   - A short rolling readiness summary from `readinessStorage`

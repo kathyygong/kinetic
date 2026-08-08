@@ -420,18 +420,28 @@ fields from the existing owner-only audit envelope.
   features consume the same owner-scoped Firebase domains and authenticated
   backend contracts as web. Account/onboarding UI may collect bounded inputs,
   but plan generation and mutation pass through shared authenticated services.
-  `mobile-plan-generation.v1` is the required FastAPI generation authority and
-  the current Windows Batch B deliverable;
+  `mobile-plan-generation.v1` is the implemented FastAPI generation authority;
   `mobile-plan-lifecycle.v1` independently validates preview/commit candidates
   and returns storage-neutral commit packages. Web and Swift clients must not
   carry production copies of mileage, pace, taper, workout-scheduling, or
-  future-regeneration rules.
+  future-regeneration rules. This includes display-only phase/taper inference:
+  build/recovery/taper/race metadata is produced by the shared generator and
+  rendered by clients.
 - Windows Batch A established `mobile-foundation.v1` and
   `mobile-plan-lifecycle.v1`. Firebase Auth remains the identity/session
   authority; owner-scoped Firestore stores foundation and versioned plan
   documents; authenticated backend validation returns storage-neutral commit
   packages. Native clients persist only `commit_ready` packages using version
   and operation-id preconditions while retaining completed history.
+- Storage-neutral validation is currently a trusted-product-flow boundary, not
+  a Firestore invariant boundary. Owner-only rules prevent cross-account access
+  but allow the authenticated owner to write an allowlisted domain; they do not
+  validate plan mileage, taper, spacing, or action deltas. Windows Batch B now
+  closes normal UI/AI bypasses with action-specific deltas and full-plan
+  validation before `commit_ready`.
+  Before external beta, the shared/backend lane must either move commit into an
+  authenticated server-side transaction or explicitly accept and document the
+  narrower tampered-client threat model. Native follows that decision.
 - Native iOS is the primary user-facing product surface. Shared backend,
   planner, auth, persistence, schema, observability, and eval modules are
   platform capabilities; web is the secondary runner surface and primary
@@ -453,6 +463,14 @@ fields from the existing owner-only audit envelope.
   and hosted integration. EventKit requires an early Mac spike because its
   permission and calendar behavior cannot be proven from Windows fixtures.
 - Mobile Phases 5–6 use an explicit three-stage closeout: Windows establishes
-  shared generation, Mac removes native generation and completes live/device
-  proof, then Windows performs final documentation, emulator, dependency, and
-  hosted integration. Neither of the first two stages alone closes the phases.
+  shared generation, authoritative phase metadata, hardened lifecycle rules,
+  hosted workflow definitions, and branch routing. Mac removes native
+  generation/phase heuristics, completes onboarding/profile/export/deletion,
+  and closes live/device/accessibility proof. Windows then performs final
+  documentation, emulator, dependency, hosted Windows, and hosted macOS
+  integration. Neither of the first two stages alone closes the phases.
+- A small moderated product-evidence gate follows final Phase 5–6 integration
+  and precedes the full Phase 7 build. Mac owns signed native sessions;
+  Windows/shared owns privacy-safe audit/readback support. This gate validates
+  onboarding, plan-preview confirmation, Today/check-in independence, and
+  absence of web/developer handoffs without expanding feature scope.

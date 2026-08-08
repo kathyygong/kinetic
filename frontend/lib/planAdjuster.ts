@@ -106,7 +106,7 @@ const MIN_DURATION: Record<WorkoutType, number> = {
 /**
  * Adjust a week of training to fit the user's actual calendar availability.
  *
- * @param week         The week emitted by `generateTrainingPlan`.
+ * @param week         The week emitted by the shared generation service.
  * @param availability Minutes free per day (e.g., `{ Mon: 30, Tue: 90 }`).
  *                     Days not present are treated as unconstrained.
  * @param easyOnlyDays Days where only easy runs are permitted (post-travel

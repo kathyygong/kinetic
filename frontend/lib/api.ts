@@ -37,6 +37,15 @@ import {
   type MobileIntakeRequestFailure,
   type MobileIntakeResponse,
 } from "./mobileIntakeContract";
+import {
+  buildInitialPlanGenerationRequest,
+  generationResponseToPlanWeeks,
+  parseMobilePlanGenerationResponse,
+  type MobilePlanGenerationRequest,
+  type MobilePlanGenerationResponse,
+} from "./mobilePlanGenerationContract";
+import type { PlanWeek } from "./planGenerator";
+import type { Goal, UserProfile } from "./types";
 
 const DEFAULT_BASE = "http://127.0.0.1:8000";
 
@@ -114,6 +123,52 @@ export async function apiFetch(
   }
 
   return fetch(resolveUrl(path), { ...init, headers });
+}
+
+export async function fetchMobilePlanGeneration(
+  request: MobilePlanGenerationRequest,
+  init: RequestInit = {},
+  timeoutMs = 8_000,
+): Promise<MobilePlanGenerationResponse> {
+  const controller = new AbortController();
+  const onCallerAbort = () => controller.abort(init.signal?.reason);
+  init.signal?.addEventListener("abort", onCallerAbort, { once: true });
+  const timeout = globalThis.setTimeout(
+    () => controller.abort("plan generation timeout"),
+    timeoutMs,
+  );
+  try {
+    const headers = new Headers(init.headers);
+    if (!headers.has("Content-Type")) {
+      headers.set("Content-Type", "application/json");
+    }
+    const response = await apiFetch("/mobile/plan-generation", {
+      ...init,
+      method: "POST",
+      headers,
+      body: JSON.stringify(request),
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      throw new Error(`plan generation failed: HTTP ${response.status}`);
+    }
+    return parseMobilePlanGenerationResponse(await response.json());
+  } finally {
+    globalThis.clearTimeout(timeout);
+    init.signal?.removeEventListener("abort", onCallerAbort);
+  }
+}
+
+/** Authenticated production-web entrypoint for shared deterministic generation. */
+export async function fetchSharedTrainingPlan(
+  goal: Goal,
+  profile?: UserProfile | null,
+  planningDate = new Date(),
+): Promise<PlanWeek[]> {
+  const response = await fetchMobilePlanGeneration(
+    buildInitialPlanGenerationRequest(goal, profile, planningDate),
+  );
+  return generationResponseToPlanWeeks(response);
 }
 
 export class MobileTodayRequestError extends Error {

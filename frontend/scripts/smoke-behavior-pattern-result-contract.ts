@@ -35,6 +35,7 @@ function expect(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
 }
 
+async function main(): Promise<void> {
 const fixture = JSON.parse(
   readFileSync(
     resolve(
@@ -155,13 +156,17 @@ expect(
   JSON.stringify({ goal, profile, savedPlan }) === before,
   "review-time validation mutated existing state",
 );
-const confirmedState = buildConfirmedIntakeState({
+const confirmedState = await buildConfirmedIntakeState({
   draft: review.draft,
   sourceText: review.sourceText,
   today: "2026-07-23",
   currentGoal: goal,
   currentProfile: profile,
   currentPlan: savedPlan,
+  generatedPlan: applyPreferredDays(
+    generateTrainingPlan(goal),
+    review.draft.schedule_changes[0]?.value,
+  ),
 });
 expect(
   confirmedState.profile.preferred_training_days.join(",") ===
@@ -246,6 +251,12 @@ expect(
 console.log(
   "OK - behavior-pattern-result.v1 covers every bounded route, review-only validation, deterministic confirmation, malformed response rejection, and privacy keys",
 );
+}
+
+void main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
 
 function expectThrows(run: () => unknown, message: string): void {
   let threw = false;
