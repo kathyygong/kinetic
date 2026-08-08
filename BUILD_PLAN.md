@@ -1353,14 +1353,18 @@ branch was fast-forwarded into `main` on 2026-07-23.
   closeout or Phase 7. See
   [MOBILE_PHASE5_6_HANDOFF.md](./MOBILE_PHASE5_6_HANDOFF.md).
 
-### Windows B For Mobile Phases 5–6 - Implemented Locally, Handoff Gate Open 2026-08-07
+### Windows B For Mobile Phases 5–6 - Pushed, Dependency Gate Open 2026-08-07
 
 The shared generator, web migration, lifecycle hardening, adversarial fixtures,
-hosted macOS workflow, and branch routing below are implemented locally. The
-clean install/audit and first hosted evidence remain open because the configured
-package proxy lacks locked Next 16.3.0, direct npmjs TLS fails on the Windows
-host, and the reachable audit reports a new no-compatible-fix Nano ID advisory.
-Mac Batch B must not start until the handoff status is green.
+hosted macOS workflow, and branch routing below are pushed through `6f42396`.
+Hosted macOS run 31233321534 passes Swift tests and the unsigned simulator
+build. Hosted Windows run 31233321463 passes a clean locked install but stops
+at two new root advisories: JS-YAML has a compatible fix, while Nano ID has no
+published compatible fix and propagates through PostCSS/Next/Tailwind. The
+local proxy lacks locked Next 16.3.0 and direct npmjs TLS fails, so the lockfile
+cannot be safely refreshed from this host. Windows/shared dependency
+remediation must finish before Mac Batch B starts; do not weaken the audit or
+force an incompatible Nano ID major.
 
 - Work from `codex/mobile-phase5-6-closeout`, based on Mac automated-closeout
   commit `1435369`. Preserve the divergent documentation correction at

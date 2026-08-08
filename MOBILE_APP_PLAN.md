@@ -138,8 +138,10 @@ For the current roadmap:
   generation to it, chained its output through the independent lifecycle
   validator, hardened action-specific deltas/full-plan invariants, added shared
   week-phase metadata and adversarial regressions, and defined hosted macOS CI
-  plus branch/workflow routing. Its dependency audit and hosted handoff proof
-  remain open as recorded in the handoff; Mac closeout must not start yet.
+  plus branch/workflow routing. Hosted macOS Swift/simulator proof is green in
+  run 31233321534. Hosted Windows clean install passes, but run 31233321463 is
+  blocked by new JS-YAML and no-compatible-fix Nano ID advisories; Windows
+  dependency remediation remains the sole prerequisite before Mac closeout.
 - Mac Batch B then removes Swift generation and native phase/taper heuristics,
   completes personal-record/availability onboarding plus plan preview/summary,
   profile/settings editing, full training-data export, and account deletion,
