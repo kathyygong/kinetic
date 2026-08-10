@@ -139,10 +139,10 @@ For the current roadmap:
   validator, hardened action-specific deltas/full-plan invariants, added shared
   week-phase metadata and adversarial regressions, and defined hosted macOS CI
   plus branch/workflow routing. Hosted macOS Swift/simulator proof is green in
-  run 31233321534. JS-YAML is patched to 4.3.1 and hosted Windows clean install
-  passes, but run 31233620976 remains blocked by the no-compatible-fix Nano ID
-  advisory; that Windows dependency remediation is the sole prerequisite
-  before Mac closeout.
+  run 31412874959. JS-YAML is patched to 4.3.1, Nano ID to compatible 3.3.17,
+  and hosted Windows run 31412865931 passes the complete shared integration
+  stack with a zero-vulnerability audit. Windows Batch B is complete at
+  `d5bbfdc`; Mac Batch B is now authorized to start from that commit.
 - Mac Batch B then removes Swift generation and native phase/taper heuristics,
   completes personal-record/availability onboarding plus plan preview/summary,
   profile/settings editing, full training-data export, and account deletion,
@@ -161,12 +161,8 @@ For the current roadmap:
 - Phase 8 runs on both lanes continuously and closes only after hosted shared
   gates plus Mac simulator/device and external-user evidence pass.
 
-Current Windows prompt:
-
-> Continue Windows Batch B on `codex/mobile-phase5-6-closeout`. Read
-> `MOBILE_PHASE5_6_HANDOFF.md`.
-
-The next Mac and final Windows prompts are defined in the handoff. Do not begin
+The copy-ready Mac Batch B and final Windows prompts are defined in
+`MOBILE_PHASE5_6_HANDOFF.md`. Do not begin
 Phase 7 EventKit behavior before both have completed and the pre-Phase-7
 product-evidence gate has passed.
 

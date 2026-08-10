@@ -138,9 +138,10 @@ Runtime modes are explicit:
   browse, safely edit/regenerate, pause/resume, and confirm preferences without
   a normal-runner web handoff. Windows B owns shared generation, authoritative
   phase metadata, action-specific/full-plan lifecycle enforcement, adversarial
-  gates, production-web migration, and hosted workflow routing. Mac B then
-  removes native generation/phase heuristics and closes native/device proof;
-  final Windows integration requires green hosted Windows and macOS runs.
+  gates, production-web migration, and hosted workflow routing. Windows B is
+  green at `d5bbfdc`; Mac B is authorized to remove native generation/phase
+  heuristics and close native/device proof. Final Windows integration still
+  requires green hosted Windows and macOS runs after the Mac commit.
 - [ ] **Pre-Phase 7 Product Evidence:** After Phases 5–6 close, run moderated
   signed-build onboarding-to-check-in sessions with 3–5 target runners. Validate
   independent core-loop use before expanding into Calendar/Progress.

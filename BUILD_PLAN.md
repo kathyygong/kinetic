@@ -1353,17 +1353,17 @@ branch was fast-forwarded into `main` on 2026-07-23.
   closeout or Phase 7. See
   [MOBILE_PHASE5_6_HANDOFF.md](./MOBILE_PHASE5_6_HANDOFF.md).
 
-### Windows B For Mobile Phases 5–6 - Pushed, Dependency Gate Open 2026-08-07
+### Windows B For Mobile Phases 5–6 - Complete, Mac B Authorized 2026-08-10
 
 The shared generator, web migration, lifecycle hardening, adversarial fixtures,
-hosted macOS workflow, and branch routing below are pushed through `6f42396`.
-Hosted macOS run 31233321534 passes Swift tests and the unsigned simulator
-build. JS-YAML is patched to 4.3.1. Hosted Windows run 31233620976 passes a
-clean locked install and confirms the audit dropped from two findings to one;
-the remaining Nano ID advisory has no published compatible fix and propagates
-through PostCSS/Next/Tailwind. The local proxy lacks locked Next 16.3.0 and
-direct npmjs TLS fails. Windows/shared Nano ID remediation must finish before
-Mac Batch B starts; do not weaken the audit or force an incompatible major.
+hosted macOS workflow, and branch routing below are complete at green Windows
+handoff commit `d5bbfdc`. JS-YAML is patched to 4.3.1 and Nano ID to compatible
+3.3.17 without an audit exception. Hosted Windows run 31412865931 passes clean
+install, zero-vulnerability audit, lint, TypeScript, full smoke, production
+build, backend compile/evals/smokes, and Firebase owner-isolation rules. Hosted
+macOS run 31412874959 passes Swift tests and the unsigned simulator build on
+the same commit. Mac Batch B may start from `d5bbfdc`; Phases 5–6 remain open
+until the Mac closeout and mandatory final Windows integration complete.
 
 - Work from `codex/mobile-phase5-6-closeout`, based on Mac automated-closeout
   commit `1435369`. Preserve the divergent documentation correction at

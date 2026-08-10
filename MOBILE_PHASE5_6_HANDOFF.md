@@ -105,9 +105,10 @@ dependency handoff, not the final Windows integration.
   the hosted workflow triggers.
 - Clean install/audit, lint, TypeScript, complete smoke, production build,
   backend compile/evals, and owner/cross-user/anonymous emulator results.
-- One pushed Windows handoff commit. Mac work must start from that commit.
+- One recorded, pushed, green Windows handoff commit. Mac work must start from
+  that commit.
 
-### Windows Batch B implementation status — 2026-08-07
+### Windows Batch B handoff — green 2026-08-10
 
 Implemented on `codex/mobile-phase5-6-closeout`:
 
@@ -140,25 +141,28 @@ compile, 18-group/498-assertion evaluator report, round-trip smoke, generation
 and lifecycle contract smokes; and Firebase Auth/Firestore owner,
 cross-user, and anonymous rules.
 
-The Batch B handoff is **not green yet**. The implementation and CI fixes are
-pushed to `origin/codex/mobile-phase5-6-closeout`. Hosted macOS run
-[31233321534](https://github.com/kathyygong/kinetic/actions/runs/31233321534)
-passes the complete Swift package suite and unsigned simulator build. Its
-predecessor exposed only a missing untracked Firebase plist; the workflow now
-seeds the checked-in non-secret example for build validation.
+The Batch B handoff is **green** at Windows handoff commit `d5bbfdc`, pushed to
+`origin/codex/mobile-phase5-6-closeout`. Transitive `js-yaml` is locked at
+`4.3.1` and Nano ID at compatible patched `3.3.17`, both with public npm
+tarball URLs and SHA-512 integrity. No audit exception or incompatible major
+override was added.
 
 Hosted Windows run
-[31233620976](https://github.com/kathyygong/kinetic/actions/runs/31233620976)
-passes checkout, toolchain setup, and a clean locked `npm ci`, then correctly
-stops at the connected advisory gate before later checks. The compatible
-`js-yaml` fix is locked at `4.3.1`; the hosted audit reduced from two findings
-to one. The sole remaining finding is transitive `nanoid@3.3.16`, whose
-advisory requires unpublished compatible `3.3.17` and reports no compatible
-fix through PostCSS/Next/Tailwind. The configured local proxy still lacks
-locked `next@16.3.0`, and direct npmjs access from this host fails TLS.
-Windows/shared Nano ID remediation is the only prerequisite that must finish
-before Mac Batch B starts; do not suppress the audit or force Nano ID onto an
-incompatible major.
+[31412865931](https://github.com/kathyygong/kinetic/actions/runs/31412865931)
+passes clean locked `npm ci`, the zero-vulnerability connected audit, lint,
+TypeScript, the complete deterministic frontend smoke suite, production build,
+beta readiness, backend compile, 18-group/498-assertion evaluator verification,
+backend round-trip/generation/lifecycle smokes, and Firebase Auth/Firestore
+owner, cross-user, and anonymous rules. Hosted macOS run
+[31412874959](https://github.com/kathyygong/kinetic/actions/runs/31412874959)
+passes the complete Swift package suite and unsigned Kinetic simulator build on
+the same commit.
+
+The local Microsoft npm mirror still lacks locked `next@16.3.0`, and direct
+npmjs access from this Windows host still fails TLS. Those local connectivity
+limits are superseded by the green hosted clean-install evidence above. Mac
+Batch B is authorized to start from `d5bbfdc`; Phases 5–6 remain open until Mac
+Batch B and final Windows integration both complete.
 
 ## Phase 5 native implementation checkpoint — 2026-08-03
 
@@ -355,13 +359,45 @@ or entitlements to work around signing.
 
 ## Continuation prompts
 
-Current Windows task:
+Windows Batch B is complete at `d5bbfdc`.
 
-> Continue Windows Batch B on `codex/mobile-phase5-6-closeout`. Read `MOBILE_PHASE5_6_HANDOFF.md`.
+Mac Batch B starting prompt:
 
-Next Mac task, only after the Windows Batch B commit is pushed:
-
-> Continue Mobile Phases 5–6 closeout on Mac. Read `MOBILE_PHASE5_6_HANDOFF.md`.
+> Continue Kinetic Mobile Phases 5–6 Mac Batch B on
+> `codex/mobile-phase5-6-closeout`. Start from the green Windows handoff commit
+> `d5bbfdc` (`git fetch origin`, switch to the branch, and fast-forward only).
+> Read `MOBILE_PHASE5_6_HANDOFF.md`, `MOBILE_FOUNDATION_PLAN_CONTRACT.md`,
+> `MOBILE_APP_PLAN.md`, `BUILD_PLAN.md`, `QA_MATRIX.md`, `ARCHITECTURE.md`, and
+> `ios/KineticCompanion/README.md` before editing. Treat the FastAPI
+> `mobile-plan-generation.v1` endpoint and `mobile-plan-lifecycle.v1`
+> validator, canonical fixtures, owner-only persistence domains, and bounded
+> audit schemas as fixed Windows/shared authority. Do not recreate plan
+> generation, phase, taper, or safety policy in Swift, and do not change shared
+> backend/web contracts unless a concrete cross-platform defect makes that
+> unavoidable; if one does, document it and return it to Windows rather than
+> silently broadening native scope.
+>
+> Implement the native closeout in this order: replace full Swift generation
+> with an authenticated strict-Codable `POST /mobile/plan-generation` client;
+> remove native build/recovery/taper/race inference and render authoritative
+> week/explanation metadata; complete optional personal records, bounded
+> availability, shared-authority onboarding preview and confirmed summary,
+> editable profile/planning inputs, and a real owner-scoped training-data
+> export; finish retryable owner-domain plus Firebase Auth account deletion;
+> then complete lifecycle preview/commit/readback, conflict/replay/offline and
+> rejected-invariant UI, privacy-safe `/qa/mobile` evidence, and owner versus
+> cross-user checks. Preserve completed/race history, operation fingerprints,
+> bundle identity, entitlements, and the existing foundation-receipt label.
+>
+> Run focused and complete Swift tests, the unsigned simulator build/launch,
+> authenticated disposable-owner readback, VoiceOver/Dynamic Type/contrast/
+> landscape/small-screen checks, and signed physical-device build/install/
+> launch where credentials and hardware permit. Record genuine external
+> signing/accessibility blockers without weakening the acceptance criteria.
+> Update the handoff, build plan, QA matrix, architecture, and iOS README with
+> exact evidence; commit and push Mac Batch B to the same branch; do not start
+> Phase 7. Hand the pushed Mac closeout commit back to Windows for mandatory
+> final integration.
 
 Final Windows task, only after the Mac closeout commit is pushed:
 
