@@ -161,8 +161,10 @@ For the current roadmap:
 - Phase 8 runs on both lanes continuously and closes only after hosted shared
   gates plus Mac simulator/device and external-user evidence pass.
 
-The copy-ready Mac Batch B and final Windows prompts are defined in
-`MOBILE_PHASE5_6_HANDOFF.md`. Do not begin
+To resume the next lane, say only
+`Continue Mobile Phase 5–6 Mac implementation.` The phrase expands to the
+copy-ready Mac Batch B instructions in `MOBILE_PHASE5_6_HANDOFF.md`. The final
+Windows prompt is defined there as well. Do not begin
 Phase 7 EventKit behavior before both have completed and the pre-Phase-7
 product-evidence gate has passed.
 

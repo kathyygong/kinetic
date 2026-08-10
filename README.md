@@ -142,6 +142,7 @@ Runtime modes are explicit:
   green at `d5bbfdc`; Mac B is authorized to remove native generation/phase
   heuristics and close native/device proof. Final Windows integration still
   requires green hosted Windows and macOS runs after the Mac commit.
+  Resume this lane with: `Continue Mobile Phase 5–6 Mac implementation.`
 - [ ] **Pre-Phase 7 Product Evidence:** After Phases 5–6 close, run moderated
   signed-build onboarding-to-check-in sessions with 3–5 target runners. Validate
   independent core-loop use before expanding into Calendar/Progress.

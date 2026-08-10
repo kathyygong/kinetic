@@ -361,6 +361,17 @@ or entitlements to work around signing.
 
 Windows Batch B is complete at `d5bbfdc`.
 
+For the next Mac session, the only prompt the owner needs to send is:
+
+> Continue Mobile Phase 5–6 Mac implementation.
+
+That exact phrase means: fetch and fast-forward
+`codex/mobile-phase5-6-closeout`, read this handoff and every referenced
+contract/roadmap document, start from the latest pushed descendant of the green
+Windows authority commit `d5bbfdc`, and execute the complete Mac Batch B prompt
+below. The short phrase does not authorize Phase 7, shared-contract redesign,
+or skipping any closeout evidence.
+
 Mac Batch B starting prompt:
 
 > Continue Kinetic Mobile Phases 5–6 Mac Batch B on

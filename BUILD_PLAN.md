@@ -1399,6 +1399,11 @@ until the Mac closeout and mandatory final Windows integration complete.
 
 ### Mac B For Mobile Phases 5–6 - Required After Windows B
 
+Resume command: `Continue Mobile Phase 5–6 Mac implementation.` The complete
+scope, starting-point, validation, evidence, and stop instructions are in
+`MOBILE_PHASE5_6_HANDOFF.md`; the short command does not narrow those
+requirements.
+
 - Fetch the Windows Batch B commit and replace full Swift plan generation with
   an authenticated `mobile-plan-generation.v1` client. Retain bounded native
   edit proposals only when the independent lifecycle validator still approves
