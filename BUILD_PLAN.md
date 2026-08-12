@@ -1429,21 +1429,25 @@ generation, removal of the copied native generator and phase/taper heuristic,
 optional personal-record onboarding, shared/lifecycle plan review before
 completion, real owner-scoped training-data export, QA launch matrices, 67/67
 Swift tests, and the unsigned simulator build pass in the current closeout
-worktree. Mac completion is blocked on three Windows/shared decisions: durable
-versioned week metadata across lifecycle commits/relaunch, a concrete bounded
-availability field and generation meaning, and idempotent account cleanup that
-keeps a retryable boundary through Firebase Auth deletion. Editable planning
-inputs, final deletion, live authenticated/device/accessibility evidence, and
-final Windows integration remain open.
+worktree. At that checkpoint, Mac completion was blocked on three
+Windows/shared decisions: durable versioned metadata, bounded availability,
+and retry-safe account cleanup. The Windows return below resolves those shared
+decisions; editable planning inputs, final deletion, live authenticated/device/
+accessibility evidence, and final Windows integration remain open.
 
-The immediate next lane is a Windows/shared blocker-resolution pass on
-`codex/mobile-phase5-6-closeout`. The canonical owner prompt is **Continue
-Windows Phase 5-6 implementation.** Its complete expansion and ordered
-acceptance criteria are maintained in `MOBILE_PHASE5_6_HANDOFF.md`. That pass
-must land durable versioned week metadata, bounded weekly availability,
-retry-safe idempotent account cleanup, and coordinated planning-input/plan
-writes before the branch returns to Mac. It is not the final Windows
-integration gate.
+Windows/shared blocker resolution implemented 2026-08-12 in the current
+closeout worktree: backward-compatible v2 generation/lifecycle contracts bind
+week metadata to the plan version, refresh it after every accepted edit, and
+migrate workout-only plans on regeneration; recurring availability is a
+privacy-safe unique weekday plus 0-or-15–240 minute/easy-only list; planning
+inputs and plan are one revision-checked transaction package; and
+`mobile-account-cleanup.v1` retains a server-only receipt through all owner
+domain deletes, recent-auth checking, and Firebase Auth deletion. Local lint,
+TypeScript, full smoke, production build, backend compile/evals/smokes,
+zero-vulnerability connected audit, and Firebase owner/cross-user/anonymous/
+server-receipt rules are green. Hosted evidence and the resulting exact handoff
+commit are recorded in `MOBILE_PHASE5_6_HANDOFF.md`. This is still not final
+Windows integration; Mac must consume the contracts and finish native proof.
 
 ### Final Windows Integration For Mobile Phases 5–6 - Mandatory
 

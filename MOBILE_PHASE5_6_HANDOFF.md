@@ -215,11 +215,61 @@ deletion, metadata-after-relaunch proof, authenticated live readback, and the
 physical/accessibility matrix remain open. Do not represent this checkpoint as
 Mac Batch B completion or start Phase 7.
 
-The next implementation lane is therefore Windows/shared blocker resolution,
-not final integration. Windows must land the three shared changes and their
-cross-platform fixtures first; Mac then consumes them and completes the native
-work; only after that pushed Mac completion does the mandatory final Windows
-integration run begin.
+At Mac checkpoint `b6604af`, the next implementation lane was Windows/shared
+blocker resolution rather than final integration. The checkpoint below records
+that resolution; after its hosted handoff is green, Mac consumes it and
+completes native proof before mandatory final Windows integration.
+
+### Windows/shared blocker-resolution checkpoint — 2026-08-12
+
+The Windows return after Mac checkpoint `b6604af` resolves the four shared
+blockers without changing the v1 wire shapes already consumed by Swift:
+
+- `mobile-plan-generation.v2` and `mobile-plan-lifecycle.v2` store authoritative
+  metadata inside the plan snapshot, require `metadata.plan_version` to equal
+  the snapshot version, cover every workout exactly once, and recompute shared
+  build/recovery/taper/race plus bounded explanation metadata after every
+  accepted lifecycle edit;
+- legacy workout-only plan snapshots remain accepted as a current plan and gain
+  v2 metadata on the next shared regeneration;
+- recurring `weekly_availability` is zero to seven unique weekday records with
+  no text: omitted means unconstrained, zero minutes means skip, positive
+  availability is 15–240 minutes, an empty list clears constraints, and
+  `easy_only` prevents shared authority from scheduling a hard workout there;
+- lifecycle v2 returns `commit_planning_inputs` with the plan and adds profile,
+  goal, and `planning_revision_matches` to the required owner transaction. The
+  web transaction adapter reads every precondition before writing all five
+  domains, history, and operation receipt;
+- authenticated `mobile-account-cleanup.v1` uses a server-only receipt outside
+  the owner sweep. Partial domain failures retain pending domains, matching
+  operations replay, operation-ID/fingerprint conflicts fail, Auth deletion
+  requires an empty domain list and a token authenticated within five minutes,
+  and the completed receipt remains durable after identity deletion.
+
+Canonical additions are
+`ios/KineticCompanion/Tests/Fixtures/mobile-plan-shared-v2-contract.json`,
+`frontend/scripts/smoke-mobile-plan-v2-contract.ts`, and
+`backend/evals/mobile_phase5_6_shared_contract_smoke.py`. Local evidence:
+
+```text
+Frontend clean npm ci: passed
+Frontend lint: passed
+Frontend TypeScript: passed
+Frontend complete smoke suite: passed
+Frontend production build: passed
+Connected beta audit: 0 failures, 0 warnings, no moderate/high/critical advisories
+Backend compile: passed
+Backend evaluator report: 18 groups / 498 assertions
+Backend legacy generation/lifecycle/round-trip smokes: passed
+Backend v2 metadata/availability/cleanup smoke: passed
+Firebase Auth/Firestore owner/cross-user/anonymous plus server-only receipt matrix: passed
+```
+
+The exact pushed handoff commit and hosted Windows/macOS runs are pending at the
+time of this worktree checkpoint. After they are green, the branch returns to
+Mac to consume v2, finish editable planning inputs and final deletion, and run
+the authenticated physical/accessibility proof. Do not start final Windows
+integration or Phase 7 yet.
 
 ## Phase 5 native implementation checkpoint — 2026-08-03
 
@@ -418,11 +468,11 @@ or entitlements to work around signing.
 
 Windows Batch B is complete at `d5bbfdc`.
 
-For the next Windows session, the only prompt the owner needs to send is:
+The completed Windows/shared blocker-resolution session was started with:
 
 > Continue Windows Phase 5-6 implementation.
 
-That exact phrase means: fetch `codex/mobile-phase5-6-closeout`, fast-forward
+That historical phrase meant: fetch `codex/mobile-phase5-6-closeout`, fast-forward
 only to its latest pushed commit, read this handoff plus
 `MOBILE_FOUNDATION_PLAN_CONTRACT.md`, `MOBILE_APP_PLAN.md`, `BUILD_PLAN.md`,
 `QA_MATRIX.md`, `ARCHITECTURE.md`, and `ios/KineticCompanion/README.md`, and
@@ -431,7 +481,7 @@ older Batch B work at `d5bbfdc`, does not authorize Phase 7, and does not mean
 the final Windows integration gate can run before Mac consumes the resulting
 contracts.
 
-Windows/shared blocker-resolution prompt:
+Completed Windows/shared blocker-resolution prompt:
 
 > Continue Kinetic Mobile Phases 5–6 Windows/shared implementation on
 > `codex/mobile-phase5-6-closeout`. Preserve the green Mac checkpoint and its
@@ -473,33 +523,34 @@ For the next Mac session, the only prompt the owner needs to send is:
 That exact phrase means: fetch and fast-forward
 `codex/mobile-phase5-6-closeout`, read this handoff and every referenced
 contract/roadmap document, start from the latest pushed descendant of the green
-Windows authority commit `d5bbfdc`, and execute the complete Mac Batch B prompt
+Windows/shared handoff descendant of Mac checkpoint `b6604af`, and execute the
+remaining Mac Batch B prompt
 below. The short phrase does not authorize Phase 7, shared-contract redesign,
 or skipping any closeout evidence.
 
 Mac Batch B starting prompt:
 
 > Continue Kinetic Mobile Phases 5–6 Mac Batch B on
-> `codex/mobile-phase5-6-closeout`. Start from the green Windows handoff commit
-> `d5bbfdc` (`git fetch origin`, switch to the branch, and fast-forward only).
+> `codex/mobile-phase5-6-closeout`. Start from the latest green pushed
+> Windows/shared handoff descendant of `b6604af` (`git fetch origin`, switch to
+> the branch, and fast-forward only).
 > Read `MOBILE_PHASE5_6_HANDOFF.md`, `MOBILE_FOUNDATION_PLAN_CONTRACT.md`,
 > `MOBILE_APP_PLAN.md`, `BUILD_PLAN.md`, `QA_MATRIX.md`, `ARCHITECTURE.md`, and
 > `ios/KineticCompanion/README.md` before editing. Treat the FastAPI
-> `mobile-plan-generation.v1` endpoint and `mobile-plan-lifecycle.v1`
-> validator, canonical fixtures, owner-only persistence domains, and bounded
+> v1/v2 generation and lifecycle endpoints, canonical fixtures, coordinated
+> owner-only persistence package, server-only cleanup receipt, and bounded
 > audit schemas as fixed Windows/shared authority. Do not recreate plan
 > generation, phase, taper, or safety policy in Swift, and do not change shared
 > backend/web contracts unless a concrete cross-platform defect makes that
 > unavoidable; if one does, document it and return it to Windows rather than
 > silently broadening native scope.
 >
-> Implement the native closeout in this order: replace full Swift generation
-> with an authenticated strict-Codable `POST /mobile/plan-generation` client;
-> remove native build/recovery/taper/race inference and render authoritative
-> week/explanation metadata; complete optional personal records, bounded
-> availability, shared-authority onboarding preview and confirmed summary,
-> editable profile/planning inputs, and a real owner-scoped training-data
-> export; finish retryable owner-domain plus Firebase Auth account deletion;
+> Implement the remaining native closeout in this order: add strict v2 Codable
+> parity; persist and restore version-bound shared metadata; map native weekly
+> availability to the weekday/0-or-15–240/easy-only contract; commit changed
+> planning inputs and regenerated plan through the coordinated v2 transaction;
+> finish retryable owner-domain plus Firebase Auth account deletion through
+> `mobile-account-cleanup.v1`;
 > then complete lifecycle preview/commit/readback, conflict/replay/offline and
 > rejected-invariant UI, privacy-safe `/qa/mobile` evidence, and owner versus
 > cross-user checks. Preserve completed/race history, operation fingerprints,

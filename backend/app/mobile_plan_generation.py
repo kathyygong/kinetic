@@ -15,6 +15,11 @@ from typing import Literal
 from pydantic import Field, model_validator
 
 from .mobile_plan import MobilePlanSnapshot, MobilePlanWorkout, StrictModel
+from .mobile_plan_v2 import (
+    MobilePlanningInputs,
+    MobilePlanSnapshotV2,
+    build_plan_metadata,
+)
 
 
 RaceDistance = Literal["5k", "10k", "half", "marathon"]
@@ -88,6 +93,43 @@ class MobilePlanGenerationResponse(StrictModel):
     candidate_plan: MobilePlanSnapshot
     weeks: list[MobilePlanWeekMetadata] = Field(min_length=4, max_length=20)
     explanation_codes: list[ExplanationCode] = Field(min_length=1, max_length=7)
+
+
+class MobilePlanGenerationRequestV2(StrictModel):
+    schema_version: Literal["mobile-plan-generation.v2"]
+    platform: Literal["web", "ios"]
+    mode: GenerationMode
+    planning_date: date
+    planning_inputs: MobilePlanningInputs
+    current_plan: MobilePlanSnapshotV2 | MobilePlanSnapshot | None = None
+
+    @model_validator(mode="after")
+    def validate_generation_context(self) -> "MobilePlanGenerationRequestV2":
+        inputs = self.planning_inputs
+        if inputs.target_date < self.planning_date + timedelta(days=21):
+            raise ValueError("target date must be at least 21 days after planning date")
+        if self.mode == "initial" and self.current_plan is not None:
+            raise ValueError("initial generation cannot include a current plan")
+        if self.mode == "regenerate_future" and self.current_plan is None:
+            raise ValueError("future regeneration requires a current plan")
+        if self.current_plan:
+            races = [workout for workout in self.current_plan.workouts if workout.type == "race"]
+            if len(races) != 1 or races[0].date != inputs.target_date:
+                raise ValueError("future regeneration must preserve the current race date")
+            if inputs.revision not in {
+                self.current_plan.goal_revision,
+                self.current_plan.goal_revision + 1,
+            }:
+                raise ValueError("future regeneration has an invalid planning revision")
+        return self
+
+
+class MobilePlanGenerationResponseV2(StrictModel):
+    schema_version: Literal["mobile-plan-generation.v2"] = "mobile-plan-generation.v2"
+    mode: GenerationMode
+    source: Literal["deterministic_shared"] = "deterministic_shared"
+    mutation_performed: Literal[False] = False
+    candidate_plan: MobilePlanSnapshotV2
 
 
 _DAY_INDEX = {day: index for index, day in enumerate(("mon", "tue", "wed", "thu", "fri", "sat", "sun"))}
@@ -290,6 +332,77 @@ def generate_mobile_plan(request: MobilePlanGenerationRequest) -> MobilePlanGene
         weeks=weeks,
         explanation_codes=list(dict.fromkeys(explanations)),
     )
+
+
+def generate_mobile_plan_v2(
+    request: MobilePlanGenerationRequestV2,
+) -> MobilePlanGenerationResponseV2:
+    """Generate a v2 candidate with persisted metadata and availability."""
+
+    inputs = request.planning_inputs
+    constraints = {entry.day: entry for entry in inputs.weekly_availability}
+    all_days: list[PlanningDay] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+    usable = [day for day in all_days if constraints.get(day) is None or constraints[day].available_minutes > 0]
+    workout_count = _WORKOUTS_PER_WEEK[inputs.experience_level]
+    if len(usable) < workout_count:
+        raise ValueError("weekly availability leaves too few training days")
+    preferred = [day for day in inputs.preferred_days if day in usable]
+    scheduling_days = preferred if len(preferred) >= workout_count else usable
+    current = request.current_plan
+    legacy_current = (
+        MobilePlanSnapshot.model_validate(current.model_dump(exclude={"metadata"}))
+        if current is not None
+        else None
+    )
+    legacy = MobilePlanGenerationRequest(
+        schema_version="mobile-plan-generation.v1",
+        platform=request.platform,
+        mode=request.mode,
+        planning_date=request.planning_date,
+        race_distance=inputs.race_distance,
+        target_date=inputs.target_date,
+        experience_level=inputs.experience_level,
+        weekly_mileage=inputs.weekly_mileage,
+        preferred_days=scheduling_days,
+        personal_bests_seconds=inputs.personal_bests_seconds,
+        goal_revision=inputs.revision,
+        current_plan=legacy_current,
+    )
+    generated = generate_mobile_plan(legacy)
+    day_names = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
+    adjusted: list[MobilePlanWorkout] = []
+    for workout in generated.candidate_plan.workouts:
+        constraint = constraints.get(day_names[workout.date.weekday()])
+        if workout.type == "race" or constraint is None:
+            adjusted.append(workout)
+            continue
+        workout_type = "easy" if constraint.easy_only else workout.type
+        duration = workout.duration_minutes
+        distance = workout.distance_miles
+        if constraint.available_minutes and duration > constraint.available_minutes:
+            duration = max(5, constraint.available_minutes - (constraint.available_minutes % 5))
+            pace = workout.pace_seconds_per_mile or 600
+            distance = max(0.5, math.floor((duration * 60 / pace) * 2) / 2)
+        adjusted.append(
+            workout.model_copy(
+                update={
+                    "type": workout_type,
+                    "duration_minutes": duration,
+                    "distance_miles": distance,
+                    "reason_code": "availability",
+                }
+            )
+        )
+    base = generated.candidate_plan.model_copy(update={"workouts": adjusted})
+    metadata = build_plan_metadata(
+        base,
+        inputs,
+        regenerated=request.mode == "regenerate_future",
+    )
+    candidate = MobilePlanSnapshotV2.model_validate(
+        {**base.model_dump(), "metadata": metadata.model_dump()}
+    )
+    return MobilePlanGenerationResponseV2(mode=request.mode, candidate_plan=candidate)
 
 
 def _remap_template(

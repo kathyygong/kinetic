@@ -20,7 +20,7 @@ export const PLAN_STORAGE_KEY = "kinetic_plan";
  * by a prior version are treated as stale and regenerated on next render.
  * Both `goalSignature` and `planSignature` fold this in.
  */
-const PLAN_GENERATOR_VERSION = 3;
+const PLAN_GENERATOR_VERSION = 4;
 
 /** Persist the user's goal to localStorage. */
 export function saveGoal(goal: Goal): void {
@@ -117,6 +117,7 @@ export function planSignature(
     pr: profile?.personal_bests ?? goal.current_prs,
     wm: profile?.weekly_mileage ?? goal.weekly_mileage ?? null,
     pd: days,
+    wa: [...(profile?.weekly_availability ?? [])].sort((a, b) => a.day.localeCompare(b.day)),
   });
 }
 

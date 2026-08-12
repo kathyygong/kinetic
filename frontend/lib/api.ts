@@ -38,12 +38,23 @@ import {
   type MobileIntakeResponse,
 } from "./mobileIntakeContract";
 import {
-  buildInitialPlanGenerationRequest,
-  generationResponseToPlanWeeks,
   parseMobilePlanGenerationResponse,
   type MobilePlanGenerationRequest,
   type MobilePlanGenerationResponse,
 } from "./mobilePlanGenerationContract";
+import {
+  buildInitialPlanGenerationRequestV2,
+  generationResponseV2ToPlanWeeks,
+  parseMobileAccountCleanupResponse,
+  parseMobilePlanGenerationResponseV2,
+  parseMobilePlanLifecycleResponseV2,
+  type MobileAccountCleanupRequest,
+  type MobileAccountCleanupResponse,
+  type MobilePlanGenerationRequestV2,
+  type MobilePlanGenerationResponseV2,
+  type MobilePlanLifecycleRequestV2,
+  type MobilePlanLifecycleResponseV2,
+} from "./mobilePlanV2Contract";
 import type { PlanWeek } from "./planGenerator";
 import type { Goal, UserProfile } from "./types";
 
@@ -159,16 +170,60 @@ export async function fetchMobilePlanGeneration(
   }
 }
 
+export async function fetchMobilePlanGenerationV2(
+  request: MobilePlanGenerationRequestV2,
+  init: RequestInit = {},
+  timeoutMs = 8_000,
+): Promise<MobilePlanGenerationResponseV2> {
+  const controller = new AbortController();
+  const timeout = globalThis.setTimeout(() => controller.abort("plan generation timeout"), timeoutMs);
+  try {
+    const headers = new Headers(init.headers);
+    headers.set("Content-Type", "application/json");
+    const response = await apiFetch("/mobile/plan-generation", {
+      ...init, method: "POST", headers, body: JSON.stringify(request), signal: controller.signal,
+    });
+    if (!response.ok) throw new Error(`plan generation failed: HTTP ${response.status}`);
+    return parseMobilePlanGenerationResponseV2(await response.json());
+  } finally {
+    globalThis.clearTimeout(timeout);
+  }
+}
+
 /** Authenticated production-web entrypoint for shared deterministic generation. */
 export async function fetchSharedTrainingPlan(
   goal: Goal,
   profile?: UserProfile | null,
   planningDate = new Date(),
 ): Promise<PlanWeek[]> {
-  const response = await fetchMobilePlanGeneration(
-    buildInitialPlanGenerationRequest(goal, profile, planningDate),
+  const response = await fetchMobilePlanGenerationV2(
+    buildInitialPlanGenerationRequestV2(goal, profile, planningDate),
   );
-  return generationResponseToPlanWeeks(response);
+  return generationResponseV2ToPlanWeeks(response);
+}
+
+export async function requestMobileAccountCleanup(
+  request: MobileAccountCleanupRequest,
+): Promise<MobileAccountCleanupResponse> {
+  const response = await apiFetch("/mobile/account-cleanup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+  if (!response.ok) throw new Error(`account cleanup failed: HTTP ${response.status}`);
+  return parseMobileAccountCleanupResponse(await response.json());
+}
+
+export async function fetchMobilePlanLifecycleV2(
+  request: MobilePlanLifecycleRequestV2,
+): Promise<MobilePlanLifecycleResponseV2> {
+  const response = await apiFetch("/mobile/plan-lifecycle", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+  if (!response.ok) throw new Error(`plan lifecycle failed: HTTP ${response.status}`);
+  return parseMobilePlanLifecycleResponseV2(await response.json());
 }
 
 export class MobileTodayRequestError extends Error {

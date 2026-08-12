@@ -148,6 +148,14 @@ For the current roadmap:
   profile/settings editing, full training-data export, and account deletion,
   and completes authenticated simulator/physical-device and accessibility
   proof.
+- The follow-up Windows/shared pass after Mac checkpoint `b6604af` now defines
+  backward-compatible `mobile-plan-generation.v2` and
+  `mobile-plan-lifecycle.v2`: version-bound metadata refreshed by shared
+  lifecycle authority, privacy-safe recurring weekday/minute/easy-only
+  availability, one transaction package for planning inputs plus plan, and
+  retry-safe `mobile-account-cleanup.v1` with a server-only durable receipt.
+  Local frontend/backend/audit/emulator gates are green; Mac must consume these
+  contracts and finish native/live/device proof before final Windows integration.
 - A final return to Windows is mandatory for documentation reconciliation,
   complete shared/emulator/dependency gates, and green hosted Windows and
   macOS integration runs. Only final Windows reconciliation with both hosted

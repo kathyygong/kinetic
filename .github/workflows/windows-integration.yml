@@ -106,6 +106,7 @@ jobs:
           python -m evals._smoke
           python -m evals.mobile_plan_generation_contract_smoke
           python -m evals.mobile_plan_contract_smoke
+          python -m evals.mobile_phase5_6_shared_contract_smoke
 
       - name: Run owner-only Firestore rules suite
         run: npx firebase-tools emulators:exec --only auth,firestore "cd frontend && npm run test:firestore-rules"

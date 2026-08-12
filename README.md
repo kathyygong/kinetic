@@ -131,17 +131,18 @@ Runtime modes are explicit:
   support, data controls, and local notification delivery. Windows/shared
   `mobile-foundation.v1`, deletion/migration boundaries, owner-only domains,
   and audit gates plus the Mac implementation checkpoint are present. Mac B
-  must finish personal-record/availability onboarding, shared plan preview and
-  confirmation, editable profile inputs, training-data export, account
-  deletion, accessibility, signing, and live readback.
+  now has shared bounded-availability and retry-safe cleanup contracts to
+  consume, then must finish editable profile inputs, account deletion,
+  accessibility, signing, and live readback.
 - [ ] **Mobile Phase 6 — Native Plan Lifecycle:** Generate, preview, save,
   browse, safely edit/regenerate, pause/resume, and confirm preferences without
   a normal-runner web handoff. Windows B owns shared generation, authoritative
   phase metadata, action-specific/full-plan lifecycle enforcement, adversarial
   gates, production-web migration, and hosted workflow routing. Windows B is
-  green at `d5bbfdc`; Mac B is authorized to remove native generation/phase
-  heuristics and close native/device proof. Final Windows integration still
-  requires green hosted Windows and macOS runs after the Mac commit.
+  green at `d5bbfdc`; Mac checkpoint `b6604af` removed native generation/phase
+  heuristics. The Windows return adds version-bound metadata and coordinated
+  planning-input/plan commits. Mac consumption and native/device proof remain
+  before final Windows integration.
   Resume this lane with: `Continue Mobile Phase 5–6 Mac implementation.`
 - [ ] **Pre-Phase 7 Product Evidence:** After Phases 5–6 close, run moderated
   signed-build onboarding-to-check-in sessions with 3–5 target runners. Validate

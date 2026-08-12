@@ -36,15 +36,29 @@ from .mobile_intake import (
     MobileIntakeRequest,
     route_mobile_intake,
 )
+from .mobile_account_cleanup import (
+    FirebaseAccountCleanupStore,
+    MobileAccountCleanupRequest,
+    MobileAccountCleanupResponse,
+    coordinate_account_cleanup,
+)
 from .mobile_plan import (
     MobilePlanLifecycleRequest,
     MobilePlanLifecycleResponse,
     evaluate_mobile_plan_lifecycle,
 )
+from .mobile_plan_v2 import (
+    MobilePlanLifecycleRequestV2,
+    MobilePlanLifecycleResponseV2,
+    evaluate_mobile_plan_lifecycle_v2,
+)
 from .mobile_plan_generation import (
     MobilePlanGenerationRequest,
+    MobilePlanGenerationRequestV2,
     MobilePlanGenerationResponse,
+    MobilePlanGenerationResponseV2,
     generate_mobile_plan,
+    generate_mobile_plan_v2,
 )
 from .training_summary import (
     TrainingSummaryEnvelope,
@@ -398,32 +412,62 @@ def parse_natural_language_intake(
 
 @app.post(
     "/mobile/plan-lifecycle",
-    response_model=MobilePlanLifecycleResponse,
+    response_model=MobilePlanLifecycleResponse | MobilePlanLifecycleResponseV2,
     dependencies=[RequireAuth],
 )
 def mobile_plan_lifecycle(
-    payload: MobilePlanLifecycleRequest,
-) -> MobilePlanLifecycleResponse:
+    payload: MobilePlanLifecycleRequest | MobilePlanLifecycleRequestV2,
+) -> MobilePlanLifecycleResponse | MobilePlanLifecycleResponseV2:
     """Validate a native plan preview/commit without writing user state.
 
     A ``commit_ready`` response is the only plan snapshot a native client may
     persist. The client writes it with the returned Firestore preconditions.
     """
 
+    if isinstance(payload, MobilePlanLifecycleRequestV2):
+        return evaluate_mobile_plan_lifecycle_v2(payload)
     return evaluate_mobile_plan_lifecycle(payload)
 
 
 @app.post(
     "/mobile/plan-generation",
-    response_model=MobilePlanGenerationResponse,
+    response_model=MobilePlanGenerationResponse | MobilePlanGenerationResponseV2,
     dependencies=[RequireAuth],
 )
 def mobile_plan_generation(
-    payload: MobilePlanGenerationRequest,
-) -> MobilePlanGenerationResponse:
+    payload: MobilePlanGenerationRequest | MobilePlanGenerationRequestV2,
+) -> MobilePlanGenerationResponse | MobilePlanGenerationResponseV2:
     """Generate a deterministic, storage-neutral mobile/web plan candidate."""
 
+    if isinstance(payload, MobilePlanGenerationRequestV2):
+        return generate_mobile_plan_v2(payload)
     return generate_mobile_plan(payload)
+
+
+@app.post(
+    "/mobile/account-cleanup",
+    response_model=MobileAccountCleanupResponse,
+)
+def mobile_account_cleanup(
+    payload: MobileAccountCleanupRequest,
+    claims: dict | None = RequireAuth,
+) -> MobileAccountCleanupResponse:
+    """Resume owner-domain cleanup, then finalize Firebase Auth deletion."""
+
+    if not claims or not claims.get("uid"):
+        raise HTTPException(status_code=401, detail="Authenticated owner required.")
+    try:
+        return coordinate_account_cleanup(
+            payload,
+            uid=str(claims["uid"]),
+            auth_time=claims.get("auth_time"),
+            store=FirebaseAccountCleanupStore(),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except Exception as exc:  # noqa: BLE001 - Admin availability is explicit
+        _log.error("Account cleanup backend unavailable: %s", exc)
+        raise HTTPException(status_code=503, detail="Account cleanup backend unavailable.") from exc
 
 
 @app.post(

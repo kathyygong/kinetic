@@ -1,0 +1,40 @@
+{
+  "schema_version": "mobile-plan-shared-v2",
+  "planning_inputs": {
+    "revision": 2,
+    "race_distance": "half",
+    "target_date": "2026-09-20",
+    "experience_level": "intermediate",
+    "weekly_mileage": 25,
+    "preferred_days": ["tue", "thu", "sat", "sun"],
+    "personal_bests_seconds": {"5k": 1500},
+    "weekly_availability": [
+      {"day": "mon", "available_minutes": 0, "easy_only": true},
+      {"day": "tue", "available_minutes": 45, "easy_only": false},
+      {"day": "thu", "available_minutes": 35, "easy_only": true}
+    ]
+  },
+  "availability_semantics": {
+    "omitted_weekday": "unconstrained",
+    "zero_minutes": "skip",
+    "empty_list": "clear_all_constraints",
+    "easy_only": "easy_workout_only",
+    "privacy": "weekday_minutes_and_easy_only_no_calendar_text"
+  },
+  "account_cleanup_request": {
+    "schema_version": "mobile-account-cleanup.v1",
+    "platform": "ios",
+    "mode": "cleanup",
+    "operation_id": "op-account-cleanup-0001",
+    "request_fingerprint": "sha256-account-cleanup-0001"
+  },
+  "ready_receipt": {
+    "revision": 2,
+    "status": "ready_for_auth_deletion",
+    "pending_domains": [],
+    "auth_state": "retained",
+    "last_operation_id": "op-account-cleanup-0001",
+    "last_request_fingerprint": "sha256-account-cleanup-0001",
+    "updated_at": "2026-08-12T16:00:00Z"
+  }
+}

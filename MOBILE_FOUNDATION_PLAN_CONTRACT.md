@@ -1,17 +1,12 @@
 # Mobile Foundation And Plan Lifecycle Contract
 
-Status: Windows Batch B shared generation/lifecycle hardening and hosted handoff
-are green at `d5bbfdc`. Mac Batch B has removed the copied Swift generator and
-native phase/taper inference in the current closeout worktree; final native
-profile/deletion/live-device work remains blocked on the shared decisions
-recorded below, followed by final Windows integration.
-
-The next lane is Windows/shared blocker resolution on
-`codex/mobile-phase5-6-closeout`. The owner may start it with **Continue Windows
-Phase 5-6 implementation.** `MOBILE_PHASE5_6_HANDOFF.md` is the canonical
-expansion of that prompt and the ordered acceptance checklist. After that pass,
-the branch returns to Mac for native completion before final Windows
-integration.
+Status: Windows Batch B is green at `d5bbfdc`, the Mac correction checkpoint is
+`b6604af`, and the subsequent Windows/shared blocker-resolution implementation
+is present in the current closeout worktree. Versioned metadata, bounded weekly
+availability, coordinated planning-input/plan commits, and retry-safe account
+cleanup now have backward-compatible shared contracts and local green gates.
+The branch returns to Mac after hosted evidence; native consumption, live/device
+proof, and final Windows integration remain open.
 
 This contract is the shared boundary for Mobile Phase 5 native foundation and
 Mobile Phase 6 native plan ownership. It defines native inputs, shared
@@ -54,11 +49,15 @@ deletion retains the minimum account/settings shell but clears training
 domains. Failures remain retryable and must not report the account as deleted
 while pending domains remain.
 
-The current domain list does not yet provide a durable client-only finalization
-sequence: `settings` and `onboarding` contain the retry boundary and are also
-account-deletion targets. Windows/shared must define an idempotent cleanup/Auth
-deletion endpoint or another durable receipt before Mac removes those final
-documents. A transient in-memory retry state is not sufficient.
+`mobile-account-cleanup.v1` resolves the client-only finalization gap through
+authenticated `POST /mobile/account-cleanup`. Its server-only receipt lives at
+`mobile_account_cleanup/{uid}`, outside the owner-domain sweep and outside
+client Firestore rules. `cleanup` creates or resumes the receipt and removes all
+18 documented owner domains without deleting the receipt. `finalize_auth`
+requires an empty pending list and a Firebase token with `auth_time` no more
+than five minutes old, records `deletion_started`, deletes the Auth identity,
+and retains a durable completed receipt. Matching operation IDs replay;
+different fingerprints conflict; partial domain failures remain pending.
 
 Migration from proof-era state is copy-then-validate:
 
@@ -84,11 +83,13 @@ race distance, target date, experience, weekly mileage, preferred days,
 personal-best seconds, goal revision, an explicit generation mode, and the
 current plan when regenerating. The planning date removes clock-dependent
 generation behavior and is not identity or health data.
-The roadmap separately requires bounded onboarding availability, but this
-request currently defines only preferred days and the lifecycle contract has
-only a one-off availability action. Windows/shared must either define the
-durable availability field and its generation semantics or explicitly revise
-the requirement to preferred days; Mac must not invent a private field.
+`mobile-plan-generation.v2` adds `weekly_availability`: zero to seven unique
+weekday entries containing only `day`, `available_minutes`, and `easy_only`.
+Omitted weekdays are unconstrained, zero minutes skips that weekday, positive
+values are 15–240 minutes, and an empty list clears recurring constraints.
+Generation schedules only usable weekdays, caps duration, and converts an
+easy-only slot to an easy workout. No event text or Calendar identity crosses
+the boundary. Version 1 remains accepted for existing clients.
 The response is storage-neutral and returns a candidate plan plus bounded
 explanation/version metadata. It also returns authoritative week-phase metadata
 (`build`, `recovery`, `taper`, or `race`) so web and Swift do not independently
@@ -100,12 +101,11 @@ paces, taper, workout dates, or regenerated futures. The former Swift
 `MobilePlanProposalBuilder.generate()` checkpoint was removed in the 2026-08-10
 Mac Batch B implementation checkpoint.
 
-The current response metadata is authoritative but not yet durable: the
-generation response returns `weeks`, while the lifecycle commit package and
-persisted `MobilePlanSnapshot` contain only workouts. The Windows/shared lane
-must define version-bound metadata persistence and lifecycle refresh behavior
-before Mac can claim correct phase/explanation rendering after commit, edit,
-or relaunch. Swift must not fill this gap with a local phase heuristic.
+Version 2 stores `metadata` inside `MobilePlanSnapshotV2`; `plan_version` must
+equal the snapshot version and metadata must cover every workout exactly once.
+The shared lifecycle authority recomputes week phase/explanation metadata for
+every accepted edit before returning the commit package. Legacy workout-only
+plans remain readable and gain v2 metadata on their next shared regeneration.
 
 ## Phase 6 Plan Lifecycle
 
@@ -130,6 +130,13 @@ Firestore transaction across:
 - `plan`: the new current snapshot;
 - `plan_history`: the recoverable prior snapshot/version;
 - `plan_operations`: operation ID, request fingerprint, and committed version.
+
+For `mobile-plan-lifecycle.v2`, the same package also includes versioned
+`commit_planning_inputs` and requires the transaction to update `profile` and
+`goal`. `planning_revision_matches` joins the existing version/idempotency
+preconditions so Settings cannot expose new inputs with an old plan or the
+reverse. The web adapter is
+`frontend/lib/persistence/mobilePlanV2Transaction.ts`.
 
 The transaction must prove the authenticated owner, current version equality,
 and operation-ID absence or matching content. A repeated matching operation is
@@ -219,6 +226,7 @@ From `backend`:
 .\.venv\Scripts\python.exe -m compileall app evals
 .\.venv\Scripts\python.exe -m evals.mobile_plan_generation_contract_smoke
 .\.venv\Scripts\python.exe -m evals.mobile_plan_contract_smoke
+.\.venv\Scripts\python.exe -m evals.mobile_phase5_6_shared_contract_smoke
 .\.venv\Scripts\python.exe -m evals._smoke
 ```
 

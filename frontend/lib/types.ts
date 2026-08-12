@@ -58,6 +58,15 @@ export type DayOfWeek =
   | "sat"
   | "sun";
 
+/** A privacy-safe recurring constraint. Omitted weekdays are unconstrained. */
+export type WeeklyAvailability = {
+  day: DayOfWeek;
+  /** Zero skips the weekday; positive values cap the workout duration. */
+  available_minutes: number;
+  /** When true, shared authority may schedule only an easy workout. */
+  easy_only: boolean;
+};
+
 /** External services the user can link to Kinetic for data ingest. */
 export type ConnectedService =
   | "google_calendar"
@@ -97,6 +106,7 @@ export type UserProfile = {
   experience_level: ExperienceLevel;
   weekly_mileage?: number;
   preferred_training_days: DayOfWeek[];
+  weekly_availability?: WeeklyAvailability[];
 
   // Personal bests (in seconds)
   personal_bests: Partial<CurrentPRs>;

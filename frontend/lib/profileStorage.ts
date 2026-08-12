@@ -15,6 +15,7 @@ import type {
   DayOfWeek,
   ExperienceLevel,
   UserProfile,
+  WeeklyAvailability,
 } from "./types";
 import { mirrorLocalStorageKey } from "./persistence/mirror";
 
@@ -71,6 +72,7 @@ export function emptyProfile(): UserProfile {
     experience_level: "intermediate",
     weekly_mileage: undefined,
     preferred_training_days: [],
+    weekly_availability: [],
     personal_bests: {},
     connected_services: {
       google_calendar: { connected: false },
@@ -148,6 +150,9 @@ export function planAffectingFieldsChanged(
   const prevDays = [...prev.preferred_training_days].sort().join(",");
   const nextDays = [...next.preferred_training_days].sort().join(",");
   if (prevDays !== nextDays) return true;
+  const prevAvailability = JSON.stringify([...(prev.weekly_availability ?? [])].sort((a, b) => a.day.localeCompare(b.day)));
+  const nextAvailability = JSON.stringify([...(next.weekly_availability ?? [])].sort((a, b) => a.day.localeCompare(b.day)));
+  if (prevAvailability !== nextAvailability) return true;
   // PRs feed pace targets, which feed plan distances/durations.
   const prevPR = JSON.stringify(prev.personal_bests ?? {});
   const nextPR = JSON.stringify(next.personal_bests ?? {});
@@ -184,6 +189,7 @@ export function isUserProfile(value: unknown): value is UserProfile {
     return false;
   }
   if (!isDayList(p.preferred_training_days)) return false;
+  if (p.weekly_availability !== undefined && !isWeeklyAvailability(p.weekly_availability)) return false;
   if (!isPersonalBests(p.personal_bests)) return false;
   if (!isConnectedServices(p.connected_services)) return false;
   if (
@@ -193,6 +199,21 @@ export function isUserProfile(value: unknown): value is UserProfile {
     return false;
   }
 
+  return true;
+}
+
+function isWeeklyAvailability(value: unknown): value is WeeklyAvailability[] {
+  if (!Array.isArray(value) || value.length > 7) return false;
+  const seen = new Set<string>();
+  for (const candidate of value) {
+    if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return false;
+    const item = candidate as Record<string, unknown>;
+    if (Object.keys(item).sort().join(",") !== "available_minutes,day,easy_only") return false;
+    if (!DAYS.includes(item.day as DayOfWeek) || seen.has(String(item.day))) return false;
+    if (!Number.isInteger(item.available_minutes) || Number(item.available_minutes) < 0 || Number(item.available_minutes) > 240 || (Number(item.available_minutes) > 0 && Number(item.available_minutes) < 15)) return false;
+    if (typeof item.easy_only !== "boolean") return false;
+    seen.add(String(item.day));
+  }
   return true;
 }
 

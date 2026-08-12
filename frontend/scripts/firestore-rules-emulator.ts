@@ -213,6 +213,9 @@ async function main() {
       "kinetic",
       "plan_history",
     );
+    const serverCleanupReceiptA = doc(dbA, "mobile_account_cleanup", userA.uid);
+    const serverCleanupReceiptAFromB = doc(dbB, "mobile_account_cleanup", userA.uid);
+    const serverCleanupReceiptGuest = doc(dbGuest, "mobile_account_cleanup", userA.uid);
 
     await setDoc(ownA, { schemaVersion: 1, payload: { name: "A" } });
     await setDoc(ownB, { schemaVersion: 1, payload: { name: "B" } });
@@ -556,6 +559,22 @@ async function main() {
       "unauthenticated plan history read",
     );
     await expectDenied(
+      () => getDoc(serverCleanupReceiptA),
+      "owner client cleanup-receipt read",
+    );
+    await expectDenied(
+      () => setDoc(serverCleanupReceiptA, { status: "completed" }),
+      "owner client cleanup-receipt write",
+    );
+    await expectDenied(
+      () => getDoc(serverCleanupReceiptAFromB),
+      "cross-user cleanup-receipt read",
+    );
+    await expectDenied(
+      () => getDoc(serverCleanupReceiptGuest),
+      "anonymous cleanup-receipt read",
+    );
+    await expectDenied(
       () =>
         setDoc(guestPlanHistory, {
           schemaVersion: 1,
@@ -589,7 +608,7 @@ async function main() {
     );
 
     console.log(
-      "OK - Firestore rules preserve owner-only mobile foundation, plan lifecycle, readiness, check-ins, health sync, audit data, and tombstones",
+      "OK - Firestore rules preserve owner-only mobile foundation, plan lifecycle, readiness, check-ins, health sync, audit data, tombstones, and server-only cleanup receipts",
     );
   } finally {
     await Promise.all([deleteApp(appA), deleteApp(appB), deleteApp(appGuest)]);
