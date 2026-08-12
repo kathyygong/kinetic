@@ -24,6 +24,17 @@ final class MobilePlanLifecycleContractFixtureTests: XCTestCase {
         }
     }
 
+    private struct SharedV2Fixture: Decodable {
+        var schemaVersion: String
+        var planningInputs: MobilePlanningInputs
+        var accountCleanupRequest: MobileAccountCleanupRequest
+        var readyReceipt: MobileAccountCleanupReceipt
+        enum CodingKeys: String, CodingKey {
+            case schemaVersion = "schema_version", planningInputs = "planning_inputs"
+            case accountCleanupRequest = "account_cleanup_request", readyReceipt = "ready_receipt"
+        }
+    }
+
     func testCanonicalFixtureHasStrictSwiftParity() throws {
         let (fixture, object) = try loadFixture()
         XCTAssertEqual(fixture.schemaVersion, mobilePlanLifecycleSchema)
@@ -180,6 +191,67 @@ final class MobilePlanLifecycleContractFixtureTests: XCTestCase {
         catch let error as MobilePlanNetworkError { XCTAssertEqual(error.failure, .authRequired) }
     }
 
+    func testSharedV2FixtureHasBoundedAvailabilityAndCleanupParity() throws {
+        let (fixture, object) = try loadSharedV2Fixture()
+        XCTAssertEqual(fixture.schemaVersion, "mobile-plan-shared-v2")
+        XCTAssertEqual(try fixture.planningInputs.validated().weeklyAvailability.map(\.availableMinutes), [0, 45, 35])
+        XCTAssertEqual(fixture.planningInputs.weeklyAvailability.last?.easyOnly, true)
+        XCTAssertEqual(fixture.accountCleanupRequest.schemaVersion, mobileAccountCleanupSchema)
+        XCTAssertEqual(fixture.readyReceipt.status, .readyForAuthDeletion)
+        XCTAssertTrue(fixture.readyReceipt.pendingDomains.isEmpty)
+
+        var inputs = try XCTUnwrap(object["planning_inputs"] as? [String: Any])
+        var availability = try XCTUnwrap(inputs["weekly_availability"] as? [[String: Any]])
+        availability[1]["available_minutes"] = 10
+        inputs["weekly_availability"] = availability
+        XCTAssertThrowsError(try JSONDecoder().decode(MobilePlanningInputs.self, from: JSONSerialization.data(withJSONObject: inputs)).validated())
+    }
+
+    func testStrictV2MetadataLifecycleAndPrivacyValidation() throws {
+        let plan = MobilePlanSnapshot(
+            id: "plan-v2-test", version: 2, status: .active, goalRevision: 2,
+            workouts: [.init(id: "race-v2", date: "2026-09-20", type: .race, status: .scheduled, distanceMiles: 13.1, durationMinutes: 120, paceSecondsPerMile: 550, reasonCode: .raceDay)]
+        )
+        let metadata = MobilePlanMetadataV2(
+            planVersion: 2,
+            weeks: [.init(weekNumber: 1, phase: .race, startDate: "2026-09-14", endDate: "2026-09-20", workoutIDs: ["race-v2"], explanationCodes: [.baseVolume, .raceWeek])],
+            explanationCodes: [.baseVolume, .raceWeek]
+        )
+        let snapshot = try MobilePlanSnapshotV2(snapshot: plan, metadata: metadata).validated()
+        let generation = MobilePlanGenerationResponseV2(schemaVersion: mobilePlanGenerationV2Schema, mode: .regenerateFuture, source: "deterministic_shared", mutationPerformed: false, candidatePlan: snapshot)
+        XCTAssertEqual(try MobilePlanGenerationResponseV2.decodeStrict(JSONEncoder().encode(generation)), generation)
+
+        let inputs = try loadSharedV2Fixture().0.planningInputs.validated()
+        let response = MobilePlanLifecycleResponseV2(
+            schemaVersion: mobilePlanLifecycleV2Schema, result: .preview, mutationPerformed: false,
+            baseVersion: 1, proposedVersion: 2, reasonCodes: ["accepted"],
+            impact: .init(affectedWorkoutIDs: ["race-v2"], completedWorkoutsPreserved: 0, totalWorkoutsBefore: 1, totalWorkoutsAfter: 1, warnings: []),
+            commitPlan: snapshot, commitPlanningInputs: inputs,
+            persistence: .init(required: false, ownerScopedDomains: ["profile", "goal", "plan", "plan_history", "plan_operations"], transactionPreconditions: ["authenticated_owner", "current_version_matches", "planning_revision_matches", "operation_id_absent_or_matching"])
+        )
+        XCTAssertEqual(try MobilePlanLifecycleResponseV2.decodeStrict(JSONEncoder().encode(response)), response)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(response)) as? [String: Any])
+        object["email"] = "runner@example.com"
+        XCTAssertThrowsError(try MobilePlanLifecycleResponseV2.decodeStrict(JSONSerialization.data(withJSONObject: object)))
+    }
+
+    func testAuthenticatedCleanupClientUsesExactEndpointAndStrictReceipt() async throws {
+        let fixture = try loadSharedV2Fixture().0
+        let configuration = URLSessionConfiguration.ephemeral; configuration.protocolClasses = [MobilePlanURLProtocol.self]
+        let client = URLSessionMobileAccountCleanupClient(baseURL: URL(string: "https://kinetic.test")!, session: URLSession(configuration: configuration), timeout: 1)
+        let response = MobileAccountCleanupResponse(schemaVersion: mobileAccountCleanupSchema, result: .progress, receipt: fixture.readyReceipt, mutationPerformed: true)
+        MobilePlanURLProtocol.handler = { request in
+            XCTAssertEqual(request.url?.path, "/mobile/account-cleanup")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer bounded-token")
+            return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, try JSONEncoder().encode(response), nil)
+        }
+        let received = try await client.perform(request: fixture.accountCleanupRequest, idToken: "bounded-token")
+        XCTAssertEqual(received, response)
+        MobilePlanURLProtocol.handler = { request in (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, Data("{}".utf8), nil) }
+        do { _ = try await client.perform(request: fixture.accountCleanupRequest, idToken: "bounded-token"); XCTFail("Malformed cleanup should fail") }
+        catch let error as MobilePlanNetworkError { XCTAssertEqual(error.failure, .invalidResponse) }
+    }
+
     private func loadFixture() throws -> (Fixture, [String: Any]) {
         let url = try XCTUnwrap(Bundle.module.url(forResource: "mobile-plan-lifecycle-contract", withExtension: "json", subdirectory: "Fixtures"))
         let data = try Data(contentsOf: url)
@@ -189,6 +261,11 @@ final class MobilePlanLifecycleContractFixtureTests: XCTestCase {
         let url = try XCTUnwrap(Bundle.module.url(forResource: "mobile-plan-generation-contract", withExtension: "json", subdirectory: "Fixtures"))
         let data = try Data(contentsOf: url)
         return (try JSONDecoder().decode(GenerationFixture.self, from: data), try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any]))
+    }
+    private func loadSharedV2Fixture() throws -> (SharedV2Fixture, [String: Any]) {
+        let url = try XCTUnwrap(Bundle.module.url(forResource: "mobile-plan-shared-v2-contract", withExtension: "json", subdirectory: "Fixtures"))
+        let data = try Data(contentsOf: url)
+        return (try JSONDecoder().decode(SharedV2Fixture.self, from: data), try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any]))
     }
     private func isoDate(_ value: String) -> Date? {
         let formatter = DateFormatter(); formatter.calendar = Calendar(identifier: .gregorian); formatter.locale = Locale(identifier: "en_US_POSIX"); formatter.timeZone = TimeZone(secondsFromGMT: 0); formatter.dateFormat = "yyyy-MM-dd"; return formatter.date(from: value)

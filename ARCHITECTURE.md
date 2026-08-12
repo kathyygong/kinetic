@@ -476,6 +476,14 @@ fields from the existing owner-only audit envelope.
   revision-checked owner transaction; and server-only cleanup receipts survive
   the complete owner-domain sweep and coordinate recent-auth identity deletion.
   V1 clients and workout-only plans remain readable until Mac migrates them.
+- The subsequent Mac v2 adapter keeps the UI-facing workout model separate
+  from authoritative metadata but persists them together as a v2 snapshot.
+  Every native commit also transactionally writes the matching planning
+  revision to profile and goal; restored week phases come only from stored
+  shared metadata. Native account deletion is an authenticated coordinator of
+  the server receipt, not an independent owner-domain deletion authority. A
+  UID-scoped local pending marker lets relaunch resume that receipt after the
+  server has removed the owner settings document.
 - A small moderated product-evidence gate follows final Phase 5–6 integration
   and precedes the full Phase 7 build. Mac owns signed native sessions;
   Windows/shared owns privacy-safe audit/readback support. This gate validates

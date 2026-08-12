@@ -12,6 +12,7 @@ struct MobilePlanGenerationContext: Equatable {
     var weeklyMileage: Double
     var preferredDays: [MobilePlanDay]
     var personalBests: [MobilePlanRaceDistance: Int]
+    var weeklyAvailability: [MobileWeeklyAvailability] = []
     var goalRevision: Int
 }
 

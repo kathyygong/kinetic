@@ -1450,6 +1450,16 @@ hosted Windows run 31637946605 and hosted macOS run 31637946552 pass on that
 exact SHA. This is still not final Windows integration; Mac must consume the
 contracts and finish native proof.
 
+Mac v2 consumption checkpoint 2026-08-12: production Swift now uses strict
+generation/lifecycle v2, persists/restores authoritative metadata, maps bounded
+weekly availability in onboarding and Settings, atomically commits planning
+inputs with the regenerated plan, and resumes cleanup plus recent-password Auth
+finalization through `mobile-account-cleanup.v1`. V1 remains migration-only.
+The expanded Swift suite passes 70/70, its focused shared-plan/cleanup suite
+passes 11/11, and the unsigned generic simulator build passes. Remaining Mac
+work is external authenticated interaction/readback, accessibility/layout, and
+signed-device evidence; final Windows integration remains mandatory.
+
 ### Final Windows Integration For Mobile Phases 5–6 - Mandatory
 
 - Fetch the Mac closeout commit and reconcile contracts, fixtures,

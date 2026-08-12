@@ -118,6 +118,7 @@ enum MobilePlanWeekPhase: String, Codable { case build, recovery, taper, race }
 enum MobilePlanGenerationExplanationCode: String, Codable, CaseIterable {
     case baseVolume = "base_volume"
     case preferredDaysApplied = "preferred_days_applied"
+    case weeklyAvailabilityApplied = "weekly_availability_applied"
     case recoveryLoad = "recovery_load"
     case taperLoad = "taper_load"
     case raceWeek = "race_week"

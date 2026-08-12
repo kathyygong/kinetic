@@ -5,8 +5,10 @@ Status: Windows Batch B is green at `d5bbfdc`, the Mac correction checkpoint is
 is present in the current closeout worktree. Versioned metadata, bounded weekly
 availability, coordinated planning-input/plan commits, and retry-safe account
 cleanup now have backward-compatible shared contracts and local green gates.
-The branch returns to Mac after hosted evidence; native consumption, live/device
-proof, and final Windows integration remain open.
+Swift now consumes those contracts in the current Mac checkpoint: v2 metadata
+and planning inputs are restored and committed atomically, bounded availability
+is editable, and account deletion uses the retry-safe cleanup/finalize flow.
+Authenticated live/device proof and final Windows integration remain open.
 
 This contract is the shared boundary for Mobile Phase 5 native foundation and
 Mobile Phase 6 native plan ownership. It defines native inputs, shared

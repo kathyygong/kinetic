@@ -278,6 +278,48 @@ the same SHA. The branch may now return to Mac to consume v2, finish editable
 planning inputs and final deletion, and run authenticated physical/accessibility
 proof. Do not start final Windows integration or Phase 7 yet.
 
+### Mac v2 consumption checkpoint — 2026-08-12
+
+The native closeout worktree now consumes the Windows return:
+
+- strict Swift Codable, exact-key, semantic, privacy, malformed-response, auth,
+  and fixture coverage for generation/lifecycle v2 and account cleanup;
+- all production plan generation and validation use v2, while v1 decoding is
+  retained only for backward-compatible stored-plan migration and fixtures;
+- version-bound authoritative metadata is written inside the plan snapshot,
+  refreshed from every accepted lifecycle response, and restored after
+  relaunch without native phase/taper inference;
+- the Firestore commit reads every precondition before atomically writing
+  profile, goal, plan, history, and the operation receipt at one planning
+  revision; legacy single-operation/history shapes remain readable;
+- onboarding and Settings map recurring weekday availability to exactly zero
+  or 15–240 minutes plus `easy_only`, never Calendar text. Settings can review
+  and change experience, mileage, preferred days, personal records, and weekly
+  availability through shared future regeneration and a separate confirmation;
+- race distance and race day remain read-only after plan activation because
+  the shared lifecycle contract deliberately locks the race workout;
+- account deletion saves the local boundary, resumes the server-only cleanup
+  receipt using a UID-scoped local pending marker that survives removal of the
+  Firestore settings document, shows partial-domain retry state, requests
+  password reauthentication when required, and calls `finalize_auth` before
+  reporting completion.
+
+Local automated evidence for the current Mac checkpoint:
+
+```text
+Swift package suite: 70/70
+Shared plan v1/v2 and cleanup focused suite: 11/11
+Unsigned generic iOS Simulator build: passed
+git diff --check: passed
+```
+
+Implementation is no longer blocked on a shared Windows decision. Remaining
+Mac evidence requires a disposable authenticated owner/backend, UI
+interaction/readback, VoiceOver/Dynamic Type/contrast/landscape/small-screen
+checks, and a signed physical-device build where credentials and hardware
+permit. After this Mac checkpoint is committed and pushed, run mandatory final
+Windows integration; do not start Phase 7.
+
 ## Phase 5 native implementation checkpoint — 2026-08-03
 
 Native Phase 5 implementation is committed at `bfbaaef` as an explicit

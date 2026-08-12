@@ -77,10 +77,10 @@ paths continue to work.
   owner-scoped plan/history/operation persistence with conflict and replay
   protection.
 - The copied Swift mileage/pace/taper/scheduling generator and display-only
-  phase heuristic have been removed. The Windows return now provides v2
-  version-bound metadata/lifecycle refresh, bounded weekly availability,
-  coordinated planning-input/plan commits, and retry-safe account cleanup;
-  Swift consumption and relaunch/live proof are the next Mac work.
+  phase heuristic have been removed. Production Swift consumes strict v2
+  generation/lifecycle responses, persists and restores version-bound shared
+  metadata, commits planning inputs and plan together, maps bounded weekly
+  availability, and coordinates retry-safe account cleanup/finalization.
 - Onboarding captures optional personal records, persists an incomplete draft,
   and requires shared plan review/confirmation before completion. Settings can
   prepare a full owner-scoped training-data export separately from the bounded
@@ -88,10 +88,10 @@ paths continue to work.
 - Preferred-day behavior patterns now open the native plan review/validator
   path instead of a web profile handoff.
 
-The current app includes the Phase 6 bounded plan-ownership implementation but
-still must consume the completed shared metadata/availability/deletion
-contracts and finish editable planning inputs plus authenticated/physical
-closeout proof. It does not include real
+The current app includes the Phase 6 bounded plan-ownership implementation and
+the shared v2 closeout adapters. It still requires authenticated interaction,
+live readback, accessibility/layout, and signed physical-device closeout proof.
+It does not include real
 Apple Calendar ingestion or the Phase 7 progress implementation; Progress is
 an honest placeholder. General chat,
 autonomous AI mutation, raw HealthKit cloud sync, full two-way Calendar sync,

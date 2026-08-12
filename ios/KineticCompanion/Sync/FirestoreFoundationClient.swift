@@ -52,8 +52,9 @@ final class FirestoreMobileFoundationStore: MobileFoundationStoring {
         let answers = try answers.validated()
         let root = Firestore.firestore().collection("users").document(user.uid).collection("kinetic")
         let now = MobileTodayDate.isoString(Date())
-        let goal: [String: Any] = ["goal_type": "race", "race_distance": answers.raceDistance, "target_date": answers.targetDate, "experience_level": answers.experience, "current_prs": answers.personalBests, "weekly_mileage": answers.weeklyMileage]
-        let profile: [String: Any] = ["full_name": "", "email": user.email ?? "", "experience_level": answers.experience, "weekly_mileage": answers.weeklyMileage, "preferred_training_days": answers.preferredDays, "personal_bests": answers.personalBests, "connected_services": ["google_calendar": ["connected": false], "apple_health": ["connected": false], "garmin": ["connected": false], "oura": ["connected": false]], "onboarding_completed": completed]
+        let availability = try Self.jsonArray(answers.weeklyAvailability)
+        let goal: [String: Any] = ["goal_type": "race", "race_distance": answers.raceDistance, "target_date": answers.targetDate, "experience_level": answers.experience, "current_prs": answers.personalBests, "weekly_mileage": answers.weeklyMileage, "planning_revision": 1]
+        let profile: [String: Any] = ["full_name": "", "email": user.email ?? "", "experience_level": answers.experience, "weekly_mileage": answers.weeklyMileage, "preferred_training_days": answers.preferredDays, "personal_bests": answers.personalBests, "weekly_availability": availability, "planning_revision": 1, "connected_services": ["google_calendar": ["connected": false], "apple_health": ["connected": false], "garmin": ["connected": false], "oura": ["connected": false]], "onboarding_completed": completed]
         let batch = Firestore.firestore().batch()
         batch.setData(["schemaVersion": 1, "payload": goal, "deleted": false, "clientUpdatedAt": now, "serverUpdatedAt": FieldValue.serverTimestamp()], forDocument: root.document("goal"))
         batch.setData(["schemaVersion": 1, "payload": profile, "deleted": false, "clientUpdatedAt": now, "serverUpdatedAt": FieldValue.serverTimestamp()], forDocument: root.document("profile"))
@@ -192,6 +193,11 @@ final class FirestoreMobileFoundationStore: MobileFoundationStoring {
         if let array = value as? [Any] { return array.map(jsonValue) }
         if value is NSNull || value is String || value is NSNumber { return value }
         return String(describing: value)
+    }
+
+    private static func jsonArray<Value: Encodable>(_ value: [Value]) throws -> [Any] {
+        guard let object = try JSONSerialization.jsonObject(with: JSONEncoder().encode(value)) as? [Any] else { throw MobileFoundationStoreError.invalidState }
+        return object
     }
     #endif
 }

@@ -6,6 +6,7 @@ struct MobileOnboardingAnswers: Equatable {
     var raceDistance: String; var targetDate: String; var experience: String
     var weeklyMileage: Double; var preferredDays: [String]
     var personalBests: [String: Int] = [:]
+    var weeklyAvailability: [MobileWeeklyAvailability] = []
     func validated() throws -> Self {
         let races = ["5k", "10k", "half", "marathon"]
         let experiences = ["beginner", "intermediate", "advanced"]
@@ -16,10 +17,13 @@ struct MobileOnboardingAnswers: Equatable {
               preferredDays.allSatisfy(days.contains),
               Set(personalBests.keys).isSubset(of: Set(races)),
               personalBests.values.allSatisfy({ (180...86_400).contains($0) }),
+              weeklyAvailability.count <= 7,
+              Set(weeklyAvailability.map(\.day)).count == weeklyAvailability.count,
               targetDate.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) != nil,
               let date = DateFormatter.mobileFoundationDay.date(from: targetDate),
               Calendar(identifier: .gregorian).startOfDay(for: date) >= Calendar(identifier: .gregorian).startOfDay(for: Date())
         else { throw MobileFoundationValidationError.invalid("onboarding answers") }
+        for value in weeklyAvailability { _ = try value.validated() }
         return self
     }
 }

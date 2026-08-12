@@ -11,14 +11,16 @@ final class MobileFoundationViewModel: ObservableObject {
     @Published private(set) var message: String?
     @Published private(set) var isSaving = false
     @Published private(set) var trainingExport: String?
+    @Published private(set) var accountDeletionNeedsReauthentication = false
 
     private let configured: Bool
     private let store: MobileFoundationStoring
     private let reminders: EveningReminderDelivering
     private let audit: MobileAuditTransporting
+    private let accountCleanup: MobileAccountCleanupNetworking
 
-    init(configured: Bool, store: MobileFoundationStoring = FirestoreMobileFoundationStore(), reminders: EveningReminderDelivering = LocalEveningReminderClient(), audit: MobileAuditTransporting = FirestoreMobileAuditTransport()) {
-        self.configured = configured; self.store = store; self.reminders = reminders; self.audit = audit
+    init(configured: Bool, store: MobileFoundationStoring = FirestoreMobileFoundationStore(), reminders: EveningReminderDelivering = LocalEveningReminderClient(), audit: MobileAuditTransporting = FirestoreMobileAuditTransport(), accountCleanup: MobileAccountCleanupNetworking = URLSessionMobileAccountCleanupClient()) {
+        self.configured = configured; self.store = store; self.reminders = reminders; self.audit = audit; self.accountCleanup = accountCleanup
     }
 
     var isSignedIn: Bool { if case .signedIn = authState { true } else { false } }
@@ -26,7 +28,19 @@ final class MobileFoundationViewModel: ObservableObject {
 
     func restore() async {
         guard configured else { authState = .failed("Firebase configuration is missing."); return }
-        guard Auth.auth().currentUser != nil else { authState = .signedOut; return }
+        guard let user = Auth.auth().currentUser else { authState = .signedOut; return }
+        if UserDefaults.standard.bool(forKey: Self.deletionPendingKey(user.uid)) {
+            var recovery = MobileFoundationState.newRunner
+            recovery.onboarding = .init(status: .completed, completedSteps: MobileOnboardingStep.allCases, deferredPermissions: MobileFoundationPermission.allCases)
+            recovery.route = .settings
+            state = try? recovery.requestingAccountDeletion(at: MobileTodayDate.isoString(Date()))
+            authState = .signedIn
+            isSaving = true
+            do { try await continueAccountDeletion(password: nil) }
+            catch { message = Self.accountDeletionMessage(error); accountDeletionNeedsReauthentication = true }
+            isSaving = false
+            return
+        }
         await restoreFoundation(action: .session)
     }
 
@@ -136,10 +150,90 @@ final class MobileFoundationViewModel: ObservableObject {
 
     func requestAccountDeletion() async {
         guard let current = state else { return }; isSaving = true; await reminders.cancelAll()
-        do { state = try await store.beginAccountDeletion(from: current); message = "Deletion boundary saved. Sign in recently and retry cleanup if Firebase requires reauthentication."; emit(.deletion, .retry) }
-        catch { message = "Account deletion was not started. Nothing was reported as deleted."; emit(.deletion, .failed) }
+        do {
+            state = try await store.beginAccountDeletion(from: current)
+            if let uid = Auth.auth().currentUser?.uid { UserDefaults.standard.set(true, forKey: Self.deletionPendingKey(uid)) }
+        } catch {
+            message = "Account deletion was not started. Nothing was reported as deleted."; emit(.deletion, .failed)
+            isSaving = false; return
+        }
+        do { try await continueAccountDeletion(password: nil) }
+        catch { message = Self.accountDeletionMessage(error); emit(.deletion, .retry) }
         isSaving = false
     }
+
+    func retryAccountDeletion(password: String) async {
+        isSaving = true; await reminders.cancelAll()
+        do {
+            try await continueAccountDeletion(password: password.isEmpty ? nil : password)
+        } catch {
+            message = Self.accountDeletionMessage(error)
+            emit(.deletion, .retry)
+        }
+        isSaving = false
+    }
+
+    private func continueAccountDeletion(password: String?) async throws {
+        guard let user = Auth.auth().currentUser else { throw MobileFoundationStoreError.signedOut }
+        let userID = user.uid
+        if let password {
+            guard let email = user.email else { throw MobileFoundationStoreError.invalidState }
+            try await user.reauthenticate(with: EmailAuthProvider.credential(withEmail: email, password: password))
+        }
+        let cleanup = try await accountCleanup.perform(
+            request: .make(mode: .cleanup), idToken: try await user.getIDToken()
+        )
+        guard cleanup.receipt.pendingDomains.isEmpty else {
+            accountDeletionNeedsReauthentication = false
+            message = "Account cleanup is incomplete for \(cleanup.receipt.pendingDomains.count) domains. Retry safely."
+            emit(.deletion, .retry)
+            return
+        }
+        let finalized = try await accountCleanup.perform(
+            request: .make(mode: .finalizeAuth), idToken: try await user.getIDToken()
+        )
+        switch finalized.result {
+        case .completed:
+            accountDeletionNeedsReauthentication = false
+            UserDefaults.standard.removeObject(forKey: Self.deletionPendingKey(userID))
+            state = nil; try? Auth.auth().signOut(); authState = .signedOut
+            message = "Your training domains and account were deleted."
+            emit(.deletion, .success)
+        case .replayed where finalized.receipt.status == .completed:
+            accountDeletionNeedsReauthentication = false
+            UserDefaults.standard.removeObject(forKey: Self.deletionPendingKey(userID))
+            state = nil; try? Auth.auth().signOut(); authState = .signedOut
+            message = "Your training domains and account were deleted."
+            emit(.deletion, .success)
+        case .reauthenticationRequired:
+            accountDeletionNeedsReauthentication = true
+            message = "For security, enter your password to finish account deletion. Cleanup is safely retained."
+            emit(.deletion, .retry)
+        default:
+            accountDeletionNeedsReauthentication = false
+            message = "Account cleanup is ready. Retry final account deletion."
+            emit(.deletion, .retry)
+        }
+    }
+
+    private static func accountDeletionMessage(_ error: Error) -> String {
+        if let network = error as? MobilePlanNetworkError {
+            return switch network.failure {
+            case .authRequired: "Sign in again to resume account deletion."
+            case .offline: "You are offline. Account cleanup remains retryable."
+            case .timeout: "Account cleanup timed out. Retry safely."
+            case .backendUnavailable: "Account cleanup is temporarily unavailable. Retry later."
+            default: "Account deletion could not be finalized. Nothing was reported as deleted."
+            }
+        }
+        let value = error as NSError
+        if value.domain == AuthErrorDomain && value.code == AuthErrorCode.wrongPassword.rawValue {
+            return "That password was not accepted. Cleanup remains safely retryable."
+        }
+        return "Account deletion remains incomplete and can be retried."
+    }
+
+    private static func deletionPendingKey(_ uid: String) -> String { "kinetic.mobile.account-deletion-pending.\(uid)" }
 
 #if DEBUG
     func runQADeletionMatrix(plan: MobilePlanViewModel) async {
