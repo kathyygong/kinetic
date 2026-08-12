@@ -265,11 +265,18 @@ Backend v2 metadata/availability/cleanup smoke: passed
 Firebase Auth/Firestore owner/cross-user/anonymous plus server-only receipt matrix: passed
 ```
 
-The exact pushed handoff commit and hosted Windows/macOS runs are pending at the
-time of this worktree checkpoint. After they are green, the branch returns to
-Mac to consume v2, finish editable planning inputs and final deletion, and run
-the authenticated physical/accessibility proof. Do not start final Windows
-integration or Phase 7 yet.
+The implementation is pushed at `46fcbba`. Hosted Windows run
+[31637946605](https://github.com/kathyygong/kinetic/actions/runs/31637946605)
+passes clean install, connected zero-vulnerability audit, lint, TypeScript,
+complete frontend smoke, production build, beta readiness, backend compile,
+18-group/498-assertion evaluator verification, legacy plus v2 backend smokes,
+and the owner/cross-user/anonymous/server-only-receipt Firebase matrix. Hosted
+macOS run
+[31637946552](https://github.com/kathyygong/kinetic/actions/runs/31637946552)
+passes all 67 Swift package tests and the unsigned Kinetic simulator build on
+the same SHA. The branch may now return to Mac to consume v2, finish editable
+planning inputs and final deletion, and run authenticated physical/accessibility
+proof. Do not start final Windows integration or Phase 7 yet.
 
 ## Phase 5 native implementation checkpoint — 2026-08-03
 

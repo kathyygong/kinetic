@@ -141,8 +141,9 @@ Runtime modes are explicit:
   gates, production-web migration, and hosted workflow routing. Windows B is
   green at `d5bbfdc`; Mac checkpoint `b6604af` removed native generation/phase
   heuristics. The Windows return adds version-bound metadata and coordinated
-  planning-input/plan commits. Mac consumption and native/device proof remain
-  before final Windows integration.
+  planning-input/plan commits at `46fcbba`; hosted Windows run 31637946605 and
+  macOS run 31637946552 are green. Mac consumption and native/device proof
+  remain before final Windows integration.
   Resume this lane with: `Continue Mobile Phase 5–6 Mac implementation.`
 - [ ] **Pre-Phase 7 Product Evidence:** After Phases 5–6 close, run moderated
   signed-build onboarding-to-check-in sessions with 3–5 target runners. Validate

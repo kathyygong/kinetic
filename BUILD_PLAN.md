@@ -1445,9 +1445,10 @@ inputs and plan are one revision-checked transaction package; and
 domain deletes, recent-auth checking, and Firebase Auth deletion. Local lint,
 TypeScript, full smoke, production build, backend compile/evals/smokes,
 zero-vulnerability connected audit, and Firebase owner/cross-user/anonymous/
-server-receipt rules are green. Hosted evidence and the resulting exact handoff
-commit are recorded in `MOBILE_PHASE5_6_HANDOFF.md`. This is still not final
-Windows integration; Mac must consume the contracts and finish native proof.
+server-receipt rules are green. The implementation is pushed at `46fcbba`;
+hosted Windows run 31637946605 and hosted macOS run 31637946552 pass on that
+exact SHA. This is still not final Windows integration; Mac must consume the
+contracts and finish native proof.
 
 ### Final Windows Integration For Mobile Phases 5–6 - Mandatory
 
