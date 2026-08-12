@@ -1450,7 +1450,7 @@ hosted Windows run 31637946605 and hosted macOS run 31637946552 pass on that
 exact SHA. This is still not final Windows integration; Mac must consume the
 contracts and finish native proof.
 
-Mac v2 consumption checkpoint 2026-08-12: production Swift now uses strict
+Mac v2 consumption checkpoint `92bad76` on 2026-08-12: production Swift now uses strict
 generation/lifecycle v2, persists/restores authoritative metadata, maps bounded
 weekly availability in onboarding and Settings, atomically commits planning
 inputs with the regenerated plan, and resumes cleanup plus recent-password Auth

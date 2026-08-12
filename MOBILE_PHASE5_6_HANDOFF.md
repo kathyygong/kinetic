@@ -280,7 +280,7 @@ proof. Do not start final Windows integration or Phase 7 yet.
 
 ### Mac v2 consumption checkpoint — 2026-08-12
 
-The native closeout worktree now consumes the Windows return:
+Native implementation commit `92bad76` consumes the Windows return:
 
 - strict Swift Codable, exact-key, semantic, privacy, malformed-response, auth,
   and fixture coverage for generation/lifecycle v2 and account cleanup;
