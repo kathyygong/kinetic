@@ -87,8 +87,15 @@ enum MobileTodayAppConfiguration {
     static var apiBaseURL: URL {
         let defaultsValue = UserDefaults.standard.string(forKey: "kinetic.api-base-url")
         let plistValue = Bundle.main.object(forInfoDictionaryKey: "KINETIC_API_BASE_URL") as? String
-        let raw = defaultsValue ?? plistValue ?? "http://127.0.0.1:8000"
-        return URL(string: raw) ?? URL(string: "http://127.0.0.1:8000")!
+#if DEBUG
+        let environmentValue = ProcessInfo.processInfo.environment["KINETIC_API_BASE_URL"]
+#else
+        let environmentValue: String? = nil
+#endif
+        return resolvedHTTPURL(
+            candidates: [environmentValue, defaultsValue, plistValue],
+            fallback: "http://127.0.0.1:8000"
+        )
     }
 
     static var webProfileURL: URL {
@@ -108,5 +115,17 @@ enum MobileTodayAppConfiguration {
             return value
         }
         return true
+    }
+
+    static func resolvedHTTPURL(candidates: [String?], fallback: String) -> URL {
+        for raw in candidates.compactMap({ $0 }) {
+            guard
+                let value = URL(string: raw),
+                value.scheme == "http" || value.scheme == "https",
+                value.host != nil
+            else { continue }
+            return value
+        }
+        return URL(string: fallback)!
     }
 }

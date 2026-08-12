@@ -12,23 +12,29 @@ struct MobilePlanPendingPreview: Equatable {
     var currentPlan: MobilePlanSnapshot?
     var proposedPlan: MobilePlanSnapshot
     var response: MobilePlanLifecycleResponse
+    var weeks: [MobilePlanWeekMetadata]?
+    var generationExplanations: [MobilePlanGenerationExplanationCode]
 }
 
 @MainActor
 final class MobilePlanViewModel: ObservableObject {
     @Published private(set) var plan: MobilePlanSnapshot?
     @Published private(set) var preview: MobilePlanPendingPreview?
+    @Published private(set) var weeks: [MobilePlanWeekMetadata]?
+    @Published private(set) var generationExplanations: [MobilePlanGenerationExplanationCode] = []
     @Published private(set) var isWorking = false
     @Published private(set) var legacyPlanPresent = false
     @Published private(set) var message: String?
 
     private let configured: Bool
+    private let generationNetwork: MobilePlanGenerationNetworking
     private let network: MobilePlanLifecycleNetworking
     private let store: MobilePlanStoring
     private let audit: MobileAuditTransporting
 
-    init(configured: Bool, network: MobilePlanLifecycleNetworking = URLSessionMobilePlanLifecycleClient(), store: MobilePlanStoring = FirestoreMobilePlanStore(), audit: MobileAuditTransporting = FirestoreMobileAuditTransport()) {
-        self.configured = configured; self.network = network; self.store = store; self.audit = audit
+    init(configured: Bool, generationNetwork: MobilePlanGenerationNetworking = URLSessionMobilePlanGenerationClient(), network: MobilePlanLifecycleNetworking = URLSessionMobilePlanLifecycleClient(), store: MobilePlanStoring = FirestoreMobilePlanStore(), audit: MobileAuditTransporting = FirestoreMobileAuditTransport()) {
+        self.configured = configured; self.generationNetwork = generationNetwork
+        self.network = network; self.store = store; self.audit = audit
     }
 
     func restore() async {
@@ -39,11 +45,131 @@ final class MobilePlanViewModel: ObservableObject {
         } catch { message = "Your owner-scoped plan could not be restored safely." }
     }
 
-    func clear() { plan = nil; preview = nil; legacyPlanPresent = false; message = nil }
+    func clear() { plan = nil; preview = nil; weeks = nil; generationExplanations = []; legacyPlanPresent = false; message = nil }
+
+#if DEBUG
+    func runQARemainingLifecycleMatrix() async {
+        await restore()
+        guard let startingPlan = plan else { print("KINETIC_QA_PLAN_MATRIX_FAILED missing_plan"); return }
+        let startingVersion = startingPlan.version
+        guard await commitFirstValidPreferredDay() else {
+            print("KINETIC_QA_PLAN_MATRIX_FAILED preferred_day \(message ?? "unknown")"); return
+        }
+        guard let skipTarget = plan?.scheduledWorkouts.first(where: { $0.type != .race }) else {
+            print("KINETIC_QA_PLAN_MATRIX_FAILED missing_skip_target"); return
+        }
+        await previewChange(action: .skip, target: skipTarget)
+        guard preview?.action == .skip else {
+            print("KINETIC_QA_PLAN_MATRIX_FAILED skip_preview \(message ?? "unknown")"); return
+        }
+        await commitPreview()
+        guard plan?.version == startingVersion + 2 else {
+            print("KINETIC_QA_PLAN_MATRIX_FAILED final_version \(plan?.version ?? -1)"); return
+        }
+        message = "QA preferred-day and skip passed at version \(startingVersion + 2)."
+        print("KINETIC_QA_PLAN_MATRIX_SUCCESS version=\(startingVersion + 2)")
+    }
+
+    func runQATransactionMatrix() async {
+        await restore()
+        do {
+            guard let current = plan,
+                  let target = current.scheduledWorkouts.first(where: { $0.type != .race && $0.durationMinutes > 1 }) else {
+                print("KINETIC_QA_TRANSACTION_MATRIX_FAILED missing_target"); return
+            }
+            let startingState = try await store.load()
+            let operationID = MobilePlanRequestFactory.operationID()
+            let proposed = try MobilePlanProposalBuilder.proposal(
+                action: .shorten, current: current, targetWorkoutID: target.id,
+                newDuration: target.durationMinutes - 1
+            )
+            let commitRequest = try MobilePlanRequestFactory.make(
+                mode: .commit, operationID: operationID, current: current,
+                proposed: proposed, action: .shorten, targetWorkoutID: target.id,
+                priorOperation: startingState.priorOperation
+            )
+            let commitResponse = try await network.validate(request: commitRequest, idToken: try await idToken())
+            let first = try await store.commit(response: commitResponse, request: commitRequest)
+            guard first.version == current.version + 1, !first.replayed else {
+                print("KINETIC_QA_TRANSACTION_MATRIX_FAILED first_commit"); return
+            }
+            let replay = try await store.commit(response: commitResponse, request: commitRequest)
+            guard replay.version == first.version, replay.replayed else {
+                print("KINETIC_QA_TRANSACTION_MATRIX_FAILED replay"); return
+            }
+
+            let alternate = try MobilePlanProposalBuilder.proposal(action: .skip, current: current, targetWorkoutID: target.id)
+            let reusedOperationRequest = try MobilePlanRequestFactory.make(
+                mode: .commit, operationID: operationID, current: current,
+                proposed: alternate, action: .skip, targetWorkoutID: target.id,
+                priorOperation: startingState.priorOperation
+            )
+            let reusedOperationResponse = try await network.validate(request: reusedOperationRequest, idToken: try await idToken())
+            do {
+                _ = try await store.commit(response: reusedOperationResponse, request: reusedOperationRequest)
+                print("KINETIC_QA_TRANSACTION_MATRIX_FAILED idempotency_accepted"); return
+            } catch MobilePlanStoreError.idempotencyConflict {}
+
+            let staleRequest = try MobilePlanRequestFactory.make(
+                mode: .commit, operationID: MobilePlanRequestFactory.operationID(), current: current,
+                proposed: alternate, action: .skip, targetWorkoutID: target.id,
+                priorOperation: startingState.priorOperation
+            )
+            let staleResponse = try await network.validate(request: staleRequest, idToken: try await idToken())
+            do {
+                _ = try await store.commit(response: staleResponse, request: staleRequest)
+                print("KINETIC_QA_TRANSACTION_MATRIX_FAILED stale_accepted"); return
+            } catch MobilePlanStoreError.versionConflict {}
+
+            await restore()
+            guard plan?.version == current.version + 1 else {
+                print("KINETIC_QA_TRANSACTION_MATRIX_FAILED readback \(plan?.version ?? -1)"); return
+            }
+            print("KINETIC_QA_TRANSACTION_MATRIX_SUCCESS version=\(current.version + 1)")
+        } catch {
+            print("KINETIC_QA_TRANSACTION_MATRIX_FAILED \(String(describing: error))")
+        }
+    }
+
+    func runQAOfflinePreview() async {
+        await restore()
+        guard let current = plan,
+              let target = current.scheduledWorkouts.first(where: { $0.type != .race }) else {
+            print("KINETIC_QA_OFFLINE_FAILED missing_target"); return
+        }
+        await previewChange(action: .skip, target: target)
+        let offlineMessage = message
+        await restore()
+        guard preview == nil, plan?.version == current.version,
+              offlineMessage?.contains("offline") == true else {
+            print("KINETIC_QA_OFFLINE_FAILED version=\(plan?.version ?? -1) message=\(offlineMessage ?? "none")"); return
+        }
+        print("KINETIC_QA_OFFLINE_SUCCESS version=\(current.version)")
+    }
+
+    private func commitFirstValidPreferredDay() async -> Bool {
+        guard let current = plan else { return false }
+        let candidates = current.scheduledWorkouts.filter { $0.type == .easy }
+            + current.scheduledWorkouts.filter { $0.type != .easy && $0.type != .race }
+        for target in candidates {
+            let occupied = Set(current.workouts.filter { $0.id != target.id && $0.status != .skipped }.map(\.date))
+            for offset in 2...21 {
+                guard let date = shifted(target.date, days: offset), !occupied.contains(date) else { continue }
+                discardPreview()
+                await previewChange(action: .preferredDay, target: target, date: date)
+                guard preview?.action == .preferredDay else { continue }
+                let version = current.version
+                await commitPreview()
+                return plan?.version == version + 1
+            }
+        }
+        return false
+    }
+#endif
 
     func previewGeneration() async {
         await performPreview(action: .generate, targetWorkoutID: nil) {
-            try MobilePlanProposalBuilder.generate(context: try await self.store.loadGenerationContext())
+            try await self.sharedGeneration(mode: .initial, currentPlan: nil)
         }
     }
 
@@ -51,10 +177,10 @@ final class MobilePlanViewModel: ObservableObject {
         guard let current = plan else { message = "Generate a plan first."; return }
         await performPreview(action: action, targetWorkoutID: target?.id) {
             if action == .regenerateFuture {
-                let generated = try MobilePlanProposalBuilder.generate(context: try await self.store.loadGenerationContext())
-                return try MobilePlanProposalBuilder.proposal(action: action, current: current, regenerated: generated)
+                return try await self.sharedGeneration(mode: .regenerateFuture, currentPlan: current)
             }
-            return try MobilePlanProposalBuilder.proposal(action: action, current: current, targetWorkoutID: target?.id, newDate: date, newDuration: duration, replacementType: replacement)
+            let proposed = try MobilePlanProposalBuilder.proposal(action: action, current: current, targetWorkoutID: target?.id, newDate: date, newDuration: duration, replacementType: replacement)
+            return (proposed, self.weeks, self.generationExplanations)
         }
     }
 
@@ -83,10 +209,12 @@ final class MobilePlanViewModel: ObservableObject {
 
     func discardPreview() { preview = nil; message = nil }
 
-    func commitPreview() async {
-        guard let pending = preview else { return }
+    @discardableResult
+    func commitPreview() async -> Bool {
+        guard let pending = preview else { return false }
         isWorking = true
         let started = Date()
+        var succeeded = false
         do {
             let latest = try await store.load()
             let request = try MobilePlanRequestFactory.make(
@@ -99,12 +227,16 @@ final class MobilePlanViewModel: ObservableObject {
             case .commitReady:
                 let committed = try await store.commit(response: response, request: request)
                 let state = try await store.load(); plan = state.plan; legacyPlanPresent = false; preview = nil
+                weeks = pending.weeks; generationExplanations = pending.generationExplanations
                 message = committed.replayed ? "This change was already saved." : "Plan version \(committed.version) saved."
                 emit(action: pending.action, response: response, mutation: .applied, failure: .none, started: started)
+                succeeded = true
             case .replayed:
                 let state = try await store.load(); plan = state.plan; preview = nil
+                weeks = pending.weeks; generationExplanations = pending.generationExplanations
                 message = "This change was already saved."
                 emit(action: pending.action, response: response, mutation: .applied, failure: .none, started: started)
+                succeeded = true
             case .conflict:
                 let conflict = conflictMessage(response); await restore(); preview = nil; message = conflict
                 emit(action: pending.action, response: response, mutation: .rejected, failure: failure(response), started: started)
@@ -122,17 +254,26 @@ final class MobilePlanViewModel: ObservableObject {
             emitFailure(action: pending.action, failure: auditFailure(error), started: started)
         }
         isWorking = false
+        return succeeded
     }
 
-    private func performPreview(action: MobilePlanAction, targetWorkoutID: String?, proposal: () async throws -> MobilePlanSnapshot) async {
+    private func performPreview(
+        action: MobilePlanAction,
+        targetWorkoutID: String?,
+        proposal: () async throws -> (plan: MobilePlanSnapshot, weeks: [MobilePlanWeekMetadata]?, explanations: [MobilePlanGenerationExplanationCode])
+    ) async {
         isWorking = true; message = nil
         let started = Date(), operationID = MobilePlanRequestFactory.operationID()
         do {
-            let current = plan, proposed = try await proposal(), latest = try await store.load()
+            let current = plan, generated = try await proposal(), proposed = generated.plan, latest = try await store.load()
             let request = try MobilePlanRequestFactory.make(mode: .preview, operationID: operationID, current: current, proposed: proposed, action: action, targetWorkoutID: targetWorkoutID, priorOperation: latest.priorOperation)
             let response = try await network.validate(request: request, idToken: try await idToken())
             if response.result == .preview, response.commitPlan == proposed {
-                preview = .init(operationID: operationID, action: action, targetWorkoutID: targetWorkoutID, currentPlan: current, proposedPlan: proposed, response: response)
+                preview = .init(
+                    operationID: operationID, action: action, targetWorkoutID: targetWorkoutID,
+                    currentPlan: current, proposedPlan: proposed, response: response,
+                    weeks: generated.weeks, generationExplanations: generated.explanations
+                )
                 emit(action: action, response: response, mutation: .reviewOnly, failure: .none, started: started)
             } else {
                 message = response.result == .conflict ? conflictMessage(response) : rejectionMessage(response)
@@ -142,6 +283,19 @@ final class MobilePlanViewModel: ObservableObject {
             message = errorMessage(error); emitFailure(action: action, failure: auditFailure(error), started: started)
         }
         isWorking = false
+    }
+
+    private func sharedGeneration(
+        mode: MobilePlanGenerationMode,
+        currentPlan: MobilePlanSnapshot?
+    ) async throws -> (plan: MobilePlanSnapshot, weeks: [MobilePlanWeekMetadata], explanations: [MobilePlanGenerationExplanationCode]) {
+        let context = try await store.loadGenerationContext()
+        let request = try MobilePlanGenerationRequestFactory.make(
+            mode: mode, context: context, planningDate: MobileTodayDate.localDay(Date()), currentPlan: currentPlan
+        )
+        let response = try await generationNetwork.generate(request: request, idToken: try await idToken())
+        guard response.mode == mode else { throw MobilePlanNetworkError(failure: .invalidResponse) }
+        return (response.candidatePlan, response.weeks, response.explanationCodes)
     }
 
     private func idToken() async throws -> String {

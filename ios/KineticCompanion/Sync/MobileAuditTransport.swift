@@ -59,6 +59,50 @@ final class FirestoreMobileAuditTransport: MobileAuditTransporting {
         #endif
     }
 
+    #if DEBUG && canImport(FirebaseFirestore) && canImport(FirebaseAuth)
+    static func qaValidateOwnerReadbackAndCrossUserDenial() async throws -> (foundation: Int, plan: Int) {
+        guard let userId = Auth.auth().currentUser?.uid else { throw MobileFoundationStoreError.signedOut }
+        let database = Firestore.firestore()
+        let document = try await database
+            .collection("users").document(userId).collection("kinetic").document("mobile_audit")
+            .getDocument()
+        let events = existingEvents(document.data())
+        guard !events.isEmpty else { throw MobileFoundationStoreError.invalidState }
+        let forbiddenKeys = Set([
+            "operation_id", "request_fingerprint", "workouts", "target_date",
+            "email", "uid", "user_id", "hrv", "sleep", "health_data"
+        ])
+        guard !events.contains(where: { containsForbiddenKey($0, forbidden: forbiddenKeys) }) else {
+            throw MobileFoundationStoreError.invalidState
+        }
+        let foundation = events.filter { $0["name"] as? String == MobileAuditEventName.foundationLifecycle.rawValue }.count
+        let plan = events.filter { $0["name"] as? String == MobileAuditEventName.planLifecycle.rawValue }.count
+        guard foundation > 0, plan > 0 else { throw MobileFoundationStoreError.invalidState }
+
+        do {
+            _ = try await database
+                .collection("users").document("kinetic-phase56-guaranteed-foreign-owner")
+                .collection("kinetic").document("plan").getDocument()
+            throw MobileFoundationStoreError.invalidState
+        } catch {
+            let value = error as NSError
+            guard value.domain == "FIRFirestoreErrorDomain", value.code == 7 else { throw error }
+        }
+        return (foundation, plan)
+    }
+
+    private static func containsForbiddenKey(_ value: Any, forbidden: Set<String>) -> Bool {
+        if let dictionary = value as? [String: Any] {
+            if dictionary.keys.contains(where: forbidden.contains) { return true }
+            return dictionary.values.contains { containsForbiddenKey($0, forbidden: forbidden) }
+        }
+        if let array = value as? [Any] {
+            return array.contains { containsForbiddenKey($0, forbidden: forbidden) }
+        }
+        return false
+    }
+    #endif
+
     #if canImport(FirebaseFirestore)
     private static func encodeEvent<Payload: MobileAuditPayload>(
         _ envelope: MobileAuditEnvelope<Payload>

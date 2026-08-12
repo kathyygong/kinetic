@@ -14,6 +14,58 @@ protocol MobilePlanLifecycleNetworking {
     func validate(request: MobilePlanLifecycleRequest, idToken: String) async throws -> MobilePlanLifecycleResponse
 }
 
+protocol MobilePlanGenerationNetworking {
+    func generate(request: MobilePlanGenerationRequest, idToken: String) async throws -> MobilePlanGenerationResponse
+}
+
+final class URLSessionMobilePlanGenerationClient: MobilePlanGenerationNetworking {
+    private let baseURL: URL
+    private let session: URLSession
+    private let timeout: TimeInterval
+
+    init(baseURL: URL = MobileTodayAppConfiguration.apiBaseURL, session: URLSession = .shared, timeout: TimeInterval = 30) {
+        self.baseURL = baseURL; self.session = session; self.timeout = timeout
+    }
+
+    func generate(request: MobilePlanGenerationRequest, idToken: String) async throws -> MobilePlanGenerationResponse {
+        guard !idToken.isEmpty else { throw MobilePlanNetworkError(failure: .authRequired) }
+        let valid = try request.validated()
+        let url = baseURL.appendingPathComponent("mobile").appendingPathComponent("plan-generation")
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = "POST"; urlRequest.timeoutInterval = timeout
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue("Bearer \(idToken)", forHTTPHeaderField: "Authorization")
+        urlRequest.httpBody = try JSONEncoder().encode(valid)
+        do {
+            let (data, response) = try await session.data(for: urlRequest)
+            guard let http = response as? HTTPURLResponse else { throw MobilePlanNetworkError(failure: .invalidResponse) }
+            guard (200...299).contains(http.statusCode) else {
+                throw MobilePlanNetworkError(failure: Self.failure(status: http.statusCode), status: http.statusCode)
+            }
+            do { return try MobilePlanGenerationResponse.decodeStrict(data) }
+            catch { throw MobilePlanNetworkError(failure: .invalidResponse) }
+        } catch let error as MobilePlanNetworkError { throw error }
+        catch let error as URLError { throw MobilePlanNetworkError(failure: Self.failure(urlError: error)) }
+        catch { throw MobilePlanNetworkError(failure: .unknown) }
+    }
+
+    private static func failure(status: Int) -> MobilePlanNetworkFailure {
+        if status == 401 || status == 403 { return .authRequired }
+        if status == 408 || status == 504 { return .timeout }
+        if status >= 500 { return .backendUnavailable }
+        return .invalidResponse
+    }
+
+    private static func failure(urlError: URLError) -> MobilePlanNetworkFailure {
+        switch urlError.code {
+        case .timedOut: .timeout
+        case .notConnectedToInternet, .networkConnectionLost, .cannotConnectToHost,
+             .cannotFindHost, .dnsLookupFailed, .internationalRoamingOff: .offline
+        default: .unknown
+        }
+    }
+}
+
 final class URLSessionMobilePlanLifecycleClient: MobilePlanLifecycleNetworking {
     private let baseURL: URL
     private let session: URLSession

@@ -1424,6 +1424,27 @@ requirements.
 - Commit and push the Mac closeout evidence to the same closeout branch. Do not
   start Phase 7.
 
+Mac Batch B checkpoint updated 2026-08-12: strict authenticated Swift shared
+generation, removal of the copied native generator and phase/taper heuristic,
+optional personal-record onboarding, shared/lifecycle plan review before
+completion, real owner-scoped training-data export, QA launch matrices, 67/67
+Swift tests, and the unsigned simulator build pass in the current closeout
+worktree. Mac completion is blocked on three Windows/shared decisions: durable
+versioned week metadata across lifecycle commits/relaunch, a concrete bounded
+availability field and generation meaning, and idempotent account cleanup that
+keeps a retryable boundary through Firebase Auth deletion. Editable planning
+inputs, final deletion, live authenticated/device/accessibility evidence, and
+final Windows integration remain open.
+
+The immediate next lane is a Windows/shared blocker-resolution pass on
+`codex/mobile-phase5-6-closeout`. The canonical owner prompt is **Continue
+Windows Phase 5-6 implementation.** Its complete expansion and ordered
+acceptance criteria are maintained in `MOBILE_PHASE5_6_HANDOFF.md`. That pass
+must land durable versioned week metadata, bounded weekly availability,
+retry-safe idempotent account cleanup, and coordinated planning-input/plan
+writes before the branch returns to Mac. It is not the final Windows
+integration gate.
+
 ### Final Windows Integration For Mobile Phases 5–6 - Mandatory
 
 - Fetch the Mac closeout commit and reconcile contracts, fixtures,

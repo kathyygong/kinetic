@@ -469,6 +469,15 @@ fields from the existing owner-only audit envelope.
   and closes live/device/accessibility proof. Windows then performs final
   documentation, emulator, dependency, hosted Windows, and hosted macOS
   integration. Neither of the first two stages alone closes the phases.
+- The 2026-08-10 Mac checkpoint removed the copied Swift generator and native
+  phase/taper inference and added a strict authenticated shared-generation
+  client. It also exposed three unresolved shared boundaries: generation week
+  metadata is not currently persisted or refreshed by lifecycle commit
+  packages; the roadmap's distinct bounded availability input has no shared
+  schema; and client-only account cleanup cannot both remove the documents
+  containing its boundary and preserve durable retry state through Firebase
+  Auth deletion. These must return to the Windows/shared lane. Native may show
+  missing metadata honestly, but may not derive policy or invent schemas.
 - A small moderated product-evidence gate follows final Phase 5–6 integration
   and precedes the full Phase 7 build. Mac owns signed native sessions;
   Windows/shared owns privacy-safe audit/readback support. This gate validates

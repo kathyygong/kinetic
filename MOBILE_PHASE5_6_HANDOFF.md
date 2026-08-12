@@ -164,6 +164,63 @@ limits are superseded by the green hosted clean-install evidence above. Mac
 Batch B is authorized to start from `d5bbfdc`; Phases 5–6 remain open until Mac
 Batch B and final Windows integration both complete.
 
+### Mac Batch B implementation checkpoint — updated 2026-08-12
+
+The current `codex/mobile-phase5-6-closeout` worktree now contains the first
+native correction slice:
+
+- strict Swift request/response, exact-key, semantic, privacy, fixture, auth,
+  malformed-response, and offline parity for `mobile-plan-generation.v1`;
+- authenticated `POST /mobile/plan-generation` initial/future networking;
+- initial onboarding and future regeneration paths use the shared candidate
+  before independent lifecycle preview/commit validation;
+- the copied Swift mileage/pace/taper/scheduling generator is removed;
+- the SwiftUI plan screen no longer infers build/recovery/taper/race phases and
+  renders only shared metadata when it is available;
+- onboarding captures optional bounded personal records, saves an incomplete
+  draft, shows the shared/lifecycle plan review, and marks onboarding complete
+  only after explicit plan confirmation;
+- Settings can prepare a separate owner-scoped `kinetic-training-export.v1`
+  across the documented training domains while retaining the separately
+  labeled foundation receipt;
+- the recovered debug QA matrices cover lifecycle completion, transaction
+  replay/conflict, offline behavior, deletion boundaries, owner/cross-user
+  audit readback, and physical-device backend URL overrides.
+
+Local automated evidence:
+
+```text
+Swift package suite: 67/67
+Shared-generation/lifecycle focused suite: 8/8
+Foundation focused suite: 4/4
+Unsigned generic iOS Simulator build: passed
+```
+
+Three shared decisions require Windows/shared work before Mac Batch B can
+finish safely:
+
+1. Persist authoritative week phase/explanation metadata with a plan version
+   and return refreshed metadata for lifecycle edits. Today the metadata is
+   lost after relaunch, and Swift deliberately does not recreate it.
+2. Define the required bounded-availability shape and persistence/generation
+   semantics. The existing contract has preferred days and one-off lifecycle
+   availability edits, but no distinct durable onboarding availability field.
+3. Define idempotent account cleanup that retains a retryable deletion boundary
+   through owner-domain removal and Firebase Auth deletion. The current
+   boundary lives in `settings`/`onboarding`, which are themselves deletion
+   targets; a client-only finalization would not be durably retryable.
+
+Editable planning inputs/future regeneration confirmation, final account
+deletion, metadata-after-relaunch proof, authenticated live readback, and the
+physical/accessibility matrix remain open. Do not represent this checkpoint as
+Mac Batch B completion or start Phase 7.
+
+The next implementation lane is therefore Windows/shared blocker resolution,
+not final integration. Windows must land the three shared changes and their
+cross-platform fixtures first; Mac then consumes them and completes the native
+work; only after that pushed Mac completion does the mandatory final Windows
+integration run begin.
+
 ## Phase 5 native implementation checkpoint — 2026-08-03
 
 Native Phase 5 implementation is committed at `bfbaaef` as an explicit
@@ -360,6 +417,54 @@ or entitlements to work around signing.
 ## Continuation prompts
 
 Windows Batch B is complete at `d5bbfdc`.
+
+For the next Windows session, the only prompt the owner needs to send is:
+
+> Continue Windows Phase 5-6 implementation.
+
+That exact phrase means: fetch `codex/mobile-phase5-6-closeout`, fast-forward
+only to its latest pushed commit, read this handoff plus
+`MOBILE_FOUNDATION_PLAN_CONTRACT.md`, `MOBILE_APP_PLAN.md`, `BUILD_PLAN.md`,
+`QA_MATRIX.md`, `ARCHITECTURE.md`, and `ios/KineticCompanion/README.md`, and
+perform the Windows/shared blocker-resolution pass below. It does not mean the
+older Batch B work at `d5bbfdc`, does not authorize Phase 7, and does not mean
+the final Windows integration gate can run before Mac consumes the resulting
+contracts.
+
+Windows/shared blocker-resolution prompt:
+
+> Continue Kinetic Mobile Phases 5–6 Windows/shared implementation on
+> `codex/mobile-phase5-6-closeout`. Preserve the green Mac checkpoint and its
+> strict Swift boundary. Resolve the documented shared blockers in this order:
+>
+> 1. Extend the shared plan storage/lifecycle contract so authoritative
+>    generation week phase and bounded explanation metadata are version-bound,
+>    written atomically with the plan transaction, returned or recomputed by
+>    shared authority after every lifecycle edit, and restored after relaunch.
+>    Add migrations/backward compatibility for existing workout-only plans.
+> 2. Define one privacy-safe bounded weekly availability model, using explicit
+>    weekday values and existing bounded minute/easy-only concepts where
+>    compatible. Specify skip/clear behavior and how initial generation,
+>    future regeneration, profile edits, lifecycle validation, and persistence
+>    consume it. Do not send raw Calendar events or free text.
+> 3. Add an authenticated, owner-scoped, idempotent account-cleanup boundary
+>    that can resume after partial Firestore cleanup and safely coordinate
+>    Firebase Auth deletion/reauthentication without deleting its own only
+>    retry receipt prematurely. Never report completion while domains remain.
+> 4. Define the coordinated write/version behavior for changed planning inputs
+>    plus their regenerated plan so Settings cannot leave profile and plan in
+>    contradictory partial state.
+>
+> Update TypeScript and Pydantic schemas, FastAPI routes, canonical fixtures,
+> persistence adapters, Firestore rules/indexes if required, web consumers,
+> migrations, privacy-safe audits, and deterministic negative/replay/conflict
+> tests. Keep generation and lifecycle validation as shared authority. Run the
+> complete frontend/backend suites, dependency audit, generation/lifecycle
+> smokes, Firebase Auth/Firestore emulator matrix, and hosted Windows workflow;
+> run the hosted macOS contract/build workflow to catch Swift fixture drift.
+> Record exact evidence in all Phase 5–6 docs, commit and push the result to the
+> same closeout branch, and hand it back to Mac. Do not claim Phases 5–6
+> complete and do not start the final Windows integration yet.
 
 For the next Mac session, the only prompt the owner needs to send is:
 

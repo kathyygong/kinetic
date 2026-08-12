@@ -70,16 +70,25 @@ paths continue to work.
   sign-in/session restoration/sign-out, permanent Today/Plan/Progress/Settings
   navigation, native onboarding, progressive permission education, privacy/
   support/data controls, and the opt-in local evening reminder.
-- Strict `mobile-plan-lifecycle.v1` Swift parity, deterministic native plan
-  proposals from saved goal/profile inputs, authenticated backend validation,
+- Strict `mobile-plan-generation.v1` and `mobile-plan-lifecycle.v1` Swift
+  parity, authenticated shared initial/future generation, bounded native edit
+  proposals from saved goal/profile inputs, independent backend validation,
   explicit preview/confirm UI for all eleven lifecycle actions, and atomic
   owner-scoped plan/history/operation persistence with conflict and replay
   protection.
+- The copied Swift mileage/pace/taper/scheduling generator and display-only
+  phase heuristic have been removed. Plan phases render only from shared
+  metadata; durable metadata after commit/relaunch awaits the shared contract.
+- Onboarding captures optional personal records, persists an incomplete draft,
+  and requires shared plan review/confirmation before completion. Settings can
+  prepare a full owner-scoped training-data export separately from the bounded
+  foundation receipt.
 - Preferred-day behavior patterns now open the native plan review/validator
   path instead of a web profile handoff.
 
 The current app includes the Phase 6 bounded plan-ownership implementation but
-still requires authenticated/physical closeout proof. It does not include real
+still requires shared metadata/availability/deletion decisions plus editable
+planning inputs and authenticated/physical closeout proof. It does not include real
 Apple Calendar ingestion or the Phase 7 progress implementation; Progress is
 an honest placeholder. General chat,
 autonomous AI mutation, raw HealthKit cloud sync, full two-way Calendar sync,
@@ -209,7 +218,7 @@ swift test
 The Phase 5 focused gate is `swift test --filter
 MobileFoundationContractFixtureTests`. The Phase 6 focused gate is `swift test
 --filter MobilePlanLifecycleContractFixtureTests`; the complete suite currently
-contains 65 tests. The authoritative signed-build, simulator/device route, same-user web
+contains 67 tests. The authoritative signed-build, simulator/device route, same-user web
 readback, audit privacy, accessibility, rollback-control, and evidence
 checklist is
 [`MOBILE_PATTERN_RESULT_HANDOFF.md`](../../MOBILE_PATTERN_RESULT_HANDOFF.md).

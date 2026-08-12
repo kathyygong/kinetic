@@ -14,18 +14,46 @@ protocol MobileFoundationStoring {
     func save(_ state: MobileFoundationState, expectedRevision: Int?) async throws
     func deleteTrainingData(from state: MobileFoundationState) async throws -> MobileFoundationState
     func beginAccountDeletion(from state: MobileFoundationState) async throws -> MobileFoundationState
-    func saveOnboardingAnswers(_ answers: MobileOnboardingAnswers) async throws
+    func saveOnboardingAnswers(_ answers: MobileOnboardingAnswers, completed: Bool) async throws
+    func exportTrainingData() async throws -> String
 }
 
 final class FirestoreMobileFoundationStore: MobileFoundationStoring {
-    func saveOnboardingAnswers(_ answers: MobileOnboardingAnswers) async throws {
+    func exportTrainingData() async throws -> String {
+        #if canImport(FirebaseFirestore) && canImport(FirebaseAuth)
+        guard let uid = Auth.auth().currentUser?.uid else { throw MobileFoundationStoreError.signedOut }
+        let root = Firestore.firestore().collection("users").document(uid).collection("kinetic")
+        var domains: [String: Any] = [:]
+        for domain in MobileFoundationDomain.trainingData {
+            let document = try await root.document(domain.rawValue).getDocument()
+            guard let data = document.data(), data["deleted"] as? Bool != true else {
+                domains[domain.rawValue] = NSNull()
+                continue
+            }
+            domains[domain.rawValue] = Self.jsonValue(data["payload"] ?? data)
+        }
+        let export: [String: Any] = [
+            "schema_version": "kinetic-training-export.v1",
+            "exported_at": MobileTodayDate.isoString(Date()),
+            "domains": domains
+        ]
+        guard JSONSerialization.isValidJSONObject(export) else { throw MobileFoundationStoreError.invalidState }
+        let data = try JSONSerialization.data(withJSONObject: export, options: [.prettyPrinted, .sortedKeys])
+        guard let value = String(data: data, encoding: .utf8) else { throw MobileFoundationStoreError.invalidState }
+        return value
+        #else
+        throw MobileFoundationStoreError.unavailable
+        #endif
+    }
+
+    func saveOnboardingAnswers(_ answers: MobileOnboardingAnswers, completed: Bool) async throws {
         #if canImport(FirebaseFirestore) && canImport(FirebaseAuth)
         guard let user = Auth.auth().currentUser else { throw MobileFoundationStoreError.signedOut }
         let answers = try answers.validated()
         let root = Firestore.firestore().collection("users").document(user.uid).collection("kinetic")
         let now = MobileTodayDate.isoString(Date())
-        let goal: [String: Any] = ["goal_type": "race", "race_distance": answers.raceDistance, "target_date": answers.targetDate, "experience_level": answers.experience, "current_prs": [:], "weekly_mileage": answers.weeklyMileage]
-        let profile: [String: Any] = ["full_name": "", "email": user.email ?? "", "experience_level": answers.experience, "weekly_mileage": answers.weeklyMileage, "preferred_training_days": answers.preferredDays, "personal_bests": [:], "connected_services": ["google_calendar": ["connected": false], "apple_health": ["connected": false], "garmin": ["connected": false], "oura": ["connected": false]], "onboarding_completed": true]
+        let goal: [String: Any] = ["goal_type": "race", "race_distance": answers.raceDistance, "target_date": answers.targetDate, "experience_level": answers.experience, "current_prs": answers.personalBests, "weekly_mileage": answers.weeklyMileage]
+        let profile: [String: Any] = ["full_name": "", "email": user.email ?? "", "experience_level": answers.experience, "weekly_mileage": answers.weeklyMileage, "preferred_training_days": answers.preferredDays, "personal_bests": answers.personalBests, "connected_services": ["google_calendar": ["connected": false], "apple_health": ["connected": false], "garmin": ["connected": false], "oura": ["connected": false]], "onboarding_completed": completed]
         let batch = Firestore.firestore().batch()
         batch.setData(["schemaVersion": 1, "payload": goal, "deleted": false, "clientUpdatedAt": now, "serverUpdatedAt": FieldValue.serverTimestamp()], forDocument: root.document("goal"))
         batch.setData(["schemaVersion": 1, "payload": profile, "deleted": false, "clientUpdatedAt": now, "serverUpdatedAt": FieldValue.serverTimestamp()], forDocument: root.document("profile"))
@@ -105,7 +133,7 @@ final class FirestoreMobileFoundationStore: MobileFoundationStoring {
     func deleteTrainingData(from state: MobileFoundationState) async throws -> MobileFoundationState {
         #if canImport(FirebaseFirestore) && canImport(FirebaseAuth)
         guard let uid = Auth.auth().currentUser?.uid else { throw MobileFoundationStoreError.signedOut }
-        let training: [MobileFoundationDomain] = [.profile, .goal, .plan, .planHistory, .planOperations, .readiness, .workouts, .preferences, .mobileAudit]
+        let training = MobileFoundationDomain.trainingData
         var boundary = state
         boundary.revision += 1
         boundary.deletion = .init(requestedAt: MobileTodayDate.isoString(Date()), scope: .trainingData, pendingDomains: training)
@@ -153,6 +181,17 @@ final class FirestoreMobileFoundationStore: MobileFoundationStoring {
         guard JSONSerialization.isValidJSONObject(object) else { throw MobileFoundationStoreError.invalidState }
         do { return try MobileFoundationState.decodeStrict(JSONSerialization.data(withJSONObject: object)) }
         catch { throw MobileFoundationStoreError.invalidState }
+    }
+
+    private static func jsonValue(_ value: Any) -> Any {
+        if let timestamp = value as? Timestamp { return MobileTodayDate.isoString(timestamp.dateValue()) }
+        if let date = value as? Date { return MobileTodayDate.isoString(date) }
+        if let dictionary = value as? [String: Any] {
+            return dictionary.mapValues(jsonValue)
+        }
+        if let array = value as? [Any] { return array.map(jsonValue) }
+        if value is NSNull || value is String || value is NSNumber { return value }
+        return String(describing: value)
     }
     #endif
 }

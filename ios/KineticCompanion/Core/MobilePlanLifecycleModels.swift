@@ -1,6 +1,7 @@
 import Foundation
 
 let mobilePlanLifecycleSchema = "mobile-plan-lifecycle.v1"
+let mobilePlanGenerationSchema = "mobile-plan-generation.v1"
 
 enum MobilePlanContractError: Error, Equatable {
     case invalid(String)
@@ -109,6 +110,180 @@ struct MobilePlanSnapshot: Codable, Equatable, Identifiable {
 
     var scheduledWorkouts: [MobilePlanWorkout] {
         workouts.filter { $0.status == .scheduled }.sorted { $0.date < $1.date }
+    }
+}
+
+enum MobilePlanGenerationMode: String, Codable { case initial, regenerateFuture = "regenerate_future" }
+enum MobilePlanWeekPhase: String, Codable { case build, recovery, taper, race }
+enum MobilePlanGenerationExplanationCode: String, Codable, CaseIterable {
+    case baseVolume = "base_volume"
+    case preferredDaysApplied = "preferred_days_applied"
+    case recoveryLoad = "recovery_load"
+    case taperLoad = "taper_load"
+    case raceWeek = "race_week"
+    case completedHistoryPreserved = "completed_history_preserved"
+    case futureWorkoutsRegenerated = "future_workouts_regenerated"
+}
+
+struct MobilePlanGenerationRequest: Codable, Equatable {
+    var schemaVersion = mobilePlanGenerationSchema
+    var platform = MobilePlatform.ios
+    var mode: MobilePlanGenerationMode
+    var planningDate: String
+    var raceDistance: MobilePlanRaceDistance
+    var targetDate: String
+    var experienceLevel: MobilePlanExperience
+    var weeklyMileage: Double?
+    var preferredDays: [MobilePlanDay]
+    var personalBestsSeconds: [String: Int]
+    var goalRevision: Int
+    var currentPlan: MobilePlanSnapshot?
+
+    enum CodingKeys: String, CodingKey {
+        case schemaVersion = "schema_version", platform, mode
+        case planningDate = "planning_date", raceDistance = "race_distance"
+        case targetDate = "target_date", experienceLevel = "experience_level"
+        case weeklyMileage = "weekly_mileage", preferredDays = "preferred_days"
+        case personalBestsSeconds = "personal_bests_seconds"
+        case goalRevision = "goal_revision", currentPlan = "current_plan"
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(schemaVersion, forKey: .schemaVersion)
+        try container.encode(platform, forKey: .platform)
+        try container.encode(mode, forKey: .mode)
+        try container.encode(planningDate, forKey: .planningDate)
+        try container.encode(raceDistance, forKey: .raceDistance)
+        try container.encode(targetDate, forKey: .targetDate)
+        try container.encode(experienceLevel, forKey: .experienceLevel)
+        if let weeklyMileage { try container.encode(weeklyMileage, forKey: .weeklyMileage) }
+        else { try container.encodeNil(forKey: .weeklyMileage) }
+        try container.encode(preferredDays, forKey: .preferredDays)
+        try container.encode(personalBestsSeconds, forKey: .personalBestsSeconds)
+        try container.encode(goalRevision, forKey: .goalRevision)
+        if let currentPlan { try container.encode(currentPlan, forKey: .currentPlan) }
+        else { try container.encodeNil(forKey: .currentPlan) }
+    }
+
+    func validated() throws -> Self {
+        guard schemaVersion == mobilePlanGenerationSchema, platform == .ios,
+              MobilePlanValidation.isISODate(planningDate), MobilePlanValidation.isISODate(targetDate),
+              MobilePlanValidation.dayDistance(from: planningDate, to: targetDate).map({ $0 >= 21 }) == true,
+              weeklyMileage.map({ $0.isFinite && (1...150).contains($0) }) ?? true,
+              preferredDays.count <= 7, Set(preferredDays).count == preferredDays.count,
+              Set(personalBestsSeconds.keys).isSubset(of: Set(MobilePlanRaceDistance.allCases.map(\.rawValue))),
+              personalBestsSeconds.values.allSatisfy({ (180...86_400).contains($0) }),
+              goalRevision >= 1 else {
+            throw MobilePlanContractError.invalid("Invalid plan generation request.")
+        }
+        _ = try currentPlan?.validated()
+        switch mode {
+        case .initial:
+            guard currentPlan == nil else { throw MobilePlanContractError.invalid("Initial generation included a current plan.") }
+        case .regenerateFuture:
+            guard let currentPlan,
+                  currentPlan.workouts.filter({ $0.type == .race }).count == 1,
+                  currentPlan.workouts.first(where: { $0.type == .race })?.date == targetDate,
+                  goalRevision == currentPlan.goalRevision || goalRevision == currentPlan.goalRevision + 1 else {
+                throw MobilePlanContractError.invalid("Future regeneration did not preserve plan identity.")
+            }
+        }
+        return self
+    }
+
+    static func decodeStrict(_ data: Data) throws -> Self {
+        let object = try JSONSerialization.jsonObject(with: data)
+        try MobilePlanGenerationValidation.validateRequestShape(object)
+        return try JSONDecoder().decode(Self.self, from: data).validated()
+    }
+}
+
+struct MobilePlanWeekMetadata: Codable, Equatable, Identifiable {
+    var weekNumber: Int
+    var phase: MobilePlanWeekPhase
+    var startDate: String
+    var endDate: String
+    var workoutIDs: [String]
+    var explanationCodes: [MobilePlanGenerationExplanationCode]
+
+    var id: Int { weekNumber }
+
+    enum CodingKeys: String, CodingKey {
+        case weekNumber = "week_number", phase
+        case startDate = "start_date", endDate = "end_date"
+        case workoutIDs = "workout_ids", explanationCodes = "explanation_codes"
+    }
+
+    func validated() throws -> Self {
+        guard (1...20).contains(weekNumber),
+              MobilePlanValidation.isISODate(startDate), MobilePlanValidation.isISODate(endDate),
+              MobilePlanValidation.dayDistance(from: startDate, to: endDate).map({ $0 == 6 }) == true,
+              (1...5).contains(workoutIDs.count), Set(workoutIDs).count == workoutIDs.count,
+              workoutIDs.allSatisfy({ (1...80).contains($0.count) }),
+              (1...4).contains(explanationCodes.count), Set(explanationCodes).count == explanationCodes.count else {
+            throw MobilePlanContractError.invalid("Invalid generated week metadata.")
+        }
+        return self
+    }
+}
+
+struct MobilePlanGenerationResponse: Codable, Equatable {
+    var schemaVersion: String
+    var mode: MobilePlanGenerationMode
+    var source: String
+    var mutationPerformed: Bool
+    var candidatePlan: MobilePlanSnapshot
+    var weeks: [MobilePlanWeekMetadata]
+    var explanationCodes: [MobilePlanGenerationExplanationCode]
+
+    enum CodingKeys: String, CodingKey {
+        case schemaVersion = "schema_version", mode, source
+        case mutationPerformed = "mutation_performed", candidatePlan = "candidate_plan"
+        case weeks, explanationCodes = "explanation_codes"
+    }
+
+    func validated() throws -> Self {
+        guard schemaVersion == mobilePlanGenerationSchema, source == "deterministic_shared",
+              mutationPerformed == false, (4...20).contains(weeks.count),
+              Set(weeks.map(\.weekNumber)).count == weeks.count,
+              weeks.map(\.weekNumber).sorted() == Array(1...weeks.count),
+              (1...7).contains(explanationCodes.count), Set(explanationCodes).count == explanationCodes.count else {
+            throw MobilePlanContractError.invalid("Invalid plan generation response.")
+        }
+        let plan = try candidatePlan.validated()
+        for week in weeks { _ = try week.validated() }
+        let referenced = weeks.flatMap(\.workoutIDs)
+        guard Set(referenced).count == referenced.count,
+              Set(referenced) == Set(plan.workouts.map(\.id)) else {
+            throw MobilePlanContractError.invalid("Generated week metadata did not cover the candidate plan.")
+        }
+        return self
+    }
+
+    static func decodeStrict(_ data: Data) throws -> Self {
+        let object = try JSONSerialization.jsonObject(with: data)
+        try MobilePlanGenerationValidation.validateResponseShape(object)
+        return try JSONDecoder().decode(Self.self, from: data).validated()
+    }
+}
+
+enum MobilePlanGenerationRequestFactory {
+    static func make(
+        mode: MobilePlanGenerationMode,
+        context: MobilePlanGenerationContext,
+        planningDate: String,
+        currentPlan: MobilePlanSnapshot?
+    ) throws -> MobilePlanGenerationRequest {
+        let personalBests = Dictionary(uniqueKeysWithValues: context.personalBests.map { ($0.key.rawValue, $0.value) })
+        return try MobilePlanGenerationRequest(
+            mode: mode, planningDate: planningDate, raceDistance: context.raceDistance,
+            targetDate: context.targetDate, experienceLevel: context.experience,
+            weeklyMileage: context.weeklyMileage > 0 ? context.weeklyMileage : nil,
+            preferredDays: context.preferredDays,
+            personalBestsSeconds: personalBests, goalRevision: context.goalRevision,
+            currentPlan: currentPlan
+        ).validated()
     }
 }
 
@@ -315,6 +490,15 @@ enum MobilePlanValidation {
         return formatter.date(from: value) != nil
     }
 
+    static func dayDistance(from start: String, to end: String) -> Int? {
+        let formatter = DateFormatter(); formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX"); formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyy-MM-dd"; formatter.isLenient = false
+        guard let first = formatter.date(from: start), let second = formatter.date(from: end) else { return nil }
+        var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        return calendar.dateComponents([.day], from: first, to: second).day
+    }
+
     static func validateRequestShape(_ object: Any) throws {
         let root = try dictionary(object, keys: ["schema_version", "platform", "mode", "operation_id", "request_fingerprint", "expected_version", "current_plan", "proposed_plan", "mutation", "prior_operation"])
         if !(root["current_plan"] is NSNull) { try validateSnapshotShape(root["current_plan"] as Any) }
@@ -359,6 +543,40 @@ enum MobilePlanValidation {
         } else if let array = value as? [Any] {
             for child in array { try assertPrivacySafe(child) }
         }
+    }
+}
+
+enum MobilePlanGenerationValidation {
+    static func validateRequestShape(_ object: Any) throws {
+        let root = try MobilePlanValidation.dictionary(object, keys: [
+            "schema_version", "platform", "mode", "planning_date", "race_distance",
+            "target_date", "experience_level", "weekly_mileage", "preferred_days",
+            "personal_bests_seconds", "goal_revision", "current_plan"
+        ])
+        guard root["personal_bests_seconds"] is [String: Any] else {
+            throw MobilePlanContractError.invalid("Invalid personal-best shape.")
+        }
+        if !(root["current_plan"] is NSNull) {
+            try MobilePlanValidation.validateSnapshotShape(root["current_plan"] as Any)
+        }
+        try MobilePlanValidation.assertPrivacySafe(root)
+    }
+
+    static func validateResponseShape(_ object: Any) throws {
+        let root = try MobilePlanValidation.dictionary(object, keys: [
+            "schema_version", "mode", "source", "mutation_performed",
+            "candidate_plan", "weeks", "explanation_codes"
+        ])
+        try MobilePlanValidation.validateSnapshotShape(root["candidate_plan"] as Any)
+        guard let weeks = root["weeks"] as? [Any] else {
+            throw MobilePlanContractError.invalid("Invalid generated weeks shape.")
+        }
+        for week in weeks {
+            _ = try MobilePlanValidation.dictionary(week, keys: [
+                "week_number", "phase", "start_date", "end_date", "workout_ids", "explanation_codes"
+            ])
+        }
+        try MobilePlanValidation.assertPrivacySafe(root)
     }
 }
 

@@ -43,9 +43,15 @@ struct MobilePlanView: View {
 
             if let message = viewModel.message { Section { Label(message, systemImage: "info.circle") } }
 
-            ForEach(Array(weekGroups(plan).enumerated()), id: \.element.id) { index, week in
-                Section("Week \(index + 1) · \(phaseLabel(index: index, weeks: weekGroups(plan), plan: plan))") {
+            ForEach(weekGroups(plan)) { week in
+                Section {
                     ForEach(week.workouts) { workout in workoutRow(workout) }
+                } header: {
+                    Text("Week \(week.weekNumber) · \(phaseName(week.phase))")
+                } footer: {
+                    if !week.explanationCodes.isEmpty {
+                        Text(week.explanationCodes.map(explanationName).joined(separator: " · "))
+                    }
                 }
             }
         }
@@ -94,27 +100,45 @@ struct MobilePlanView: View {
     private var isoFormatter: DateFormatter { let value = DateFormatter(); value.calendar = Calendar(identifier: .gregorian); value.locale = Locale(identifier: "en_US_POSIX"); value.timeZone = TimeZone(secondsFromGMT: 0); value.dateFormat = "yyyy-MM-dd"; return value }
 
     private func weekGroups(_ plan: MobilePlanSnapshot) -> [MobilePlanWeekGroup] {
+        if let metadata = viewModel.weeks {
+            let workouts = Dictionary(uniqueKeysWithValues: plan.workouts.map { ($0.id, $0) })
+            return metadata.map { week in
+                MobilePlanWeekGroup(
+                    id: "shared-\(week.weekNumber)", weekNumber: week.weekNumber, phase: week.phase,
+                    explanationCodes: week.explanationCodes,
+                    workouts: week.workoutIDs.compactMap { workouts[$0] }.sorted { $0.date < $1.date }
+                )
+            }
+        }
         let calendar = Calendar(identifier: .gregorian)
         let grouped = Dictionary(grouping: plan.workouts) { workout -> String in
             guard let date = isoFormatter.date(from: workout.date) else { return workout.date }
             let weekday = calendar.component(.weekday, from: date), offset = (weekday + 5) % 7
             return isoFormatter.string(from: calendar.date(byAdding: .day, value: -offset, to: date) ?? date)
         }
-        return grouped.keys.sorted().map { .init(id: $0, workouts: grouped[$0]!.sorted { $0.date < $1.date }) }
+        return grouped.keys.sorted().enumerated().map { index, key in
+            .init(
+                id: key, weekNumber: index + 1, phase: nil, explanationCodes: [],
+                workouts: grouped[key]!.sorted { $0.date < $1.date }
+            )
+        }
     }
 
-    private func phaseLabel(index: Int, weeks: [MobilePlanWeekGroup], plan: MobilePlanSnapshot) -> String {
-        if weeks[index].workouts.contains(where: { $0.type == .race }) { return "Race" }
-        let raceMiles = plan.workouts.first(where: { $0.type == .race })?.distanceMiles ?? 0
-        let taperLength = raceMiles >= 20 ? 3 : raceMiles >= 10 ? 2 : 1
-        if index >= max(0, weeks.count - 1 - taperLength) { return "Taper" }
-        if weeks.count >= 6 && index > 0 && (index + 1).isMultiple(of: 4) { return "Recovery" }
-        return "Build"
+    private func phaseName(_ phase: MobilePlanWeekPhase?) -> String {
+        guard let phase else { return "Phase unavailable" }
+        return phase.rawValue.capitalized
+    }
+
+    private func explanationName(_ code: MobilePlanGenerationExplanationCode) -> String {
+        code.rawValue.replacingOccurrences(of: "_", with: " ").capitalized
     }
 }
 
 private struct MobilePlanWeekGroup: Identifiable {
     var id: String
+    var weekNumber: Int
+    var phase: MobilePlanWeekPhase?
+    var explanationCodes: [MobilePlanGenerationExplanationCode]
     var workouts: [MobilePlanWorkout]
 }
 
@@ -142,6 +166,13 @@ struct MobilePlanPreviewView: View {
                 }
                 if !preview.response.impact.warnings.isEmpty {
                     Section("Review warnings") { ForEach(preview.response.impact.warnings, id: \.rawValue) { Label($0.rawValue.replacingOccurrences(of: "_", with: " ").capitalized, systemImage: "exclamationmark.triangle") } }
+                }
+                if !preview.generationExplanations.isEmpty {
+                    Section("Shared plan basis") {
+                        ForEach(preview.generationExplanations, id: \.rawValue) { code in
+                            Text(code.rawValue.replacingOccurrences(of: "_", with: " ").capitalized)
+                        }
+                    }
                 }
                 if let message { Section { Label(message, systemImage: "info.circle") } }
                 Section("Proposed schedule") {

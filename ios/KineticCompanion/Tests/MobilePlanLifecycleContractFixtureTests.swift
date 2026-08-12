@@ -13,6 +13,17 @@ final class MobilePlanLifecycleContractFixtureTests: XCTestCase {
         }
     }
 
+    private struct GenerationFixture: Decodable {
+        var schemaVersion: String
+        var initialRequest: MobilePlanGenerationRequest
+        var initialResponse: MobilePlanGenerationResponse
+        enum CodingKeys: String, CodingKey {
+            case schemaVersion = "schema_version"
+            case initialRequest = "initial_request"
+            case initialResponse = "initial_response"
+        }
+    }
+
     func testCanonicalFixtureHasStrictSwiftParity() throws {
         let (fixture, object) = try loadFixture()
         XCTAssertEqual(fixture.schemaVersion, mobilePlanLifecycleSchema)
@@ -44,31 +55,37 @@ final class MobilePlanLifecycleContractFixtureTests: XCTestCase {
         XCTAssertThrowsError(try MobilePlanLifecycleResponse.decodeStrict(JSONSerialization.data(withJSONObject: response)))
     }
 
-    func testNativeGeneratorIsDeterministicBoundedAndLocksRaceDay() throws {
-        let context = MobilePlanGenerationContext(
-            raceDistance: .half, targetDate: "2026-09-20", experience: .intermediate,
-            weeklyMileage: 20, preferredDays: [.mon, .wed, .fri, .sun], personalBests: [:], goalRevision: 1
+    func testSharedGenerationFixtureHasStrictSwiftParityAndAuthoritativeMetadata() throws {
+        let (fixture, object) = try loadGenerationFixture()
+        XCTAssertEqual(fixture.schemaVersion, mobilePlanGenerationSchema)
+        XCTAssertEqual(fixture.initialRequest.mode, .initial)
+        XCTAssertEqual(fixture.initialResponse.source, "deterministic_shared")
+        XCTAssertEqual(fixture.initialResponse.weeks.last?.phase, .race)
+        XCTAssertEqual(fixture.initialResponse.candidatePlan.workouts.first(where: { $0.type == .race })?.date, fixture.initialRequest.targetDate)
+
+        let requestData = try JSONSerialization.data(withJSONObject: try XCTUnwrap(object["initial_request"]))
+        let responseData = try JSONSerialization.data(withJSONObject: try XCTUnwrap(object["initial_response"]))
+        XCTAssertEqual(try MobilePlanGenerationRequest.decodeStrict(requestData), fixture.initialRequest)
+        XCTAssertEqual(try MobilePlanGenerationResponse.decodeStrict(responseData), fixture.initialResponse)
+
+        let estimatedMileage = try MobilePlanGenerationRequestFactory.make(
+            mode: .initial,
+            context: .init(
+                raceDistance: .fiveK, targetDate: "2026-09-06", experience: .beginner,
+                weeklyMileage: 0, preferredDays: [.tue, .thu, .sun], personalBests: [:], goalRevision: 1
+            ),
+            planningDate: "2026-08-10", currentPlan: nil
         )
-        let today = try XCTUnwrap(isoDate("2026-08-03"))
-        let first = try MobilePlanProposalBuilder.generate(context: context, today: today)
-        let second = try MobilePlanProposalBuilder.generate(context: context, today: today)
-        XCTAssertEqual(first, second)
-        XCTAssertEqual(first.version, 1); XCTAssertEqual(first.status, .draft)
-        XCTAssertEqual(first.workouts.filter { $0.type == .race }.count, 1)
-        XCTAssertEqual(first.workouts.first { $0.type == .race }?.date, context.targetDate)
-        XCTAssertTrue(first.workouts.allSatisfy { $0.distanceMiles <= 40 && $0.durationMinutes <= 480 })
-        XCTAssertEqual(first.workouts.map(\.date).max(), context.targetDate)
-        let hard = first.workouts.filter { [.tempo, .intervals, .longRun, .race].contains($0.type) }.sorted { $0.date < $1.date }
-        for pair in zip(hard, hard.dropFirst()) {
-            let left = try XCTUnwrap(isoDate(pair.0.date)), right = try XCTUnwrap(isoDate(pair.1.date))
-            XCTAssertGreaterThanOrEqual(Calendar(identifier: .gregorian).dateComponents([.day], from: left, to: right).day ?? 0, 2)
-        }
-        var nullablePlan = first; nullablePlan.workouts[0].paceSecondsPerMile = nil
-        let request = try MobilePlanRequestFactory.make(mode: .preview, operationID: "op-generation-null-0001", current: nil, proposed: nullablePlan, action: .generate, targetWorkoutID: nil, priorOperation: nil)
-        let encoded = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(request)) as? [String: Any])
-        XCTAssertTrue(encoded["current_plan"] is NSNull); XCTAssertTrue(encoded["prior_operation"] is NSNull)
-        let proposed = try XCTUnwrap(encoded["proposed_plan"] as? [String: Any]), workouts = try XCTUnwrap(proposed["workouts"] as? [[String: Any]])
-        XCTAssertTrue(workouts[0]["pace_seconds_per_mile"] is NSNull)
+        XCTAssertNil(estimatedMileage.weeklyMileage)
+
+        var response = try XCTUnwrap(object["initial_response"] as? [String: Any])
+        response["email"] = "runner@example.com"
+        XCTAssertThrowsError(try MobilePlanGenerationResponse.decodeStrict(JSONSerialization.data(withJSONObject: response)))
+        response = try XCTUnwrap(object["initial_response"] as? [String: Any])
+        var weeks = try XCTUnwrap(response["weeks"] as? [[String: Any]])
+        weeks[0]["workout_ids"] = ["missing-workout"]
+        response["weeks"] = weeks
+        XCTAssertThrowsError(try MobilePlanGenerationResponse.decodeStrict(JSONSerialization.data(withJSONObject: response)))
     }
 
     func testEveryLifecycleActionBuildsAReviewableSequentialProposal() throws {
@@ -96,11 +113,8 @@ final class MobilePlanLifecycleContractFixtureTests: XCTestCase {
         var paused = active; paused.status = .paused
         XCTAssertEqual(try MobilePlanProposalBuilder.proposal(action: .resume, current: paused).status, .active)
 
-        let context = MobilePlanGenerationContext(raceDistance: .half, targetDate: "2026-09-20", experience: .intermediate, weeklyMileage: 20, preferredDays: [.mon, .wed, .fri, .sun], personalBests: [:], goalRevision: 1)
-        let generated = try MobilePlanProposalBuilder.generate(context: context, today: try XCTUnwrap(isoDate("2026-08-03")))
-        let regenerated = try MobilePlanProposalBuilder.proposal(action: .regenerateFuture, current: active, regenerated: generated)
-        XCTAssertEqual(regenerated.workouts.first { $0.status == .completed }, active.workouts.first { $0.status == .completed })
-        XCTAssertEqual(regenerated.workouts.first { $0.type == .race }, active.workouts.first { $0.type == .race })
+        XCTAssertThrowsError(try MobilePlanProposalBuilder.proposal(action: .generate, current: active))
+        XCTAssertThrowsError(try MobilePlanProposalBuilder.proposal(action: .regenerateFuture, current: active))
     }
 
     func testFingerprintIsStableAndChangesWithModeOrContent() throws {
@@ -146,10 +160,35 @@ final class MobilePlanLifecycleContractFixtureTests: XCTestCase {
         catch let error as MobilePlanNetworkError { XCTAssertEqual(error.failure, .offline) }
     }
 
+    func testAuthenticatedGenerationClientUsesSharedEndpointAndRejectsMalformedEnvelope() async throws {
+        let fixture = try loadGenerationFixture().0
+        let configuration = URLSessionConfiguration.ephemeral; configuration.protocolClasses = [MobilePlanURLProtocol.self]
+        let client = URLSessionMobilePlanGenerationClient(baseURL: URL(string: "https://kinetic.test")!, session: URLSession(configuration: configuration), timeout: 1)
+        MobilePlanURLProtocol.handler = { request in
+            XCTAssertEqual(request.url?.path, "/mobile/plan-generation")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer bounded-token")
+            return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, try JSONEncoder().encode(fixture.initialResponse), nil)
+        }
+        let response = try await client.generate(request: fixture.initialRequest, idToken: "bounded-token")
+        XCTAssertEqual(response, fixture.initialResponse)
+        MobilePlanURLProtocol.handler = { request in
+            (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, Data("{}".utf8), nil)
+        }
+        do { _ = try await client.generate(request: fixture.initialRequest, idToken: "bounded-token"); XCTFail("Malformed response should fail") }
+        catch let error as MobilePlanNetworkError { XCTAssertEqual(error.failure, .invalidResponse) }
+        do { _ = try await client.generate(request: fixture.initialRequest, idToken: ""); XCTFail("Missing auth should fail") }
+        catch let error as MobilePlanNetworkError { XCTAssertEqual(error.failure, .authRequired) }
+    }
+
     private func loadFixture() throws -> (Fixture, [String: Any]) {
         let url = try XCTUnwrap(Bundle.module.url(forResource: "mobile-plan-lifecycle-contract", withExtension: "json", subdirectory: "Fixtures"))
         let data = try Data(contentsOf: url)
         return (try JSONDecoder().decode(Fixture.self, from: data), try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any]))
+    }
+    private func loadGenerationFixture() throws -> (GenerationFixture, [String: Any]) {
+        let url = try XCTUnwrap(Bundle.module.url(forResource: "mobile-plan-generation-contract", withExtension: "json", subdirectory: "Fixtures"))
+        let data = try Data(contentsOf: url)
+        return (try JSONDecoder().decode(GenerationFixture.self, from: data), try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any]))
     }
     private func isoDate(_ value: String) -> Date? {
         let formatter = DateFormatter(); formatter.calendar = Calendar(identifier: .gregorian); formatter.locale = Locale(identifier: "en_US_POSIX"); formatter.timeZone = TimeZone(secondsFromGMT: 0); formatter.dateFormat = "yyyy-MM-dd"; return formatter.date(from: value)

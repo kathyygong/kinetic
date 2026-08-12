@@ -248,6 +248,23 @@ final class MobileTodayContractFixtureTests: XCTestCase {
         )
     }
 
+    func testAPIConfigurationUsesFirstValidHTTPOverride() {
+        XCTAssertEqual(
+            MobileTodayAppConfiguration.resolvedHTTPURL(
+                candidates: ["not a URL", "http://192.0.2.10:8000", "https://fallback.test"],
+                fallback: "http://127.0.0.1:8000"
+            ).absoluteString,
+            "http://192.0.2.10:8000"
+        )
+        XCTAssertEqual(
+            MobileTodayAppConfiguration.resolvedHTTPURL(
+                candidates: [nil, "file:///tmp/not-allowed"],
+                fallback: "http://127.0.0.1:8000"
+            ).absoluteString,
+            "http://127.0.0.1:8000"
+        )
+    }
+
     func testMissingContextStopsAndCalendarFallbackPreservesZero() throws {
         let fixture = try loadFixture()
         let now = try XCTUnwrap(MobileTodayDate.parse("2026-07-16T12:00:00.000Z"))

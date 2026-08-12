@@ -1,9 +1,17 @@
 # Mobile Foundation And Plan Lifecycle Contract
 
-Status: Windows Batch A lifecycle contract implemented; Windows Batch B shared
-generation and lifecycle hardening implemented locally on
-`codex/mobile-phase5-6-closeout` on 2026-08-07. Dependency audit/hosted handoff
-evidence remains open, followed by Mac Batch B and final Windows integration.
+Status: Windows Batch B shared generation/lifecycle hardening and hosted handoff
+are green at `d5bbfdc`. Mac Batch B has removed the copied Swift generator and
+native phase/taper inference in the current closeout worktree; final native
+profile/deletion/live-device work remains blocked on the shared decisions
+recorded below, followed by final Windows integration.
+
+The next lane is Windows/shared blocker resolution on
+`codex/mobile-phase5-6-closeout`. The owner may start it with **Continue Windows
+Phase 5-6 implementation.** `MOBILE_PHASE5_6_HANDOFF.md` is the canonical
+expansion of that prompt and the ordered acceptance checklist. After that pass,
+the branch returns to Mac for native completion before final Windows
+integration.
 
 This contract is the shared boundary for Mobile Phase 5 native foundation and
 Mobile Phase 6 native plan ownership. It defines native inputs, shared
@@ -46,6 +54,12 @@ deletion retains the minimum account/settings shell but clears training
 domains. Failures remain retryable and must not report the account as deleted
 while pending domains remain.
 
+The current domain list does not yet provide a durable client-only finalization
+sequence: `settings` and `onboarding` contain the retry boundary and are also
+account-deletion targets. Windows/shared must define an idempotent cleanup/Auth
+deletion endpoint or another durable receipt before Mac removes those final
+documents. A transient in-memory retry state is not sufficient.
+
 Migration from proof-era state is copy-then-validate:
 
 1. Read the existing owner-scoped documents without changing project signing,
@@ -70,6 +84,11 @@ race distance, target date, experience, weekly mileage, preferred days,
 personal-best seconds, goal revision, an explicit generation mode, and the
 current plan when regenerating. The planning date removes clock-dependent
 generation behavior and is not identity or health data.
+The roadmap separately requires bounded onboarding availability, but this
+request currently defines only preferred days and the lifecycle contract has
+only a one-off availability action. Windows/shared must either define the
+durable availability field and its generation semantics or explicitly revise
+the requirement to preferred days; Mac must not invent a private field.
 The response is storage-neutral and returns a candidate plan plus bounded
 explanation/version metadata. It also returns authoritative week-phase metadata
 (`build`, `recovery`, `taper`, or `race`) so web and Swift do not independently
@@ -77,9 +96,16 @@ derive training phases or taper length. It never writes Firestore.
 
 Initial and future plan generation must call this shared service. Production
 web code and Swift must not independently calculate training weeks, mileage,
-paces, taper, workout dates, or regenerated futures. The current Swift
-`MobilePlanProposalBuilder.generate()` is an implementation checkpoint to be
-removed during Mac Batch B after this endpoint is available.
+paces, taper, workout dates, or regenerated futures. The former Swift
+`MobilePlanProposalBuilder.generate()` checkpoint was removed in the 2026-08-10
+Mac Batch B implementation checkpoint.
+
+The current response metadata is authoritative but not yet durable: the
+generation response returns `weeks`, while the lifecycle commit package and
+persisted `MobilePlanSnapshot` contain only workouts. The Windows/shared lane
+must define version-bound metadata persistence and lifecycle refresh behavior
+before Mac can claim correct phase/explanation rendering after commit, edit,
+or relaunch. Swift must not fill this gap with a local phase heuristic.
 
 ## Phase 6 Plan Lifecycle
 

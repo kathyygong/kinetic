@@ -5,6 +5,7 @@ let mobileFoundationSchema = "mobile-foundation.v1"
 struct MobileOnboardingAnswers: Equatable {
     var raceDistance: String; var targetDate: String; var experience: String
     var weeklyMileage: Double; var preferredDays: [String]
+    var personalBests: [String: Int] = [:]
     func validated() throws -> Self {
         let races = ["5k", "10k", "half", "marathon"]
         let experiences = ["beginner", "intermediate", "advanced"]
@@ -13,6 +14,8 @@ struct MobileOnboardingAnswers: Equatable {
               (0...150).contains(weeklyMileage), weeklyMileage.isFinite,
               !preferredDays.isEmpty, Set(preferredDays).count == preferredDays.count,
               preferredDays.allSatisfy(days.contains),
+              Set(personalBests.keys).isSubset(of: Set(races)),
+              personalBests.values.allSatisfy({ (180...86_400).contains($0) }),
               targetDate.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) != nil,
               let date = DateFormatter.mobileFoundationDay.date(from: targetDate),
               Calendar(identifier: .gregorian).startOfDay(for: date) >= Calendar(identifier: .gregorian).startOfDay(for: Date())
@@ -34,6 +37,11 @@ enum MobileDeletionScope: String, Codable { case none, trainingData = "training_
 enum MobileFoundationDomain: String, Codable, CaseIterable {
     case profile, goal, plan, planHistory = "plan_history", planOperations = "plan_operations"
     case readiness, workouts, preferences, settings, onboarding, mobileAudit = "mobile_audit"
+
+    static let trainingData: [Self] = [
+        .profile, .goal, .plan, .planHistory, .planOperations,
+        .readiness, .workouts, .preferences, .mobileAudit
+    ]
 }
 
 struct MobileOnboardingState: Codable, Equatable {
