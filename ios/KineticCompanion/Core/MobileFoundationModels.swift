@@ -181,7 +181,7 @@ struct MobileFoundationState: Codable, Equatable {
     }
 
     func requestingAccountDeletion(at timestamp: String) throws -> Self {
-        guard accountState == .active, ISO8601DateFormatter().date(from: timestamp) != nil else { throw MobileFoundationValidationError.invalid("account deletion request") }
+        guard accountState == .active, MobileTodayDate.parse(timestamp) != nil else { throw MobileFoundationValidationError.invalid("account deletion request") }
         var copy = self
         copy.revision += 1
         copy.accountState = .deletionRequested

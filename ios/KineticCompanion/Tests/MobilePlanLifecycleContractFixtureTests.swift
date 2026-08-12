@@ -235,6 +235,36 @@ final class MobilePlanLifecycleContractFixtureTests: XCTestCase {
         XCTAssertThrowsError(try MobilePlanLifecycleResponseV2.decodeStrict(JSONSerialization.data(withJSONObject: object)))
     }
 
+    func testInitialV2LifecycleRequestEncodesRequiredNullPreconditions() throws {
+        let inputs = try MobilePlanningInputs(
+            revision: 1, raceDistance: .tenK, targetDate: "2026-11-04",
+            experienceLevel: .intermediate, weeklyMileage: 20,
+            preferredDays: [.tue, .thu, .sun], personalBestsSeconds: [:], weeklyAvailability: []
+        ).validated()
+        let proposed = MobilePlanSnapshot(
+            id: "plan-v2-initial", version: 1, status: .draft, goalRevision: 1,
+            workouts: [.init(id: "race-v2-initial", date: "2026-11-04", type: .race, status: .scheduled, distanceMiles: 6.2, durationMinutes: 60, paceSecondsPerMile: 580, reasonCode: .raceDay)]
+        )
+        let metadata = MobilePlanMetadataV2(
+            planVersion: 1,
+            weeks: [.init(weekNumber: 1, phase: .race, startDate: "2026-11-02", endDate: "2026-11-08", workoutIDs: ["race-v2-initial"], explanationCodes: [.baseVolume, .raceWeek])],
+            explanationCodes: [.baseVolume, .raceWeek]
+        )
+        let request = try MobilePlanV2RequestFactory.lifecycle(
+            mode: .preview, operationID: "op-v2-initial-null", current: nil,
+            proposed: proposed, metadata: metadata, currentInputs: nil,
+            proposedInputs: inputs, action: .generate, targetWorkoutID: nil, priorOperation: nil
+        )
+        let object = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(request)) as? [String: Any])
+        XCTAssertEqual(Set(object.keys), Set([
+            "schema_version", "platform", "mode", "operation_id", "request_fingerprint",
+            "expected_version", "current_plan", "proposed_plan", "current_planning_inputs",
+            "proposed_planning_inputs", "mutation",
+        ]))
+        XCTAssertTrue(object["current_plan"] is NSNull)
+        XCTAssertTrue(object["current_planning_inputs"] is NSNull)
+    }
+
     func testAuthenticatedCleanupClientUsesExactEndpointAndStrictReceipt() async throws {
         let fixture = try loadSharedV2Fixture().0
         let configuration = URLSessionConfiguration.ephemeral; configuration.protocolClasses = [MobilePlanURLProtocol.self]

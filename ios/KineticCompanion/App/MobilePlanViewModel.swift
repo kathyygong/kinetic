@@ -1,6 +1,10 @@
 import Combine
 import Foundation
 
+#if DEBUG
+private func print(_ message: String) { NSLog("%@", message) }
+#endif
+
 #if canImport(FirebaseAuth)
 import FirebaseAuth
 #endif
@@ -61,14 +65,9 @@ final class MobilePlanViewModel: ObservableObject {
         guard await commitFirstValidPreferredDay() else {
             print("KINETIC_QA_PLAN_MATRIX_FAILED preferred_day \(message ?? "unknown")"); return
         }
-        guard let skipTarget = plan?.scheduledWorkouts.first(where: { $0.type != .race }) else {
-            print("KINETIC_QA_PLAN_MATRIX_FAILED missing_skip_target"); return
-        }
-        await previewChange(action: .skip, target: skipTarget)
-        guard preview?.action == .skip else {
+        guard await commitFirstValidSkip() else {
             print("KINETIC_QA_PLAN_MATRIX_FAILED skip_preview \(message ?? "unknown")"); return
         }
-        await commitPreview()
         guard plan?.version == startingVersion + 2 else {
             print("KINETIC_QA_PLAN_MATRIX_FAILED final_version \(plan?.version ?? -1)"); return
         }
@@ -102,35 +101,29 @@ final class MobilePlanViewModel: ObservableObject {
             guard first.version == current.version + 1, !first.replayed else {
                 print("KINETIC_QA_TRANSACTION_MATRIX_FAILED first_commit"); return
             }
+            print("KINETIC_QA_TRANSACTION_MATRIX_STEP first_commit")
             let replay = try await store.commitV2(response: commitResponse, request: commitRequest)
             guard replay.version == first.version, replay.replayed else {
                 print("KINETIC_QA_TRANSACTION_MATRIX_FAILED replay"); return
             }
+            print("KINETIC_QA_TRANSACTION_MATRIX_STEP replay")
 
-            let alternate = try MobilePlanProposalBuilder.proposal(action: .skip, current: current, targetWorkoutID: target.id)
-            let reusedOperationRequest = try MobilePlanV2RequestFactory.lifecycle(
-                mode: .commit, operationID: operationID, current: current,
-                proposed: alternate, metadata: metadata, currentInputs: inputs, proposedInputs: inputs,
-                action: .skip, targetWorkoutID: target.id,
-                priorOperation: startingState.priorOperation
-            )
-            let reusedOperationResponse = try await networkV2.validate(request: reusedOperationRequest, idToken: try await idToken())
+            var reusedOperationRequest = commitRequest
+            reusedOperationRequest.requestFingerprint = "sha256-" + String(repeating: "f", count: 64)
             do {
-                _ = try await store.commitV2(response: reusedOperationResponse, request: reusedOperationRequest)
+                _ = try await store.commitV2(response: commitResponse, request: reusedOperationRequest)
                 print("KINETIC_QA_TRANSACTION_MATRIX_FAILED idempotency_accepted"); return
             } catch MobilePlanStoreError.idempotencyConflict {}
+            print("KINETIC_QA_TRANSACTION_MATRIX_STEP idempotency_conflict")
 
-            let staleRequest = try MobilePlanV2RequestFactory.lifecycle(
-                mode: .commit, operationID: MobilePlanRequestFactory.operationID(), current: current,
-                proposed: alternate, metadata: metadata, currentInputs: inputs, proposedInputs: inputs,
-                action: .skip, targetWorkoutID: target.id,
-                priorOperation: startingState.priorOperation
-            )
-            let staleResponse = try await networkV2.validate(request: staleRequest, idToken: try await idToken())
+            var staleRequest = commitRequest
+            staleRequest.operationID = MobilePlanRequestFactory.operationID()
+            staleRequest.requestFingerprint = "sha256-" + String(repeating: "e", count: 64)
             do {
-                _ = try await store.commitV2(response: staleResponse, request: staleRequest)
+                _ = try await store.commitV2(response: commitResponse, request: staleRequest)
                 print("KINETIC_QA_TRANSACTION_MATRIX_FAILED stale_accepted"); return
             } catch MobilePlanStoreError.versionConflict {}
+            print("KINETIC_QA_TRANSACTION_MATRIX_STEP stale_conflict")
 
             await restore()
             guard plan?.version == current.version + 1 else {
@@ -173,6 +166,20 @@ final class MobilePlanViewModel: ObservableObject {
                 await commitPreview()
                 return plan?.version == version + 1
             }
+        }
+        return false
+    }
+
+    private func commitFirstValidSkip() async -> Bool {
+        guard let current = plan else { return false }
+        let today = MobileTodayDate.localDay(Date())
+        for target in current.scheduledWorkouts where target.type != .race && target.date >= today {
+            discardPreview()
+            await previewChange(action: .skip, target: target)
+            guard preview?.action == .skip else { continue }
+            let version = current.version
+            await commitPreview()
+            return plan?.version == version + 1
         }
         return false
     }

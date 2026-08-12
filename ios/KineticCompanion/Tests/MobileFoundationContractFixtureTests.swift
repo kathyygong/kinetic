@@ -38,6 +38,7 @@ final class MobileFoundationContractFixtureTests: XCTestCase {
         let deletion = try completed.requestingAccountDeletion(at: "2026-08-03T17:00:00Z")
         XCTAssertEqual(Set(deletion.deletion.pendingDomains), Set(MobileFoundationDomain.allCases))
         XCTAssertFalse(deletion.settings.eveningCheckinReminder.enabled)
+        XCTAssertNoThrow(try completed.requestingAccountDeletion(at: MobileTodayDate.isoString(Date())))
     }
 
     func testNotificationFixtureMatchesNativeDecisionEngine() throws {

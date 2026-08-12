@@ -223,6 +223,24 @@ struct MobilePlanLifecycleRequestV2: Codable, Equatable {
         case priorOperation = "prior_operation"
     }
 
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(schemaVersion, forKey: .schemaVersion)
+        try container.encode(platform, forKey: .platform)
+        try container.encode(mode, forKey: .mode)
+        try container.encode(operationID, forKey: .operationID)
+        try container.encode(requestFingerprint, forKey: .requestFingerprint)
+        try container.encode(expectedVersion, forKey: .expectedVersion)
+        if let currentPlan { try container.encode(currentPlan, forKey: .currentPlan) }
+        else { try container.encodeNil(forKey: .currentPlan) }
+        try container.encode(proposedPlan, forKey: .proposedPlan)
+        if let currentPlanningInputs { try container.encode(currentPlanningInputs, forKey: .currentPlanningInputs) }
+        else { try container.encodeNil(forKey: .currentPlanningInputs) }
+        try container.encode(proposedPlanningInputs, forKey: .proposedPlanningInputs)
+        try container.encode(mutation, forKey: .mutation)
+        try container.encodeIfPresent(priorOperation, forKey: .priorOperation)
+    }
+
     func validated() throws -> Self {
         guard schemaVersion == mobilePlanLifecycleV2Schema, platform == .ios,
               (8...100).contains(operationID.count), (8...128).contains(requestFingerprint.count),

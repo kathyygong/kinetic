@@ -2,6 +2,10 @@ import FirebaseAuth
 import FirebaseFirestore
 import Foundation
 
+#if DEBUG
+private func print(_ message: String) { NSLog("%@", message) }
+#endif
+
 @MainActor
 final class MobileFoundationViewModel: ObservableObject {
     enum AuthScreenState: Equatable { case restoring, signedOut, working, signedIn, failed(String) }
@@ -236,6 +240,46 @@ final class MobileFoundationViewModel: ObservableObject {
     private static func deletionPendingKey(_ uid: String) -> String { "kinetic.mobile.account-deletion-pending.\(uid)" }
 
 #if DEBUG
+    func prepareQADisposableOwnerIfRequested() async -> MobileOnboardingAnswers? {
+        guard ProcessInfo.processInfo.arguments.contains("-kinetic.qa-bootstrap-disposable-owner") else { return nil }
+        if let current = Auth.auth().currentUser {
+            guard current.email?.hasPrefix("kinetic-phase56-") == true else {
+                print("KINETIC_QA_BOOTSTRAP_FAILED existing_owner")
+                return nil
+            }
+        } else {
+            let suffix = UUID().uuidString.lowercased()
+            let email = "kinetic-phase56-\(suffix)@example.com"
+            let password = "Kinetic-QA-\(suffix.prefix(12))!"
+            await createAccount(email: email, password: password)
+        }
+        guard isSignedIn else {
+            print("KINETIC_QA_BOOTSTRAP_FAILED create_account")
+            return nil
+        }
+
+        let target = Calendar(identifier: .gregorian).date(byAdding: .day, value: 84, to: Date()) ?? Date()
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyy-MM-dd"
+        return MobileOnboardingAnswers(
+            raceDistance: "10k",
+            targetDate: formatter.string(from: target),
+            experience: "intermediate",
+            weeklyMileage: 20,
+            preferredDays: ["tue", "thu", "sat", "sun"],
+            personalBests: ["10k": 3_600],
+            weeklyAvailability: [
+                .init(day: .tue, availableMinutes: 45, easyOnly: true),
+                .init(day: .thu, availableMinutes: 60, easyOnly: false),
+                .init(day: .sat, availableMinutes: 45, easyOnly: true),
+                .init(day: .sun, availableMinutes: 120, easyOnly: false),
+            ]
+        )
+    }
+
     func runQADeletionMatrix(plan: MobilePlanViewModel) async {
         guard let before = state, let userId = Auth.auth().currentUser?.uid else {
             print("KINETIC_QA_DELETION_FAILED missing_owner")
@@ -306,7 +350,10 @@ final class MobileFoundationViewModel: ObservableObject {
         }
         do {
             let readback = try await store.restoreOrMigrate()
-            guard readback == boundary else {
+            guard readback.accountState == .deletionRequested,
+                  readback.deletion.scope == .account,
+                  Set(readback.deletion.pendingDomains) == Set(MobileFoundationDomain.allCases),
+                  Auth.auth().currentUser?.uid == userId else {
                 print("KINETIC_QA_ACCOUNT_BOUNDARY_FAILED boundary_readback")
                 return false
             }

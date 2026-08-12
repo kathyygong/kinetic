@@ -167,13 +167,6 @@ final class FirestoreMobilePlanStore: MobilePlanStoring {
                 let storedV2 = try rawCurrent.flatMap(Self.decodePlanV2)
                 let current: MobilePlanSnapshot?
                 if let storedV2 { current = storedV2.snapshot } else { current = try rawCurrent.flatMap(Self.decodePlan) }
-                guard (current?.version ?? 0) == validResponse.baseVersion else { throw MobilePlanStoreError.versionConflict }
-
-                let profile = try Self.payload(profileDocument, domain: "profile") ?? [:]
-                let goal = try Self.payload(goalDocument, domain: "goal") ?? [:]
-                let storedRevision = Self.int(profile["planning_revision"] ?? goal["planning_revision"])
-                let expectedRevision = validRequest.currentPlanningInputs?.revision ?? validRequest.proposedPlanningInputs.revision
-                if let storedRevision, storedRevision != expectedRevision { throw MobilePlanStoreError.versionConflict }
 
                 let operations = try Self.decodeOperations(try Self.payload(operationDocument, domain: "plan_operations"))
                 if let prior = operations.first(where: { $0.operationID == validRequest.operationID }) {
@@ -181,6 +174,14 @@ final class FirestoreMobilePlanStore: MobilePlanStoring {
                           prior.committedVersion == commitPlan.version else { throw MobilePlanStoreError.idempotencyConflict }
                     return ["version": commitPlan.version, "replayed": true] as NSDictionary
                 }
+
+                guard (current?.version ?? 0) == validResponse.baseVersion else { throw MobilePlanStoreError.versionConflict }
+
+                let profile = try Self.payload(profileDocument, domain: "profile") ?? [:]
+                let goal = try Self.payload(goalDocument, domain: "goal") ?? [:]
+                let storedRevision = Self.int(profile["planning_revision"] ?? goal["planning_revision"])
+                let expectedRevision = validRequest.currentPlanningInputs?.revision ?? validRequest.proposedPlanningInputs.revision
+                if let storedRevision, storedRevision != expectedRevision { throw MobilePlanStoreError.versionConflict }
 
                 let now = MobileTodayDate.isoString(Date())
                 var nextProfile = profile

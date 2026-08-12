@@ -1552,7 +1552,7 @@ struct TodayView: View {
         case .offline: "wifi.slash"
         case .timeout: "clock.badge.exclamationmark"
         case .authRequired: "person.crop.circle.badge.exclamationmark"
-        case .invalidResponse: "checkmark.shield.trianglebadge.exclamationmark"
+        case .invalidResponse: "checkmark.shield"
         default: "exclamationmark.triangle"
         }
     }

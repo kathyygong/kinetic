@@ -1,9 +1,15 @@
+import Foundation
 import SwiftUI
+
+#if DEBUG
+private func print(_ message: String) { NSLog("%@", message) }
+#endif
 
 struct MobileRootView: View {
     @ObservedObject var foundation: MobileFoundationViewModel
     @ObservedObject var today: TodayViewModel
     @ObservedObject var plan: MobilePlanViewModel
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         Group {
@@ -14,7 +20,33 @@ struct MobileRootView: View {
         }
         .task {
             await foundation.restore()
+#if DEBUG
+            if let answers = await foundation.prepareQADisposableOwnerIfRequested() {
+                guard await foundation.prepareOnboardingPreview(answers: answers) else {
+                    print("KINETIC_QA_BOOTSTRAP_FAILED planning_inputs")
+                    return
+                }
+                await plan.previewGeneration()
+                guard plan.preview != nil, await plan.commitPreview() else {
+                    print("KINETIC_QA_BOOTSTRAP_FAILED plan \(plan.message ?? "unknown")")
+                    return
+                }
+                await foundation.finishOnboarding(answers: answers, deferred: Set(MobileFoundationPermission.allCases))
+                guard foundation.state?.onboarding.status == .completed, plan.plan?.version == 1 else {
+                    print("KINETIC_QA_BOOTSTRAP_FAILED onboarding")
+                    return
+                }
+                print("KINETIC_QA_BOOTSTRAP_SUCCESS plan_version=1 availability=4")
+            }
+#endif
             if foundation.isSignedIn {
+#if DEBUG
+                if ProcessInfo.processInfo.arguments.contains("-kinetic.qa-route-plan") {
+                    await foundation.selectRoute(.plan)
+                } else if ProcessInfo.processInfo.arguments.contains("-kinetic.qa-route-settings") {
+                    await foundation.selectRoute(.settings)
+                }
+#endif
                 await today.restoreSession()
                 await plan.restore()
 #if DEBUG
@@ -52,11 +84,17 @@ struct MobileRootView: View {
 
     private func productTabs(_ state: MobileFoundationState) -> some View {
         TabView(selection: Binding(get: { state.route == .onboarding ? .today : state.route }, set: { route in Task { await foundation.selectRoute(route) } })) {
-            TodayView(viewModel: today, planViewModel: plan, embeddedInProduct: true).tabItem { Label("Today", systemImage: "figure.run") }.tag(MobileProductRoute.today)
-            MobilePlanView(viewModel: plan).tabItem { Label("Plan", systemImage: "calendar") }.tag(MobileProductRoute.plan)
-            PlaceholderProductView(title: "Progress", detail: "Recent check-ins and pattern review stay available from Today while Progress is built.", icon: "chart.line.uptrend.xyaxis").tabItem { Label("Progress", systemImage: "chart.line.uptrend.xyaxis") }.tag(MobileProductRoute.progress)
-            MobileSettingsView(foundation: foundation, today: today, plan: plan).tabItem { Label("Settings", systemImage: "gearshape") }.tag(MobileProductRoute.settings)
+            TodayView(viewModel: today, planViewModel: plan, embeddedInProduct: true).tabItem { accessibleTabLabel("Today", compact: "Run", systemImage: "figure.run") }.tag(MobileProductRoute.today)
+            MobilePlanView(viewModel: plan).tabItem { accessibleTabLabel("Plan", compact: "Plan", systemImage: "calendar") }.tag(MobileProductRoute.plan)
+            PlaceholderProductView(title: "Progress", detail: "Recent check-ins and pattern review stay available from Today while Progress is built.", icon: "chart.line.uptrend.xyaxis").tabItem { accessibleTabLabel("Progress", compact: "Stats", systemImage: "chart.line.uptrend.xyaxis") }.tag(MobileProductRoute.progress)
+            MobileSettingsView(foundation: foundation, today: today, plan: plan).tabItem { accessibleTabLabel("Settings", compact: "More", systemImage: "gearshape") }.tag(MobileProductRoute.settings)
         }
+    }
+
+    @ViewBuilder
+    private func accessibleTabLabel(_ title: String, compact: String, systemImage: String) -> some View {
+        Label(dynamicTypeSize.isAccessibilitySize ? compact : title, systemImage: systemImage)
+            .accessibilityLabel(title)
     }
 }
 
