@@ -89,9 +89,12 @@ paths continue to work.
   path instead of a web profile handoff.
 
 The current app includes the Phase 6 bounded plan-ownership implementation and
-the shared v2 closeout adapters. It still requires authenticated interaction,
-live readback, accessibility/layout, and signed physical-device closeout proof.
-It does not include real
+the shared v2 closeout adapters. Authenticated generation/lifecycle,
+five-domain transaction/replay/conflict/relaunch, offline/rejection, audit
+privacy/cross-user denial, deletion-boundary, simulator accessibility/layout,
+and signed generic-device proof pass at `b91269b`. Physical install/hands-on
+VoiceOver and Admin-backed final identity cleanup remain external because the
+paired iPhone and Admin credential were unavailable. It does not include real
 Apple Calendar ingestion or the Phase 7 progress implementation; Progress is
 an honest placeholder. General chat,
 autonomous AI mutation, raw HealthKit cloud sync, full two-way Calendar sync,
@@ -221,10 +224,10 @@ swift test
 The Phase 5 focused gate is `swift test --filter
 MobileFoundationContractFixtureTests`. The Phase 6 focused gate is `swift test
 --filter MobilePlanLifecycleContractFixtureTests`; the complete suite currently
-contains 67 tests. The authoritative signed-build, simulator/device route, same-user web
-readback, audit privacy, accessibility, rollback-control, and evidence
-checklist is
-[`MOBILE_PATTERN_RESULT_HANDOFF.md`](../../MOBILE_PATTERN_RESULT_HANDOFF.md).
+contains 71 tests and the focused lifecycle/cleanup suite contains 12. The
+authoritative Phase 5–6 signed-build, simulator/device route, readback, audit
+privacy, accessibility, rollback-control, and evidence checklist is
+[`MOBILE_PHASE5_6_HANDOFF.md`](../../MOBILE_PHASE5_6_HANDOFF.md).
 
 The expanded Swift suite covers readiness/Today/intake/check-in/behavior canonical
 fixtures, every intake route and draft kind, bounded request construction,
@@ -249,8 +252,18 @@ onboarding, and Settings. The notification boundary is governed by
 The Phase 5 implementation checkpoint is `bfbaaef`; Phase 6 implementation and
 the combined deferred closeout gates are tracked in
 [`MOBILE_PHASE5_6_HANDOFF.md`](../../MOBILE_PHASE5_6_HANDOFF.md).
-Final shared Windows/hosted
-integration and the owner-only emulator suite passed in run
+Authenticated Mac implementation `b91269b` passes all 71 package tests, the
+12-test focused v1/v2 lifecycle/cleanup gate, normal signed iPhone SE simulator
+build/install/launch, accessibility XXXL dark mode with increased contrast,
+standard light and landscape small-screen layouts, a clean runtime error/fault
+log, and a signed generic-device build. Its disposable owner passed v2 initial
+generation, exact replay plus idempotency/stale conflicts, relaunch, bounded
+preferred-day/skip interaction, offline/rejection behavior, privacy-safe
+audit/cross-user denial, nine training-data tombstones, and retry-boundary
+relaunch. The next branch task is final Windows integration; use `Continue
+Windows Phase 5-6 implementation.`
+The prior Phase 3.5 final shared Windows/hosted integration and owner-only
+emulator suite passed in run
 [30105302955](https://github.com/kathyygong/kinetic/actions/runs/30105302955).
 
 Device auth, HealthKit interaction, authenticated decisions, Firestore audit

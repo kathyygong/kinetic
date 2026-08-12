@@ -1,14 +1,16 @@
 # Mobile Foundation And Plan Lifecycle Contract
 
-Status: Windows Batch B is green at `d5bbfdc`, the Mac correction checkpoint is
-`b6604af`, and the subsequent Windows/shared blocker-resolution implementation
-is present in the current closeout worktree. Versioned metadata, bounded weekly
-availability, coordinated planning-input/plan commits, and retry-safe account
-cleanup now have backward-compatible shared contracts and local green gates.
-Swift now consumes those contracts in the current Mac checkpoint: v2 metadata
-and planning inputs are restored and committed atomically, bounded availability
-is editable, and account deletion uses the retry-safe cleanup/finalize flow.
-Authenticated live/device proof and final Windows integration remain open.
+Status: Windows Batch B is green at `d5bbfdc`, shared blocker resolution is
+pushed at `46fcbba`, Mac v2 consumption is pushed at `92bad76`, and authenticated
+Mac implementation is committed at `b91269b`. The Mac pass proves authenticated
+v2 generation/lifecycle, the five-domain transaction and exact replay,
+relaunch/offline/rejection behavior, privacy-safe audit/cross-user denial, and
+retryable deletion boundaries. Swift tests, signed simulator execution,
+accessibility XXXL/contrast/landscape, and a signed generic-device build pass.
+Mandatory final Windows integration remains open. Physical install/hands-on
+VoiceOver and Admin-backed final cleanup remain external because the paired
+iPhone and Admin credential were unavailable; neither may be silently treated
+as passed.
 
 This contract is the shared boundary for Mobile Phase 5 native foundation and
 Mobile Phase 6 native plan ownership. It defines native inputs, shared

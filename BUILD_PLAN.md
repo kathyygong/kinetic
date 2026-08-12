@@ -1399,7 +1399,8 @@ until the Mac closeout and mandatory final Windows integration complete.
 
 ### Mac B For Mobile Phases 5–6 - Required After Windows B
 
-Resume command: `Continue Mobile Phase 5–6 Mac implementation.` The complete
+Historical Mac Batch B resume command: `Continue Mobile Phase 5–6 Mac
+implementation.` The complete
 scope, starting-point, validation, evidence, and stop instructions are in
 `MOBILE_PHASE5_6_HANDOFF.md`; the short command does not narrow those
 requirements.
@@ -1459,6 +1460,24 @@ The expanded Swift suite passes 70/70, its focused shared-plan/cleanup suite
 passes 11/11, and the unsigned generic simulator build passes. Remaining Mac
 work is external authenticated interaction/readback, accessibility/layout, and
 signed-device evidence; final Windows integration remains mandatory.
+
+Authenticated Mac closeout implementation `b91269b` on 2026-08-12 fixes the
+live-only explicit-null, exact-replay-order, and fractional deletion-timestamp
+defects and makes dark/high-contrast accessibility layouts adaptive. A
+disposable authenticated owner passed initial v2 generation, the five-domain
+first/replay/idempotency/stale/relaunch matrix through version 6, preferred-day
+and safe-skip lifecycle interaction through version 10, rejected non-mutating
+candidates, offline retry, privacy-safe audit readback with cross-user denial,
+nine-domain training-data tombstones, and retryable account-boundary relaunch.
+The exact tree passes 71/71 Swift tests, 12/12 focused lifecycle/cleanup tests,
+normal signed iPhone SE simulator build/install/launch, accessibility XXXL dark
+mode with increased contrast, standard light small-screen and landscape checks,
+a clean runtime error/fault log, and a signed generic-device build. The paired
+iPhone is unavailable, so physical install/launch and hands-on VoiceOver remain
+external; the public-key strict backend has no Firebase Admin credential, so
+the disposable account remains at its proven retryable boundary rather than
+being falsely reported deleted. The next branch lane is mandatory final
+Windows integration, invoked with `Continue Windows Phase 5-6 implementation.`
 
 ### Final Windows Integration For Mobile Phases 5–6 - Mandatory
 

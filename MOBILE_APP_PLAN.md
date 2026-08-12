@@ -156,6 +156,16 @@ For the current roadmap:
   retry-safe `mobile-account-cleanup.v1` with a server-only durable receipt.
   Local frontend/backend/audit/emulator gates are green; Mac must consume these
   contracts and finish native/live/device proof before final Windows integration.
+- Mac implementation `b91269b` consumes and live-validates those contracts with
+  a disposable authenticated owner. Initial generation, the five-domain
+  commit/replay/conflict/relaunch matrix, preferred-day/skip lifecycle edits,
+  non-mutating rejection, offline retry, audit privacy/cross-user denial,
+  training-data tombstones, and retry-boundary relaunch pass. The 71-test Swift
+  suite, signed simulator, accessibility XXXL/contrast/landscape small-screen
+  layouts, clean runtime log, and signed generic-device build also pass.
+  Physical install/hands-on VoiceOver and Admin-backed final identity cleanup
+  remain explicit external evidence because hardware and credentials were
+  unavailable.
 - A final return to Windows is mandatory for documentation reconciliation,
   complete shared/emulator/dependency gates, and green hosted Windows and
   macOS integration runs. Only final Windows reconciliation with both hosted
@@ -169,12 +179,11 @@ For the current roadmap:
 - Phase 8 runs on both lanes continuously and closes only after hosted shared
   gates plus Mac simulator/device and external-user evidence pass.
 
-To resume the next lane, say only
-`Continue Mobile Phase 5–6 Mac implementation.` The phrase expands to the
-copy-ready Mac Batch B instructions in `MOBILE_PHASE5_6_HANDOFF.md`. The final
-Windows prompt is defined there as well. Do not begin
-Phase 7 EventKit behavior before both have completed and the pre-Phase-7
-product-evidence gate has passed.
+To resume the next lane, say only `Continue Windows Phase 5-6 implementation.`
+The phrase expands to the mandatory final Windows integration instructions in
+`MOBILE_PHASE5_6_HANDOFF.md`. Do not begin Phase 7 EventKit behavior until that
+integration is green, the carried external Mac checks are resolved, and the
+pre-Phase-7 product-evidence gate has passed.
 
 ## Browser UX Prototype
 

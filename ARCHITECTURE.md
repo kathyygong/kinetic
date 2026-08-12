@@ -484,6 +484,17 @@ fields from the existing owner-only audit envelope.
   the server receipt, not an independent owner-domain deletion authority. A
   UID-scoped local pending marker lets relaunch resume that receipt after the
   server has removed the owner settings document.
+- Authenticated Mac implementation checkpoint `b91269b` proves that boundary
+  with a disposable owner: the five-domain transaction supports exact replay
+  before stale-version checks, rejects a reused operation with a different
+  fingerprint, restores version-bound metadata after relaunch, preserves
+  non-mutating rejection/offline behavior, and denies cross-user audit reads.
+  Required absent v2 preconditions are encoded as explicit JSON nulls, and
+  fractional production timestamps can create the retryable account-deletion
+  boundary. Signed simulator and generic-device builds pass; physical install,
+  hands-on VoiceOver, and Admin-backed final identity cleanup remain explicit
+  external evidence because the paired iPhone and Admin credential were not
+  available.
 - A small moderated product-evidence gate follows final Phase 5–6 integration
   and precedes the full Phase 7 build. Mac owns signed native sessions;
   Windows/shared owns privacy-safe audit/readback support. This gate validates

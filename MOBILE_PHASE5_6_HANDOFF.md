@@ -17,11 +17,14 @@ Mac implementation checkpoints `bfbaaef` and `f52dc39`, followed by automated
 closeout commit `1435369`, added most Phase 5–6 native surfaces. Hosted Windows
 integration for that combined tree passed in
 [run 31008015360](https://github.com/kathyygong/kinetic/actions/runs/31008015360).
-The phases are still open: the Mac implementation copied full plan-generation
-rules into Swift, authenticated live/device proof remains incomplete, and
-account deletion currently stops at a retryable boundary. The 2026-08-06
-roadmap/implementation review also found three closeout gaps that became
-required work rather than later polish:
+At that historical checkpoint the phases remained open because Swift copied
+full plan-generation rules, authenticated live/device proof was incomplete,
+and deletion stopped at an under-specified boundary. Windows `46fcbba`, Mac
+v2 consumption `92bad76`, and authenticated Mac implementation `b91269b` now
+resolve and prove the implementation portions of those findings. Mandatory
+final Windows integration plus the explicitly unavailable physical-iPhone,
+hands-on VoiceOver, and Admin-backed cleanup evidence remain open. The
+2026-08-06 review originally identified:
 
 - broad lifecycle actions previously changed unrelated workout load fields;
   an adversarial `availability` proposal changing a 5-mile/45-minute workout
@@ -313,12 +316,65 @@ Unsigned generic iOS Simulator build: passed
 git diff --check: passed
 ```
 
-Implementation is no longer blocked on a shared Windows decision. Remaining
-Mac evidence requires a disposable authenticated owner/backend, UI
-interaction/readback, VoiceOver/Dynamic Type/contrast/landscape/small-screen
-checks, and a signed physical-device build where credentials and hardware
-permit. After this Mac checkpoint is committed and pushed, run mandatory final
-Windows integration; do not start Phase 7.
+Implementation is no longer blocked on a shared Windows decision. The
+authenticated Mac closeout checkpoint below supersedes this remaining-work
+list.
+
+### Authenticated Mac closeout checkpoint — 2026-08-12
+
+Native implementation commit `b91269b` closes the remaining defects found by
+the authenticated Mac pass:
+
+- v2 lifecycle requests encode required absent preconditions as explicit JSON
+  `null`, matching the strict Pydantic contract for initial generation;
+- exact operation replay is checked before current-version and planning-
+  revision gates, while a different fingerprint and a new stale operation
+  continue to fail closed;
+- production fractional ISO-8601 timestamps are accepted when account deletion
+  creates its durable retry boundary;
+- debug-only disposable-owner and deterministic lifecycle/deletion launch
+  matrices make the live proof repeatable without adding production policy;
+- grouped backgrounds, cards, text, and failure symbols adapt correctly in
+  dark mode, and accessibility-size tabs use compact visible titles while
+  retaining full VoiceOver labels.
+
+Authenticated evidence used a disposable Firebase email/password owner, the
+production owner-only Firestore project, and a local strict-auth FastAPI
+backend that verified the Firebase bearer token with public keys. It passed:
+
+```text
+Initial v2 shared generation + lifecycle commit: version 1
+Five-domain transaction: first commit, exact replay, different-fingerprint conflict, stale-version conflict, relaunch readback; version 6
+Lifecycle interaction: preferred-day plus shared-authority-safe skip; version 10
+Rejected unsafe lifecycle candidates: visible and non-mutating
+Offline lifecycle preview with backend stopped: retained version 10 and surfaced retry state
+Privacy-safe audit readback: foundation 9, plan 35; cross-user read denied
+Training-data deletion: 9 tombstones; foundation retained; plan absent on readback
+Account-deletion boundary: retryable with full pending-domain set; Firebase identity retained; relaunch readback passed
+Swift package suite: 71/71
+Shared v1/v2 lifecycle and cleanup focused suite: 12/12
+Normal signed iPhone SE (3rd generation), iOS 26.3 simulator build/install/launch: passed
+Signed generic iOS device build with Apple Development identity: passed
+Dynamic Type accessibility XXXL + increased contrast + dark mode: passed
+Small-screen standard/light and landscape Settings traversal: passed
+Simulator error/fault log after final launch: clean
+git diff --check: passed
+```
+
+The real Firebase plist remained ignored and is not part of either commit.
+Two external checks could not be completed on this host: the paired iPhone 17
+is reported `unavailable`, so physical install/launch and hands-on VoiceOver
+order remain unverified; and the strict public-key backend deliberately has no
+Firebase Admin credential, so the server-only cleanup receipt could not sweep
+the disposable identity live. The account remains at the proven retryable
+boundary rather than being reported deleted. Deterministic client/server tests
+and the Windows Firebase matrix cover the cleanup contract, but these external
+checks remain release evidence, not reasons to weaken the implementation.
+
+Mac implementation is ready for mandatory final Windows integration. That
+Windows pass must carry these two external evidence items explicitly and must
+not mark Phases 5–6 complete merely because shared/hosted gates are green. Do
+not start Phase 7.
 
 ## Phase 5 native implementation checkpoint — 2026-08-03
 
@@ -446,7 +502,7 @@ and offline failure. The backend remains storage-neutral; SwiftUI never writes
 a proposal directly. These tests do not make Swift generation authoritative;
 the generation code must still be removed.
 
-Still open before Phase 6 closeout:
+Historical open items at that checkpoint (superseded above):
 
 - Windows Batch B shared generation, authoritative phase metadata, hardened
   action deltas/full-plan invariants, and adversarial lifecycle regressions;
@@ -460,7 +516,7 @@ Still open before Phase 6 closeout:
 - the combined Phase 5–6 VoiceOver, Dynamic Type, contrast, landscape,
   small-screen, and signed physical-device matrix.
 
-## Combined closeout pass — 2026-08-05
+## Combined closeout pass — 2026-08-05 (historical)
 
 The Mac closeout reran every automated gate then available and closed the
 dependency and unsigned-runtime portions of the proof pass. It added useful
@@ -507,21 +563,30 @@ External blockers observed on 2026-08-05:
 - macOS denies Simulator landscape automation because the invoking process has
   not been granted Accessibility control.
 
-Therefore Phases 5–6 are not yet declared complete and Phase 7 remains gated.
-After adding the Apple developer account/profile in Xcode, finish the disposable
-authenticated-owner interaction/readback, rejected/offline UI, VoiceOver order,
-landscape, and signed physical-device matrix. Do not change the bundle identity
-or entitlements to work around signing.
+These blockers describe the 2026-08-05 host state. The authenticated Mac
+checkpoint above supersedes them: signing, authenticated readback, rejected/
+offline UI, landscape, and simulator accessibility now pass. Physical install
+and hands-on VoiceOver remain unavailable because the paired device is offline.
+Do not change the bundle identity or entitlements to work around that external
+hardware state.
 
 ## Continuation prompts
 
-Windows Batch B is complete at `d5bbfdc`.
-
-The completed Windows/shared blocker-resolution session was started with:
+The current next-lane prompt is:
 
 > Continue Windows Phase 5-6 implementation.
 
-That historical phrase meant: fetch `codex/mobile-phase5-6-closeout`, fast-forward
+It starts mandatory final Windows integration as defined at the end of this
+section. Windows Batch B is complete at `d5bbfdc`; the older prompts retained
+below are historical traceability only.
+
+The completed Windows/shared blocker-resolution session was previously started
+with:
+
+> Continue Windows Phase 5-6 implementation.
+
+At that historical checkpoint the phrase meant: fetch
+`codex/mobile-phase5-6-closeout`, fast-forward
 only to its latest pushed commit, read this handoff plus
 `MOBILE_FOUNDATION_PLAN_CONTRACT.md`, `MOBILE_APP_PLAN.md`, `BUILD_PLAN.md`,
 `QA_MATRIX.md`, `ARCHITECTURE.md`, and `ios/KineticCompanion/README.md`, and
@@ -565,11 +630,11 @@ Completed Windows/shared blocker-resolution prompt:
 > same closeout branch, and hand it back to Mac. Do not claim Phases 5–6
 > complete and do not start the final Windows integration yet.
 
-For the next Mac session, the only prompt the owner needs to send is:
+The completed Mac Batch B session was started with:
 
 > Continue Mobile Phase 5–6 Mac implementation.
 
-That exact phrase means: fetch and fast-forward
+At that checkpoint the phrase meant: fetch and fast-forward
 `codex/mobile-phase5-6-closeout`, read this handoff and every referenced
 contract/roadmap document, start from the latest pushed descendant of the green
 Windows/shared handoff descendant of Mac checkpoint `b6604af`, and execute the
@@ -577,7 +642,7 @@ remaining Mac Batch B prompt
 below. The short phrase does not authorize Phase 7, shared-contract redesign,
 or skipping any closeout evidence.
 
-Mac Batch B starting prompt:
+Completed Mac Batch B starting prompt:
 
 > Continue Kinetic Mobile Phases 5–6 Mac Batch B on
 > `codex/mobile-phase5-6-closeout`. Start from the latest green pushed
@@ -615,9 +680,22 @@ Mac Batch B starting prompt:
 > Phase 7. Hand the pushed Mac closeout commit back to Windows for mandatory
 > final integration.
 
-Final Windows task, only after the Mac closeout commit is pushed:
+The next task is mandatory final Windows integration. Once the documentation
+commit containing this handoff is pushed, the only prompt the owner needs to
+send on Windows is:
 
-> Complete final Windows integration for Mobile Phases 5–6. Read `MOBILE_PHASE5_6_HANDOFF.md`.
+> Continue Windows Phase 5-6 implementation.
+
+That exact phrase now means: fetch and fast-forward
+`codex/mobile-phase5-6-closeout` through Mac implementation commit `b91269b`
+and its following documentation commit; read this handoff plus every referenced
+contract/roadmap document; run the complete frontend/backend, connected
+dependency-audit, Firebase emulator, hosted Windows, and hosted macOS gates on
+the combined tree; reconcile the evidence without changing the native fixes;
+and record exact final SHAs and run URLs. Carry the unavailable physical-iPhone,
+hands-on VoiceOver, and Admin-backed live cleanup checks as explicit external
+release evidence. Do not mark Phases 5–6 complete while those required items or
+either hosted job remain open, and do not start Phase 7.
 
 ## Phase 5 checkpoint evidence
 
