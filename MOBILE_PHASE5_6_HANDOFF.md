@@ -20,11 +20,11 @@ integration for that combined tree passed in
 At that historical checkpoint the phases remained open because Swift copied
 full plan-generation rules, authenticated live/device proof was incomplete,
 and deletion stopped at an under-specified boundary. Windows `46fcbba`, Mac
-v2 consumption `92bad76`, and authenticated Mac implementation `b91269b` now
-resolve and prove the implementation portions of those findings. Mandatory
-final Windows integration plus the explicitly unavailable physical-iPhone,
-hands-on VoiceOver, and Admin-backed cleanup evidence remain open. The
-2026-08-06 review originally identified:
+v2 consumption `92bad76`, authenticated Mac implementation `b91269b`, and final
+Windows integration `ead3f2a` now resolve and prove the implementation portions
+of those findings. The explicitly unavailable physical-iPhone, hands-on
+VoiceOver, and Admin-backed cleanup evidence remain open. The 2026-08-06 review
+originally identified:
 
 - broad lifecycle actions previously changed unrelated workout load fields;
   an adversarial `availability` proposal changing a 5-mile/45-minute workout
@@ -371,10 +371,52 @@ boundary rather than being reported deleted. Deterministic client/server tests
 and the Windows Firebase matrix cover the cleanup contract, but these external
 checks remain release evidence, not reasons to weaken the implementation.
 
-Mac implementation is ready for mandatory final Windows integration. That
-Windows pass must carry these two external evidence items explicitly and must
-not mark Phases 5–6 complete merely because shared/hosted gates are green. Do
-not start Phase 7.
+Mac implementation was ready for mandatory final Windows integration. The
+completed Windows pass below carries these external evidence items explicitly;
+it does not mark Phases 5–6 complete merely because shared/hosted gates are
+green. Do not start Phase 7.
+
+### Final Windows integration — green 2026-08-17
+
+Final integration consumed Mac implementation `b91269b` and documentation
+checkpoint `1345d5f` without changing the native fixes. The connected audit
+published a new high-severity Nano ID advisory after the Mac handoff, so the
+combined tree pins the compatible patched `nanoid@3.3.18` release without an
+audit exception or major-version override. The exact validated implementation
+commit is `ead3f2a`.
+
+Local Windows evidence on that tree:
+
+```text
+Locked npm ci: passed; 435 packages; 0 vulnerabilities
+Connected beta audit: 0 failures, 0 warnings, 14 checks
+ESLint: passed
+TypeScript no-emit compile: passed
+Complete deterministic frontend smoke suite: passed
+Next.js 16.3.0 production build: passed; 18 static routes
+Beta readiness: passed (connected audit recorded separately)
+Backend Python 3.12 compileall: passed
+Backend deterministic evaluator: 18 groups, 498 assertions
+Backend round-trip, generation, lifecycle, and shared-v2 smokes: passed
+Firebase Auth/Firestore owner, cross-user, anonymous, tombstone, and server-only cleanup-receipt matrix: passed
+git diff --check: passed
+```
+
+Hosted Windows run
+[32074940278](https://github.com/kathyygong/kinetic/actions/runs/32074940278)
+passes the clean install, connected zero-vulnerability audit, frontend gates,
+production build, backend gates, and complete Firebase emulator matrix. Hosted
+macOS run
+[32074955020](https://github.com/kathyygong/kinetic/actions/runs/32074955020)
+passes all 71 Swift package tests and the unsigned Kinetic simulator build.
+Both runs use exact SHA `ead3f2a0f6a4d8305818573ad99c9d30ed458489`.
+
+Mandatory final Windows integration is complete. Phases 5–6 remain open only
+for the explicitly external physical-iPhone install/launch, hands-on VoiceOver
+order, and Firebase-Admin-backed live identity-cleanup proof. The paired iPhone
+and Admin credential were unavailable, so none of those checks is represented
+as passed. Do not merge, start the pre-Phase-7 product-evidence gate, or begin
+Phase 7 until the required external evidence is collected.
 
 ## Phase 5 native implementation checkpoint — 2026-08-03
 
@@ -572,13 +614,15 @@ hardware state.
 
 ## Continuation prompts
 
-The current next-lane prompt is:
+The completed final Windows integration session was started with:
 
 > Continue Windows Phase 5-6 implementation.
 
-It starts mandatory final Windows integration as defined at the end of this
-section. Windows Batch B is complete at `d5bbfdc`; the older prompts retained
-below are historical traceability only.
+It produced green implementation commit `ead3f2a` and the exact hosted runs
+recorded above. There is no further implementation lane authorized by this
+handoff. The next action is to collect the three external release proofs on an
+available Mac/device/Admin environment; the older prompts retained below are
+historical traceability only.
 
 The completed Windows/shared blocker-resolution session was previously started
 with:
@@ -680,13 +724,11 @@ Completed Mac Batch B starting prompt:
 > Phase 7. Hand the pushed Mac closeout commit back to Windows for mandatory
 > final integration.
 
-The next task is mandatory final Windows integration. Once the documentation
-commit containing this handoff is pushed, the only prompt the owner needs to
-send on Windows is:
+The completed mandatory final Windows integration task was invoked with:
 
 > Continue Windows Phase 5-6 implementation.
 
-That exact phrase now means: fetch and fast-forward
+At that checkpoint the phrase meant: fetch and fast-forward
 `codex/mobile-phase5-6-closeout` through Mac implementation commit `b91269b`
 and its following documentation commit; read this handoff plus every referenced
 contract/roadmap document; run the complete frontend/backend, connected
@@ -695,7 +737,9 @@ the combined tree; reconcile the evidence without changing the native fixes;
 and record exact final SHAs and run URLs. Carry the unavailable physical-iPhone,
 hands-on VoiceOver, and Admin-backed live cleanup checks as explicit external
 release evidence. Do not mark Phases 5–6 complete while those required items or
-either hosted job remain open, and do not start Phase 7.
+either hosted job remain open, and do not start Phase 7. It completed at
+validated implementation commit `ead3f2a` with hosted Windows run `32074940278`
+and hosted macOS run `32074955020`.
 
 ## Phase 5 checkpoint evidence
 
@@ -741,10 +785,11 @@ either hosted job remain open, and do not start Phase 7.
 ## Stop conditions
 
 Do not start Phase 7 EventKit implementation. Do not mark Phases 5–6 complete
-after Windows Batch B or after the Mac pass alone. Completion requires the
-final return-to-Windows integration and its green hosted run. Record native
-permission/free-busy uncertainties for the separate early Mac spike instead of
-encoding them into these schemas.
+after Windows Batch B, the Mac pass alone, or green final integration alone.
+Final Windows integration is green; completion still requires the recorded
+physical-iPhone, hands-on VoiceOver, and Admin-backed live cleanup evidence.
+Record native permission/free-busy uncertainties for the separate early Mac
+spike instead of encoding them into these schemas.
 
 After final Phase 5–6 integration, run a small moderated product-evidence gate
 with 3–5 target runners before committing to the full Phase 7 build. The Mac

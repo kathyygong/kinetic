@@ -260,8 +260,11 @@ log, and a signed generic-device build. Its disposable owner passed v2 initial
 generation, exact replay plus idempotency/stale conflicts, relaunch, bounded
 preferred-day/skip interaction, offline/rejection behavior, privacy-safe
 audit/cross-user denial, nine training-data tombstones, and retry-boundary
-relaunch. The next branch task is final Windows integration; use `Continue
-Windows Phase 5-6 implementation.`
+relaunch. Final Windows integration is green at `ead3f2a` in hosted Windows run
+32074940278 and macOS run 32074955020 on the exact SHA. Physical iPhone
+install/launch, hands-on VoiceOver order, and Admin-backed live cleanup remain
+external release evidence; do not mark Phases 5–6 complete or begin Phase 7
+until they pass.
 The prior Phase 3.5 final shared Windows/hosted integration and owner-only
 emulator suite passed in run
 [30105302955](https://github.com/kathyygong/kinetic/actions/runs/30105302955).

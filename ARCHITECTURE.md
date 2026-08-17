@@ -495,6 +495,12 @@ fields from the existing owner-only audit envelope.
   hands-on VoiceOver, and Admin-backed final identity cleanup remain explicit
   external evidence because the paired iPhone and Admin credential were not
   available.
+- Final Windows integration commit `ead3f2a` preserves that native boundary and
+  passes clean shared/frontend/backend/emulator gates plus hosted Windows run
+  32074940278 and hosted macOS run 32074955020 on the exact SHA. The compatible
+  Nano ID 3.3.18 security update changes no runtime architecture. Physical
+  iPhone, hands-on VoiceOver, and Admin-backed live cleanup remain external
+  release evidence, so Phases 5–6 are not yet declared complete.
 - A small moderated product-evidence gate follows final Phase 5–6 integration
   and precedes the full Phase 7 build. Mac owns signed native sessions;
   Windows/shared owns privacy-safe audit/readback support. This gate validates

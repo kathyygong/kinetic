@@ -166,10 +166,11 @@ For the current roadmap:
   Physical install/hands-on VoiceOver and Admin-backed final identity cleanup
   remain explicit external evidence because hardware and credentials were
   unavailable.
-- A final return to Windows is mandatory for documentation reconciliation,
-  complete shared/emulator/dependency gates, and green hosted Windows and
-  macOS integration runs. Only final Windows reconciliation with both hosted
-  jobs green can close Phases 5–6.
+- Final Windows reconciliation is green at `ead3f2a`: the complete local matrix
+  passes, and hosted Windows run 32074940278 plus macOS run 32074955020 pass on
+  the exact SHA. The newly published Nano ID advisory is patched at compatible
+  3.3.18 without an audit exception. Physical iPhone, hands-on VoiceOver, and
+  Admin-backed cleanup proof still gate Phase 5–6 completion.
 - After Phase 5–6 closeout, run a moderated 3–5-runner product-evidence gate
   before committing to the full Phase 7 build. Mac owns signed native sessions;
   Windows/shared owns privacy-safe audit/readback. This is not external beta.
@@ -179,11 +180,10 @@ For the current roadmap:
 - Phase 8 runs on both lanes continuously and closes only after hosted shared
   gates plus Mac simulator/device and external-user evidence pass.
 
-To resume the next lane, say only `Continue Windows Phase 5-6 implementation.`
-The phrase expands to the mandatory final Windows integration instructions in
-`MOBILE_PHASE5_6_HANDOFF.md`. Do not begin Phase 7 EventKit behavior until that
-integration is green, the carried external Mac checks are resolved, and the
-pre-Phase-7 product-evidence gate has passed.
+There is no further implementation lane authorized by this plan. Collect the
+carried physical-device, hands-on VoiceOver, and Admin-backed cleanup evidence
+next. Do not begin Phase 7 EventKit behavior until those checks are resolved,
+Phases 5–6 are closed, and the pre-Phase-7 product-evidence gate has passed.
 
 ## Browser UX Prototype
 

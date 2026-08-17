@@ -1476,20 +1476,24 @@ a clean runtime error/fault log, and a signed generic-device build. The paired
 iPhone is unavailable, so physical install/launch and hands-on VoiceOver remain
 external; the public-key strict backend has no Firebase Admin credential, so
 the disposable account remains at its proven retryable boundary rather than
-being falsely reported deleted. The next branch lane is mandatory final
-Windows integration, invoked with `Continue Windows Phase 5-6 implementation.`
+being falsely reported deleted. Mandatory final Windows integration is recorded
+below.
 
-### Final Windows Integration For Mobile Phases 5–6 - Mandatory
+### Final Windows Integration For Mobile Phases 5–6 - Green 2026-08-17
 
-- Fetch the Mac closeout commit and reconcile contracts, fixtures,
-  architecture, build plan, QA matrix, iOS README, and handoff evidence.
-- Rerun the complete frontend/backend suite, connected dependency audit,
-  owner/cross-user/anonymous Firebase emulators, GitHub-hosted Windows workflow,
-  and hosted macOS Swift/simulator workflow against the combined tree.
-- Record the exact final commit and both hosted runs. Only a green final Windows
-  pass with green macOS evidence may mark Phases 5–6 complete or make the branch
-  eligible for merge. A green Windows Batch B run or Mac-only pass is
-  insufficient.
+- Final validated implementation commit `ead3f2a` reconciles the Mac closeout
+  and pins compatible patched `nanoid@3.3.18` after a new advisory appeared;
+  no audit exception or major-version override was added.
+- Local clean install, connected zero-vulnerability audit, lint, TypeScript,
+  complete smoke, production build, beta readiness, backend compile, the
+  18-group/498-assertion evaluator, all four backend smokes, and the complete
+  owner/cross-user/anonymous/server-only-receipt Firebase matrix pass.
+- Hosted Windows run 32074940278 and hosted macOS run 32074955020 both pass on
+  exact SHA `ead3f2a0f6a4d8305818573ad99c9d30ed458489`.
+- Mandatory final Windows integration is complete. Phases 5–6 remain open and
+  the branch is not merge-eligible until physical-iPhone install/launch,
+  hands-on VoiceOver order, and Firebase-Admin-backed live cleanup are proven.
+  Do not begin the product-evidence gate or Phase 7 before those release checks.
 
 ### Product Evidence Gate Before Mobile Phase 7 - Required
 

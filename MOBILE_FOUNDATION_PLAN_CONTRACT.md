@@ -7,10 +7,10 @@ v2 generation/lifecycle, the five-domain transaction and exact replay,
 relaunch/offline/rejection behavior, privacy-safe audit/cross-user denial, and
 retryable deletion boundaries. Swift tests, signed simulator execution,
 accessibility XXXL/contrast/landscape, and a signed generic-device build pass.
-Mandatory final Windows integration remains open. Physical install/hands-on
-VoiceOver and Admin-backed final cleanup remain external because the paired
-iPhone and Admin credential were unavailable; neither may be silently treated
-as passed.
+Mandatory final Windows integration is green at `ead3f2a` in hosted Windows run
+32074940278 and macOS run 32074955020. Physical install/hands-on VoiceOver and
+Admin-backed final cleanup remain external because the paired iPhone and Admin
+credential were unavailable; none may be silently treated as passed.
 
 This contract is the shared boundary for Mobile Phase 5 native foundation and
 Mobile Phase 6 native plan ownership. It defines native inputs, shared
@@ -196,9 +196,10 @@ Mac client follows that decision; it does not define a separate policy.
   and phase/taper heuristics, bounded edit UI, complete onboarding/profile/data
   export and account deletion, Swift parity tests, simulator/physical-device
   behavior, accessibility, signing, and live readback.
-- **Final Windows integration:** reconcile both lanes, rerun shared/emulator/
-  dependency gates, require green hosted Windows and macOS jobs, and record the
-  exact evidence before Phases 5–6 close.
+- **Final Windows integration:** completed at `ead3f2a`; shared/emulator/
+  dependency gates and hosted Windows/macOS jobs are green. The external
+  physical-device, hands-on VoiceOver, and Admin-backed cleanup proofs still
+  gate Phase 5–6 completion.
 
 ## Privacy-safe observability
 
