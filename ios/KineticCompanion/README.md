@@ -93,8 +93,11 @@ the shared v2 closeout adapters. Authenticated generation/lifecycle,
 five-domain transaction/replay/conflict/relaunch, offline/rejection, audit
 privacy/cross-user denial, deletion-boundary, simulator accessibility/layout,
 and signed generic-device proof pass at `b91269b`. Physical install/hands-on
-VoiceOver and Admin-backed final identity cleanup remain external because the
-paired iPhone and Admin credential were unavailable. It does not include real
+VoiceOver remain unverified and are deferred to Phase 8 user-ready hardening by
+the 2026-08-31 product-priority decision. Admin-backed final identity cleanup
+passed the same day with zero pending or remaining owner domains, a durable
+completed/deleted receipt, and the disposable Auth identity removed. Phases
+5–6 are complete. It does not include real
 Apple Calendar ingestion or the Phase 7 progress implementation; Progress is
 an honest placeholder. General chat,
 autonomous AI mutation, raw HealthKit cloud sync, full two-way Calendar sync,
@@ -262,9 +265,9 @@ preferred-day/skip interaction, offline/rejection behavior, privacy-safe
 audit/cross-user denial, nine training-data tombstones, and retry-boundary
 relaunch. Final Windows integration is green at `ead3f2a` in hosted Windows run
 32074940278 and macOS run 32074955020 on the exact SHA. Physical iPhone
-install/launch, hands-on VoiceOver order, and Admin-backed live cleanup remain
-external release evidence; do not mark Phases 5–6 complete or begin Phase 7
-until they pass.
+install/launch and hands-on VoiceOver order remain unverified and are deferred
+to Phase 8. Admin-backed live cleanup passed on 2026-08-31, completing Phases
+5–6; Phase 7 begins with native progress/history.
 The prior Phase 3.5 final shared Windows/hosted integration and owner-only
 emulator suite passed in run
 [30105302955](https://github.com/kathyygong/kinetic/actions/runs/30105302955).

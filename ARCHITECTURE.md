@@ -498,11 +498,12 @@ fields from the existing owner-only audit envelope.
 - Final Windows integration commit `ead3f2a` preserves that native boundary and
   passes clean shared/frontend/backend/emulator gates plus hosted Windows run
   32074940278 and hosted macOS run 32074955020 on the exact SHA. The compatible
-  Nano ID 3.3.18 security update changes no runtime architecture. Physical
-  iPhone, hands-on VoiceOver, and Admin-backed live cleanup remain external
-  release evidence, so Phases 5–6 are not yet declared complete.
-- A small moderated product-evidence gate follows final Phase 5–6 integration
-  and precedes the full Phase 7 build. Mac owns signed native sessions;
-  Windows/shared owns privacy-safe audit/readback support. This gate validates
-  onboarding, plan-preview confirmation, Today/check-in independence, and
-  absence of web/developer handoffs without expanding feature scope.
+  Nano ID 3.3.18 security update changes no runtime architecture.
+- Firebase-Admin-backed live cleanup passed on 2026-08-31 through the existing
+  coordinator: all 18 owner domains are absent, the disposable Auth identity is
+  deleted, and the server-only receipt remains completed/deleted with no
+  pending domains. Phases 5–6 are complete. Physical install and hands-on
+  VoiceOver remain unverified and move to Phase 8 release hardening. Phase 7
+  builds native progress/history before Calendar integration; moderated product
+  evidence follows that base feature set and remains required before external
+  beta.

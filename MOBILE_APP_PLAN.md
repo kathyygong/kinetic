@@ -122,8 +122,9 @@ Recommended cadence:
    batch, normally one phase and at most two tightly coupled phases.
 2. Commit and push one authoritative branch with a copy-ready Mac handoff.
 3. Stay on Mac long enough to implement and close those native phases
-   sequentially, using simulator and physical-device checkpoints without
-   returning to Windows between every small task.
+   sequentially, using simulator checkpoints during base-feature development
+   and physical-device checkpoints when an Apple framework or release gate
+   genuinely requires hardware.
 4. Return to Windows for final shared integration, hosted CI, documentation,
    and the next dependency batch.
 
@@ -169,21 +170,26 @@ For the current roadmap:
 - Final Windows reconciliation is green at `ead3f2a`: the complete local matrix
   passes, and hosted Windows run 32074940278 plus macOS run 32074955020 pass on
   the exact SHA. The newly published Nano ID advisory is patched at compatible
-  3.3.18 without an audit exception. Physical iPhone, hands-on VoiceOver, and
-  Admin-backed cleanup proof still gate Phase 5–6 completion.
-- After Phase 5–6 closeout, run a moderated 3–5-runner product-evidence gate
-  before committing to the full Phase 7 build. Mac owns signed native sessions;
-  Windows/shared owns privacy-safe audit/readback. This is not external beta.
-- Phase 7 should start with an early Mac EventKit spike before its Windows
-  contract is frozen; Apple permission and calendar behavior are the dominant
-  uncertainty.
+  3.3.18 without an audit exception.
+- Product-owner reprioritization on 2026-08-31 moved physical-device
+  installation and hands-on VoiceOver to Phase 8 user-ready hardening. The
+  sole remaining Phase 5–6 gate then passed: Firebase Admin swept all 18 owner
+  domains, left zero pending or remaining, deleted the disposable Auth
+  identity, and retained the completed/deleted server receipt.
+- Phase 7 prioritizes base runner value: implement native recent workout and
+  check-in history, recovery trend, weekly summary, and preference review
+  before deeper Calendar integration. Follow that with the early Mac EventKit
+  permission/free-busy spike before freezing its shared contract.
+- Moderated 3–5-runner product evidence is deferred until the Phase 7 base
+  feature set exists and suitable users are available. It remains required
+  before external beta, not before Phase 7 implementation.
 - Phase 8 runs on both lanes continuously and closes only after hosted shared
   gates plus Mac simulator/device and external-user evidence pass.
 
-There is no further implementation lane authorized by this plan. Collect the
-carried physical-device, hands-on VoiceOver, and Admin-backed cleanup evidence
-next. Do not begin Phase 7 EventKit behavior until those checks are resolved,
-Phases 5–6 are closed, and the pre-Phase-7 product-evidence gate has passed.
+Phases 5–6 are complete. The next implementation lane is Phase 7 native
+progress/history, followed by the bounded EventKit Calendar slice.
+Physical-device, accessibility, and external-user evidence remain Phase 8
+release work.
 
 ## Browser UX Prototype
 
@@ -561,8 +567,9 @@ Acceptance:
   runner domains rather than only a foundation receipt.
 - Denied or deferred permissions do not block unrelated onboarding steps.
 - Returning users restore the correct owner-scoped session and route.
-- The deferred Phase 3.5 VoiceOver, Dynamic Type, landscape, and small-screen
-  checks pass on the permanent navigation/onboarding/settings foundation.
+- Simulator Dynamic Type, contrast, landscape, and small-screen checks pass on
+  the permanent navigation/onboarding/settings foundation. Hands-on VoiceOver
+  and physical-device proof are deferred to Phase 8.
 
 ## Phase 6: Native Plan Lifecycle
 
@@ -599,11 +606,12 @@ Acceptance:
   or oversized-load proposals are rejected before `commit_ready`.
 - A runner can create and maintain a usable plan without the web.
 
-## Pre-Phase 7 Product Evidence Gate
+## Product Evidence Gate Before External Beta
 
-Goal: validate the core native loop before investing in Calendar/Progress.
+Goal: validate the complete base native loop after Phase 7 and before external
+beta. This gate does not block Phase 7 implementation.
 
-- Install the signed Phase 5–6 closeout build for 3–5 target runners and run a
+- Install the signed Phase 7 base-feature build for 3–5 target runners and run a
   moderated onboarding-to-check-in session.
 - Record onboarding completion, plan-preview confirmation, independent Today
   and check-in completion, and every web/developer handoff.
@@ -612,16 +620,15 @@ Goal: validate the core native loop before investing in Calendar/Progress.
 - Fix only blockers or clear trust/usability failures. Do not broaden the
   roadmap from this small evidence gate.
 
-Phase 7 may proceed when the core journey works without developer help and no
-safety/privacy issue requires a Phase 5–6 correction.
-
-## Phase 7: Apple Calendar And Progress
+## Phase 7: Progress Then Apple Calendar
 
 Goal: make schedule awareness real and make continued use rewarding without
 expanding into invasive analytics.
 
 Build:
 
+- First implement native recent workout/check-in history, recovery trend,
+  concise weekly summary, and learned-preference review.
 - EventKit permission, calendar selection, bounded on-device free/busy
   summarization, refresh/freshness, revocation, and partial-access handling.
 - Send only availability windows/load/freshness to shared decision and planning
@@ -629,8 +636,6 @@ Build:
 - Calendar-aware plan generation and explicit conflict review.
 - Optional one-way workout export only after read-side behavior passes; no
   silent writes and no full two-way synchronization in user-ready v1.
-- Native recent workout/check-in history, recovery trend, concise weekly
-  summary, and learned-preference review.
 
 Acceptance:
 
@@ -649,7 +654,8 @@ Build and prove:
 - Offline, retry, partial-sync, account-switch, conflict, migration, upgrade,
   background-refresh, and deletion-tombstone behavior.
 - VoiceOver, Dynamic Type, contrast, reduced motion, keyboard where relevant,
-  landscape, and supported small/large-device behavior across critical flows.
+  landscape, physical install/launch, and supported small/large-device behavior
+  across critical flows.
 - Production API/Firebase configuration, HTTPS, rate limiting, secrets,
   privacy-safe crash/operational monitoring, feature flags, and rollback.
 - Resolve the plan-commit threat model: either use an authenticated server-side
@@ -831,11 +837,13 @@ is in [MOBILE_TODAY_CONTRACT.md](./MOBILE_TODAY_CONTRACT.md).
     permission education, settings, privacy, support, and data controls.
 11. Native plan lifecycle: generate, preview, save, browse, safely edit,
     regenerate, pause/resume, and confirm preferences without the web.
-12. Product evidence gate: moderated signed-build onboarding-to-check-in
+12. Native progress: recent workout/check-in history, recovery trend, weekly
+    summary, and learned-preference review.
+13. Apple Calendar: EventKit free/busy ingestion, conflict-aware planning, and
+    optional explicit one-way export.
+14. Product evidence gate: moderated signed-build onboarding-to-check-in
     sessions with 3–5 target runners; fix blockers without expanding scope.
-13. Apple Calendar and Progress: EventKit free/busy ingestion, conflict-aware
-    planning, optional explicit one-way export, and shared-history review.
-14. User-ready hardening: complete the accessibility/device, offline/sync,
+15. User-ready hardening: complete the accessibility/device, offline/sync,
     migration, production-operations, privacy, TestFlight, and external-beta
     gates.
 

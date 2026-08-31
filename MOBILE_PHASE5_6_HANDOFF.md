@@ -418,6 +418,45 @@ and Admin credential were unavailable, so none of those checks is represented
 as passed. Do not merge, start the pre-Phase-7 product-evidence gate, or begin
 Phase 7 until the required external evidence is collected.
 
+### Product-owner closeout reprioritization — 2026-08-31
+
+Base functionality now takes priority over pre-user release hardening. The
+physical-iPhone install/launch and hands-on VoiceOver checks remain explicitly
+unverified and move to Phase 8 user-ready hardening; this is a deferral, not a
+pass. Firebase-Admin-backed live identity cleanup is the sole remaining Phase
+5–6 closeout gate because complete, retry-safe account deletion is part of the
+base privacy and data-control functionality.
+
+After live cleanup proves an empty pending-domain receipt and deleted Firebase
+identity, update the evidence and close Phases 5–6. Phase 7 then starts with
+native progress/history before the EventKit Calendar slice. The moderated
+3–5-runner product-evidence gate follows the Phase 7 base feature set and still
+blocks external beta, but it no longer blocks Phase 7 implementation.
+
+### Live Firebase Admin cleanup — passed 2026-08-31
+
+The one-time cleanup run first performed a read-only target check. Exactly one
+live `kinetic-phase56-*` disposable identity had the expected deletion boundary
+and no server receipt; its client boundary listed 11 pending domains. The
+existing `mobile-account-cleanup.v1` coordinator then created the durable
+server-only receipt, swept all 18 authoritative owner domains, and finalized
+Firebase Auth deletion.
+
+Post-cleanup verification passed:
+
+```text
+Durable receipt status: completed
+Durable receipt auth state: deleted
+Pending domains: 0
+Remaining authoritative owner domains: 0
+Firebase Auth identity present: no
+```
+
+No cached credential value, user identity, or account content was printed or
+committed. With this base data-control gate complete, Phases 5–6 are closed.
+Physical-iPhone install/launch and hands-on VoiceOver remain unverified Phase 8
+release-hardening work under the product-owner deferral above.
+
 ## Phase 5 native implementation checkpoint — 2026-08-03
 
 Native Phase 5 implementation is committed at `bfbaaef` as an explicit
@@ -614,15 +653,22 @@ hardware state.
 
 ## Continuation prompts
 
+Phases 5–6 are complete. The next implementation lane starts with:
+
+> Continue Mobile Phase 7 progress implementation.
+
+That prompt means: start with native recent workout/check-in history, recovery
+trend, weekly summary, and learned-preference review. Follow with the bounded
+EventKit Calendar slice. Do not treat deferred physical-device, VoiceOver, or
+moderated-user evidence as passed; they remain Phase 8 gates.
+
 The completed final Windows integration session was started with:
 
 > Continue Windows Phase 5-6 implementation.
 
 It produced green implementation commit `ead3f2a` and the exact hosted runs
-recorded above. There is no further implementation lane authorized by this
-handoff. The next action is to collect the three external release proofs on an
-available Mac/device/Admin environment; the older prompts retained below are
-historical traceability only.
+recorded above. That Phase 5–6 implementation lane is now closed; the older
+prompts retained below are historical traceability only.
 
 The completed Windows/shared blocker-resolution session was previously started
 with:
@@ -782,18 +828,19 @@ and hosted macOS run `32074955020`.
 - Simulator and physical-device proof that normal plan ownership no longer
   requires the web.
 
-## Stop conditions
+## Phase boundary and deferred release evidence
 
-Do not start Phase 7 EventKit implementation. Do not mark Phases 5–6 complete
-after Windows Batch B, the Mac pass alone, or green final integration alone.
-Final Windows integration is green; completion still requires the recorded
-physical-iPhone, hands-on VoiceOver, and Admin-backed live cleanup evidence.
-Record native permission/free-busy uncertainties for the separate early Mac
-spike instead of encoding them into these schemas.
+Phases 5–6 are complete after green final Windows integration and the recorded
+Firebase-Admin-backed live cleanup. Physical-iPhone and hands-on VoiceOver
+evidence is deferred to Phase 8 and must remain labeled unverified. Start Phase
+7 with native progress/history, then run the separate early Mac EventKit spike
+rather than encoding unproven permission/free-busy behavior into shared
+schemas.
 
-After final Phase 5–6 integration, run a small moderated product-evidence gate
-with 3–5 target runners before committing to the full Phase 7 build. The Mac
+After the Phase 7 base feature set exists, run a small moderated
+product-evidence gate with 3–5 target runners before external beta. The Mac
 lane owns signed build installation and moderated native sessions; the
 Windows/shared lane owns privacy-safe audit/readback support. Capture onboarding
 completion, plan-preview confirmation, independent Today/check-in use, and any
-web/developer handoff. This is not an external beta and must not expand scope.
+web/developer handoff. This gate does not block Phase 7 implementation, is not
+an external beta, and must not expand scope.

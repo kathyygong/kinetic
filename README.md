@@ -126,34 +126,27 @@ Runtime modes are explicit:
 - [X] **Mobile Phase 4A — Notification Contract:** The opt-in local evening
   check-in eligibility, permission, cancellation, and generic lock-screen
   privacy contract passes the default frontend smoke suite.
-- [ ] **Mobile Phase 5 — Native Foundation:** Permanent navigation, account
+- [X] **Mobile Phase 5 — Native Foundation:** Permanent navigation, account
   creation/recovery, onboarding, progressive permissions, Settings, privacy,
-  support, data controls, and local notification delivery. Windows/shared
-  `mobile-foundation.v1`, deletion/migration boundaries, owner-only domains,
-  and audit gates plus the Mac implementation checkpoint are present. Mac B
-  now has shared bounded-availability and retry-safe cleanup contracts to
-  consume, then must finish editable profile inputs, account deletion,
-  accessibility, signing, and live readback.
-- [ ] **Mobile Phase 6 — Native Plan Lifecycle:** Generate, preview, save,
+  support, data controls, and local notification delivery are implemented and
+  integrated. Firebase-Admin-backed live cleanup completed on 2026-08-31 with
+  zero pending or remaining owner domains, a durable completed/deleted receipt,
+  and the disposable Auth identity removed. Physical-device and hands-on
+  VoiceOver proof are deferred to Phase 8 user-ready hardening.
+- [X] **Mobile Phase 6 — Native Plan Lifecycle:** Generate, preview, save,
   browse, safely edit/regenerate, pause/resume, and confirm preferences without
-  a normal-runner web handoff. Windows B owns shared generation, authoritative
-  phase metadata, action-specific/full-plan lifecycle enforcement, adversarial
-  gates, production-web migration, and hosted workflow routing. Windows B is
-  green at `d5bbfdc`; Mac checkpoint `b6604af` removed native generation/phase
-  heuristics. The Windows return adds version-bound metadata and coordinated
-  planning-input/plan commits at `46fcbba`; hosted Windows run 31637946605 and
-  macOS run 31637946552 are green. Mac consumption and native/device proof
-  remain before final Windows integration.
-  Resume this lane with: `Continue Mobile Phase 5–6 Mac implementation.`
-- [ ] **Pre-Phase 7 Product Evidence:** After Phases 5–6 close, run moderated
-  signed-build onboarding-to-check-in sessions with 3–5 target runners. Validate
-  independent core-loop use before expanding into Calendar/Progress.
-- [ ] **Mobile Phase 7 — Apple Calendar And Progress:** Privacy-minimized
-  EventKit free/busy ingestion, calendar-aware planning, optional explicit
-  one-way export, and shared-history progress.
+  a normal-runner web handoff is implemented. Final Windows integration is
+  green at `ead3f2a`, including hosted Windows run 32074940278 and macOS run
+  32074955020. The combined Phase 5–6 closeout completed with the live Firebase
+  Admin cleanup proof on 2026-08-31.
+- [ ] **Mobile Phase 7 — Progress Then Apple Calendar:** Build native recent
+  history, recovery trends, weekly summary, and learned-preference review
+  first. Then add privacy-minimized EventKit free/busy ingestion,
+  calendar-aware planning, and optional explicit one-way export.
 - [ ] **Mobile Phase 8 — User-Ready External Beta:** Accessibility/device,
   offline/sync/migration, production operations, privacy, TestFlight, support,
-  and install-to-deletion external-user evidence.
+  install-to-deletion external-user evidence, and the moderated 3–5-runner
+  product-evidence gate.
 - [ ] **Later Integrations:** Garmin/Oura, hosted AI, coach/social features,
   broad push notifications, full two-way Calendar sync, open-ended chat,
   Apple Watch/widgets, Android, and autonomous AI plan mutation.

@@ -1490,40 +1490,43 @@ below.
   owner/cross-user/anonymous/server-only-receipt Firebase matrix pass.
 - Hosted Windows run 32074940278 and hosted macOS run 32074955020 both pass on
   exact SHA `ead3f2a0f6a4d8305818573ad99c9d30ed458489`.
-- Mandatory final Windows integration is complete. Phases 5–6 remain open and
-  the branch is not merge-eligible until physical-iPhone install/launch,
-  hands-on VoiceOver order, and Firebase-Admin-backed live cleanup are proven.
-  Do not begin the product-evidence gate or Phase 7 before those release checks.
+- Mandatory final Windows integration is complete. Firebase-Admin-backed live
+  cleanup passed on 2026-08-31: the existing coordinator swept all 18 owner
+  domains, verified zero remaining or pending domains, deleted the disposable
+  Firebase Auth identity, and retained a durable completed/deleted receipt.
+  Phases 5–6 are complete. Physical-iPhone install/launch and hands-on
+  VoiceOver remain unverified and move to Phase 8 user-ready hardening; this
+  deferral is not evidence that either passed.
 
-### Product Evidence Gate Before Mobile Phase 7 - Required
+### Product Evidence Gate Before External Beta - Required
 
-- After final Phase 5–6 integration, install the signed closeout build for 3–5
-  target runners and run moderated onboarding-to-check-in sessions.
+- After the Phase 7 base feature set exists and suitable users are available,
+  install the signed build for 3–5 target runners and run moderated
+  onboarding-to-check-in sessions.
 - Mac/native owns build installation and the native sessions. Windows/shared
   owns privacy-safe `/qa/mobile` audit/readback support.
 - Record onboarding completion, plan-preview confirmation, independent Today
   and check-in use, and any web/developer handoff. Fix only blockers or clear
   safety/trust failures; do not expand the feature roadmap from this gate.
-- Phase 7 may begin when the core journey works without developer help and no
-  Phase 5–6 safety/privacy correction remains.
+- This gate does not block Phase 7 implementation. It blocks external beta.
 
-### Mobile Phase 7 Apple Calendar And Progress - Planned
+### Mobile Phase 7 Progress Then Apple Calendar - Planned
 
+- First add native recent workout/check-in history, recovery trend, concise
+  weekly summary, and learned-preference review from shared owner-scoped truth.
 - Add EventKit permission/calendar selection and on-device free/busy
   summarization. Only bounded availability/load/freshness may enter shared
   requests; event titles, descriptions, attendees, and locations remain local.
 - Add calendar-aware generation/conflict review and consider explicit one-way
   workout export only after read-side behavior passes. Full two-way sync stays
   out of user-ready v1.
-- Add native recent workout/check-in history, recovery trend, concise weekly
-  summary, and learned-preference review from shared owner-scoped truth.
 
 ### Mobile Phase 8 User-Ready Hardening And External Beta - Planned
 
 - Close offline/retry/partial-sync/account-switch/conflict/migration/upgrade/
   background-refresh/deletion behavior.
 - Close the critical-flow VoiceOver, Dynamic Type, contrast, reduced-motion,
-  landscape, and device/OS matrix.
+  landscape, physical install/launch, and device/OS matrix.
 - Configure and prove the production API/Firebase environment, privacy-safe
   monitoring, feature flags, rollback, privacy disclosures, support, signing,
   TestFlight, and small external-beta loop.
