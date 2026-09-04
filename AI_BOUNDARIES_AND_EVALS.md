@@ -6,25 +6,27 @@ personalized reasoning. Deterministic systems provide the execution boundary:
 they enforce training constraints, validate model outputs, and control
 authoritative state changes.
 
-The division is based on strengths, not importance. **AI owns interpretation,
-synthesis, and communication where context and judgment matter; deterministic
-code owns invariant enforcement and committed execution.**
+The division is based on strengths, not importance. **AI provides
+interpretation, synthesis, and communication where context and judgment matter;
+Kinetic's deterministic systems enforce invariants and execute confirmed
+changes.**
 
 ## Division of responsibility
 
 | Capability | AI's role | Deterministic responsibility and rationale |
 | --- | --- | --- |
-| Daily, weekly, and What-if explanations | Turn an immutable decision trace into natural-language reasoning | Code selects the workout and computes every training change. Explanations that are slow, invalid, or contradictory are replaced with deterministic copy. |
+| Daily, weekly, and What-if explanations | Turn an immutable decision trace into natural-language reasoning | The training engine selects the workout and calculates every training change. Explanations that are slow, invalid, or contradictory are replaced with deterministic copy. |
 | Natural-language intake | Extract supported, explicit intent into a typed draft | Schemas, source grounding, allowed values, validation, and persistence remain deterministic. The user must review and confirm every change. This provides a flexible interface without treating model output as authority. |
-| Behavior insights | Select or describe a supported pattern from bounded evidence | Code owns evidence, confidence limits, available actions, and all writes. Tentative patterns never affect training, and confirmed preferences remain soft inputs below safety constraints. |
-| Training summaries | Narrate deterministic 7- and 30-day aggregates | Code calculates the metrics and keeps the result read-only. Raw notes and unrelated context are excluded, and invented facts are rejected. |
+| Behavior insights | Select or describe a supported pattern from bounded evidence | The behavior-insight contract defines admissible evidence, confidence limits, available actions, and permitted writes. Tentative patterns never affect training, and confirmed preferences remain soft inputs below safety constraints. |
+| Training summaries | Narrate deterministic 7- and 30-day aggregates | The metrics pipeline calculates the aggregates and keeps the result read-only. Raw notes and unrelated context are excluded, and invented facts are rejected. |
 | Workout and plan decisions | Explain the selected recommendation, connect it to the athlete's context, and support bounded exploration | Plan generation, recovery classification, candidate scoring, mileage limits, workout spacing, calendar adjustments, and validation are deterministic for reproducibility, auditability, and safety. |
 | Identity, privacy, and persistence | Operate on the minimum approved context needed for each AI feature | Authentication, owner isolation, telemetry filtering, confirmation, storage, and deletion are deterministic because access control and data integrity require exact enforcement. |
 
-AI is Kinetic's intelligence layer; deterministic code is its control layer.
-Local models provide capabilities that deterministic logic alone cannot match.
-When a model is unavailable or outside its latency budget, bounded fallbacks
-preserve safe continuity, but with reduced intelligence and personalization.
+AI is Kinetic's intelligence layer; its deterministic systems form the control
+layer. Local models provide capabilities that rule-based systems alone cannot
+match. When a model is unavailable or outside its latency budget, bounded
+fallbacks preserve safe continuity, but with reduced intelligence and
+personalization.
 
 ## What the evals cover
 
