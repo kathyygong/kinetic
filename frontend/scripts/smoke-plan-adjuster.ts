@@ -129,9 +129,9 @@ assert(
 // Scenario D: very busy week → easy runs should drop, key workouts kept.
 const dropped = dump("Very busy week", week, {
   Mon: 10,
-  Tue: 30,
+  Tue: 20,
   Wed: 15,
-  Thu: 30,
+  Thu: 20,
   Fri: 10,
   Sat: 60,
   Sun: 30,
