@@ -280,7 +280,7 @@ The shared and native Phase 2A implementation was integrated into `main` on
 reuse the authenticated web intake boundary, route every supported intent to a
 bounded product flow, and keep deterministic confirmation authoritative. Its
 Windows-first contract is scoped in
-[MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md).
+[MOBILE_INTAKE_CONTRACT.md](./MOBILE_INTAKE_CONTRACT.md).
 
 The Phase 2.5 native implementation consumes the same fixed fixture with
 strict exact-key Codable validation, builds only bounded context, and calls
@@ -302,8 +302,7 @@ replace the matching slot in `workouts` and the stable same-day event in
 re-reading current owner-scoped state. The pure shared/Swift validators perform
 no I/O, and no backend mutation endpoint or mobile-only history domain was
 added. See
-[MOBILE_CHECKIN_CONTRACT.md](./MOBILE_CHECKIN_CONTRACT.md) and
-[MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
+[MOBILE_CHECKIN_CONTRACT.md](./MOBILE_CHECKIN_CONTRACT.md).
 
 ## Readiness integration boundary
 
@@ -376,10 +375,10 @@ fields from the existing owner-only audit envelope.
   narration is rejected for deterministic review copy.
 - Firestore owner, cross-user, guest, and unknown-domain emulator checks.
 - Optional local-model benchmarks that cannot block the fallback-safe demo.
-- Beta handoff checks are captured in [BETA_RUNBOOK.md](./BETA_RUNBOOK.md) and
-  [QA_MATRIX.md](./QA_MATRIX.md). `npm run beta:readiness` provides the local
-  posture check for dependency metadata, protected QA artifact hygiene, and
-  required documentation; `npm run beta:audit` is the connected advisory gate.
+- `npm run beta:readiness` provides the local posture check for dependency
+  metadata, protected QA artifact hygiene, and required public documentation;
+  `npm run beta:audit` is the connected advisory gate. Detailed release
+  runbooks and QA handoffs are maintained privately.
 - Hosted beta operations keep strict backend auth, owner-only Firestore rules,
   UID-scoped storage, deletion tombstones, deterministic fallback, and bounded
   AI validation as non-negotiable rollback boundaries.
@@ -392,7 +391,7 @@ fields from the existing owner-only audit envelope.
   readback. Phase 2.5 adds bounded mobile intake, and Phase 3 Parts A/B define
   and implement bounded check-in persistence. Stale background-delivery
   recovery remains later hardening. See
-  [MOBILE_APP_PLAN.md](./MOBILE_APP_PLAN.md).
+  [PROJECT_STATUS.md](./PROJECT_STATUS.md) for the current public boundary.
 - Mobile Phase 2.5 Part A passed the full Windows frontend/backend/Firestore
   suite on 2026-07-20. The canonical fixture covers all eight tagged routes,
   six review-draft kinds, strict auth, timeout, unavailable/malformed AI,

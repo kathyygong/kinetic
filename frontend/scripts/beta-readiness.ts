@@ -219,14 +219,16 @@ function checkProtectedArtifacts(): Finding[] {
 
 function checkDocumentation(): Finding[] {
   const requiredDocs = [
-    "PRD.md",
-    "BUILD_PLAN.md",
     "README.md",
+    "PROJECT_STATUS.md",
     "ARCHITECTURE.md",
-    "DEMO_SCRIPT.md",
     "EVAL_REPORT.md",
-    "BETA_RUNBOOK.md",
-    "QA_MATRIX.md",
+    "MOBILE_READINESS_SCHEMA.md",
+    "MOBILE_TODAY_CONTRACT.md",
+    "MOBILE_INTAKE_CONTRACT.md",
+    "MOBILE_CHECKIN_CONTRACT.md",
+    "MOBILE_PATTERN_RESULT_CONTRACT.md",
+    "MOBILE_NOTIFICATION_CONTRACT.md",
   ];
 
   return requiredDocs.map((name) => ({
@@ -234,7 +236,7 @@ function checkDocumentation(): Finding[] {
     check: `doc ${name}`,
     detail: existsSync(join(repoRoot, name))
       ? "present."
-      : "missing; beta handoff is less repeatable without it.",
+      : "missing; the public implementation boundary is incomplete without it.",
   }));
 }
 

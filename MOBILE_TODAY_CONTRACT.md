@@ -168,6 +168,6 @@ The former seven-step macOS handoff is complete. Implementation result,
   changed.
 
 The completed Phase 2A work was integrated into `main` on 2026-07-20. New
-mobile work should follow [MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md)
-for the Windows-first Phase 2.5 contract; this document remains the stable
-Today boundary.
+mobile work should follow [MOBILE_INTAKE_CONTRACT.md](./MOBILE_INTAKE_CONTRACT.md)
+for the bounded Phase 2.5 interface; this document remains the stable Today
+boundary.

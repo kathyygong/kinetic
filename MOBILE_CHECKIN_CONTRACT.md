@@ -5,8 +5,7 @@ implementation completed 2026-07-20. Swift fixture, failure, idempotency,
 privacy, simulator, signed-device, strict-backend, owner-only emulator, and
 shared frontend gates pass. Physical-device recovery and completed/skipped
 workout flows plus live same-user Recovery, training-review, memory, and audit
-readback passed 2026-07-21; see
-[MOBILE_CHECKIN_HANDOFF.md](./MOBILE_CHECKIN_HANDOFF.md).
+readback passed 2026-07-21. Detailed device evidence is maintained privately.
 
 ## Authority And Scope
 

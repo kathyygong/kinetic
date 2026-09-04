@@ -146,7 +146,6 @@ The native implementation consumes this exact schema and fixture:
 - Native audit transport uses only the fixed action/outcome/route/draft-kind/
   failure/parser/mutation/validation/platform/latency vocabulary.
 
-The dated command and device evidence is in
-[MOBILE_INTAKE_HANDOFF.md](./MOBILE_INTAKE_HANDOFF.md). The implementation
-does not add a native mutation endpoint or the deferred Phase 3 persistence
-loop.
+The implementation does not add a native mutation endpoint or the Phase 3
+persistence loop; detailed command and device evidence is maintained in the
+private internal QA handoff.

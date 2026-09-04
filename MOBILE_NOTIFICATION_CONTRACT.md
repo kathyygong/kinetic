@@ -95,16 +95,9 @@ beta.
   targets fail closed.
 - The contract smoke is part of the default frontend smoke suite.
 
-## Subsequent native implementation prompt
+## Implementation status
 
-> Continue Mobile Phase 5 native foundation implementation.
-
-Use this prompt after Windows Batch A in
-[MOBILE_APP_PLAN.md](./MOBILE_APP_PLAN.md) has defined and handed off the Phase
-5 onboarding/settings/auth and Phase 6 plan-lifecycle boundaries. Start by
-reading this contract and
-[MOBILE_PATTERN_RESULT_HANDOFF.md](./MOBILE_PATTERN_RESULT_HANDOFF.md). Run the
-deferred pattern-card VoiceOver, landscape, and small-screen checks before
-changing native UI. Build the permanent navigation, onboarding, and Settings
-foundation; place only the local evening-check-in preference/delivery inside
-that architecture, then repeat affected accessibility/layout checks.
+The deterministic shared contract is implemented and covered by the default
+frontend smoke suite. The native adapter that requests permission and schedules
+or cancels the local reminder is not yet part of public `main`; see
+[PROJECT_STATUS.md](./PROJECT_STATUS.md) for the current milestone sequence.

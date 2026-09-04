@@ -33,3 +33,7 @@ firestore-debug.log
 .edge-qa/
 .edge-qa-mobile/
 tmp-*.png
+
+# Private/internal planning and operations docs. These are intentionally kept
+# out of the public GitHub repository; use the local .internal-docs directory.
+/.internal-docs/

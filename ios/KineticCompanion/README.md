@@ -74,7 +74,7 @@ Garmin/Oura, coach/social features, and broad push notifications remain out of
 scope. Phase 4 Windows/shared work defines only an opt-in local evening
 check-in reminder; native delivery belongs in permanent Phase 5 Settings. The
 fixed Phase 3 boundary and completed physical-device/live evidence are in
-[`MOBILE_CHECKIN_HANDOFF.md`](../../MOBILE_CHECKIN_HANDOFF.md).
+[`MOBILE_CHECKIN_CONTRACT.md`](../../MOBILE_CHECKIN_CONTRACT.md).
 
 ## Firebase Scope Decisions
 
@@ -193,10 +193,8 @@ swift test --filter MobileAuditModelsTests
 swift test
 ```
 
-The authoritative signed-build, simulator/device route, same-user web
-readback, audit privacy, accessibility, rollback-control, and evidence
-checklist is
-[`MOBILE_PATTERN_RESULT_HANDOFF.md`](../../MOBILE_PATTERN_RESULT_HANDOFF.md).
+The stable behavior-result boundary is documented in
+[`MOBILE_PATTERN_RESULT_CONTRACT.md`](../../MOBILE_PATTERN_RESULT_CONTRACT.md).
 
 The expanded Swift suite covers readiness/Today/intake/check-in/behavior canonical
 fixtures, every intake route and draft kind, bounded request construction,
@@ -226,4 +224,4 @@ integration and the owner-only emulator suite passed in run
 Device auth, HealthKit interaction, authenticated decisions, Firestore audit
 write/readback, and web readback require the untracked Firebase configuration,
 a disposable user, a reachable backend URL, and an Apple signing team as
-listed in `MOBILE_MAC_HANDOFF.md`.
+listed in the private internal device-QA runbook.
