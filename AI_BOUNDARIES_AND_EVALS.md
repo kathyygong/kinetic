@@ -1,29 +1,29 @@
 # AI Boundaries and Evals
 
-Kinetic uses AI as a core product capability for understanding athlete intent,
-identifying meaningful patterns, and turning training evidence into contextual,
-personalized reasoning. Deterministic systems provide the execution boundary:
-they enforce training constraints, validate model outputs, and control
-authoritative state changes.
+Kinetic separates AI-driven reasoning from deterministic decision-making. AI
+understands athlete intent, identifies meaningful patterns, and turns training
+evidence into contextual, personalized reasoning. Deterministic logic enforces
+training constraints, validates model outputs, and controls authoritative state
+changes.
 
-The division is based on strengths, not importance. **AI provides
-interpretation, synthesis, and communication where context and judgment matter;
-Kinetic's deterministic systems enforce invariants and execute confirmed
-changes.**
+This is not AI versus code; both are implemented in software. It is a boundary
+between probabilistic interpretation and deterministic authority. **AI handles
+context, ambiguity, and synthesis. Deterministic logic handles exact,
+repeatable decisions and confirmed execution.**
 
 ## Division of responsibility
 
-| Capability | AI's role | Deterministic responsibility and rationale |
+| Capability | AI | Deterministic |
 | --- | --- | --- |
-| Daily, weekly, and What-if explanations | Turn an immutable decision trace into natural-language reasoning | The training engine selects the workout and calculates every training change. Explanations that are slow, invalid, or contradictory are replaced with deterministic copy. |
-| Natural-language intake | Extract supported, explicit intent into a typed draft | Schemas, source grounding, allowed values, validation, and persistence remain deterministic. The user must review and confirm every change. This provides a flexible interface without treating model output as authority. |
-| Behavior insights | Select or describe a supported pattern from bounded evidence | The behavior-insight contract defines admissible evidence, confidence limits, available actions, and permitted writes. Tentative patterns never affect training, and confirmed preferences remain soft inputs below safety constraints. |
-| Training summaries | Narrate deterministic 7- and 30-day aggregates | The metrics pipeline calculates the aggregates and keeps the result read-only. Raw notes and unrelated context are excluded, and invented facts are rejected. |
-| Workout and plan decisions | Explain the selected recommendation, connect it to the athlete's context, and support bounded exploration | Plan generation, recovery classification, candidate scoring, mileage limits, workout spacing, calendar adjustments, and validation are deterministic for reproducibility, auditability, and safety. |
-| Identity, privacy, and persistence | Operate on the minimum approved context needed for each AI feature | Authentication, owner isolation, telemetry filtering, confirmation, storage, and deletion are deterministic because access control and data integrity require exact enforcement. |
+| Daily, weekly, and What-if reasoning | Interprets the decision context and produces personalized explanations | Selects the workout and calculates every training change; rejects explanations that are invalid or contradict the selected action |
+| Natural-language intake | Interprets explicit athlete intent and structures it as a reviewable draft | Defines allowed values, verifies source grounding, validates the draft, and requires user confirmation before persistence |
+| Behavior insights | Identifies and explains meaningful patterns in bounded evidence | Defines admissible evidence, confidence limits, available actions, and permitted writes; tentative patterns cannot affect training |
+| Training summaries | Synthesizes training evidence into a concise narrative | Calculates the underlying metrics, limits the available context, and keeps the result read-only |
+| Workout and plan decisions | Contextualizes recommendations and supports bounded exploration | Owns plan generation, recovery classification, candidate scoring, mileage limits, workout spacing, calendar adjustments, and final validation |
+| Identity, privacy, and persistence | Operates only on the minimum approved context for each feature | Enforces authentication, owner isolation, telemetry filtering, confirmation, storage, and deletion |
 
-AI is Kinetic's intelligence layer; its deterministic systems form the control
-layer. Local models provide capabilities that rule-based systems alone cannot
+AI is Kinetic's intelligence layer; deterministic logic forms its control
+layer. Local models provide capabilities that deterministic logic alone cannot
 match. When a model is unavailable or outside its latency budget, bounded
 fallbacks preserve safe continuity, but with reduced intelligence and
 personalization.
