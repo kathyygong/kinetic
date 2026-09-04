@@ -1,24 +1,30 @@
 # AI Boundaries and Evals
 
-Kinetic uses AI where flexible language improves the experience, while keeping
-training decisions, writes, and safety constraints deterministic. The practical
-rule is simple: **an AI response must be discardable without making the product
-unsafe or changing authoritative state.**
+Kinetic uses AI as a core product capability for understanding athlete intent,
+identifying meaningful patterns, and turning training evidence into contextual,
+personalized reasoning. Deterministic systems provide the execution boundary:
+they enforce training constraints, validate model outputs, and control
+authoritative state changes.
 
-## Where AI is used
+The division is based on strengths, not importance. **AI owns interpretation,
+synthesis, and communication where context and judgment matter; deterministic
+code owns invariant enforcement and committed execution.**
 
-| Capability | AI's role | Deterministic boundary and rationale |
+## Division of responsibility
+
+| Capability | AI's role | Deterministic responsibility and rationale |
 | --- | --- | --- |
 | Daily, weekly, and What-if explanations | Turn an immutable decision trace into natural-language reasoning | Code selects the workout and computes every training change. Explanations that are slow, invalid, or contradictory are replaced with deterministic copy. |
 | Natural-language intake | Extract supported, explicit intent into a typed draft | Schemas, source grounding, allowed values, validation, and persistence remain deterministic. The user must review and confirm every change. This provides a flexible interface without treating model output as authority. |
 | Behavior insights | Select or describe a supported pattern from bounded evidence | Code owns evidence, confidence limits, available actions, and all writes. Tentative patterns never affect training, and confirmed preferences remain soft inputs below safety constraints. |
 | Training summaries | Narrate deterministic 7- and 30-day aggregates | Code calculates the metrics and keeps the result read-only. Raw notes and unrelated context are excluded, and invented facts are rejected. |
-| Workout and plan decisions | None | Plan generation, recovery classification, candidate scoring, mileage limits, workout spacing, calendar adjustments, and validation are deterministic for reproducibility, auditability, and safety. |
-| Identity, privacy, and persistence | None | Authentication, owner isolation, telemetry filtering, confirmation, storage, and deletion are deterministic because probabilistic behavior is inappropriate at a trust boundary. |
+| Workout and plan decisions | Explain the selected recommendation, connect it to the athlete's context, and support bounded exploration | Plan generation, recovery classification, candidate scoring, mileage limits, workout spacing, calendar adjustments, and validation are deterministic for reproducibility, auditability, and safety. |
+| Identity, privacy, and persistence | Operate on the minimum approved context needed for each AI feature | Authentication, owner isolation, telemetry filtering, confirmation, storage, and deletion are deterministic because access control and data integrity require exact enforcement. |
 
-AI is optional at runtime. Local models can provide richer language, while the
-same product flows remain available through deterministic fallbacks when a model
-is disabled, unavailable, or outside its latency budget.
+AI is Kinetic's intelligence layer; deterministic code is its control layer.
+Local models provide capabilities that deterministic logic alone cannot match.
+When a model is unavailable or outside its latency budget, bounded fallbacks
+preserve safe continuity, but with reduced intelligence and personalization.
 
 ## What the evals cover
 
