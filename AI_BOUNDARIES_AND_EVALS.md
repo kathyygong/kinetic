@@ -6,10 +6,9 @@ evidence into contextual, personalized reasoning. Deterministic logic enforces
 training constraints, validates model outputs, and controls authoritative state
 changes.
 
-This is not AI versus code; both are implemented in software. It is a boundary
-between probabilistic interpretation and deterministic authority. **AI handles
-context, ambiguity, and synthesis. Deterministic logic handles exact,
-repeatable decisions and confirmed execution.**
+The boundary is between probabilistic interpretation and deterministic
+authority. **AI handles context, ambiguity, and synthesis. Deterministic logic
+handles exact, repeatable decisions and confirmed execution.**
 
 ## Division of responsibility
 
