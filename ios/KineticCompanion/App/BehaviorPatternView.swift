@@ -2,20 +2,37 @@ import SwiftUI
 
 struct BehaviorPatternView: View {
     @ObservedObject var viewModel: TodayViewModel
+    var accessibilityQAPreview = false
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var showingCheckin = false
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 16) {
+                    if accessibilityQAPreview {
+                        Label(
+                            "Read-only QA preview",
+                            systemImage: "checkmark.shield"
+                        )
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .accessibilityLabel(
+                            "Accessibility QA preview. Actions are disabled and no data is read or written."
+                        )
+                        .accessibilityIdentifier("behavior-pattern-qa-preview")
+                    }
                     statusContent
                 }
                 .padding()
             }
             .background(KineticColor.canvas.ignoresSafeArea())
             .navigationTitle("What Kinetic noticed")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(KineticColor.canvas, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
@@ -27,7 +44,9 @@ struct BehaviorPatternView: View {
                 }
             }
             .refreshable {
-                await viewModel.loadBehaviorPatterns()
+                if !accessibilityQAPreview {
+                    await viewModel.loadBehaviorPatterns()
+                }
             }
             .sheet(isPresented: $showingCheckin) {
                 MobileCheckinView(
@@ -74,6 +93,7 @@ struct BehaviorPatternView: View {
         VStack(alignment: .leading, spacing: 10) {
             Label("Behavior memory", systemImage: "brain.head.profile")
                 .font(.headline)
+                .accessibilityAddTraits(.isHeader)
             Text(
                 "\(viewModel.behaviorHistoryCount) bounded recommendation events reviewed. Observations never change training on their own."
             )
@@ -96,6 +116,7 @@ struct BehaviorPatternView: View {
         VStack(alignment: .leading, spacing: 10) {
             Label("More history needed", systemImage: "clock.arrow.circlepath")
                 .font(.headline)
+                .accessibilityAddTraits(.isHeader)
             Text(
                 "Complete or skip workouts through Kinetic. Patterns appear only after repeated bounded signals; a single day does not become a preference."
             )
@@ -108,13 +129,17 @@ struct BehaviorPatternView: View {
 
     private func patternCard(_ pattern: BehaviorPattern) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(pattern.title)
-                    .font(.headline)
-                Spacer()
-                Text(pattern.confidence.rawValue.capitalized)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 4) {
+                    patternTitle(pattern)
+                    confidenceLabel(pattern)
+                }
+            } else {
+                HStack(alignment: .firstTextBaseline) {
+                    patternTitle(pattern)
+                    Spacer()
+                    confidenceLabel(pattern)
+                }
             }
             detail("Noticed", pattern.description)
             detail("Why it matters", pattern.whyItMatters)
@@ -124,7 +149,22 @@ struct BehaviorPatternView: View {
         }
         .padding(18)
         .kineticCard()
-        .accessibilityElement(children: .contain)
+    }
+
+    private func patternTitle(_ pattern: BehaviorPattern) -> some View {
+        Text(pattern.title)
+            .font(.headline)
+            .accessibilityAddTraits(.isHeader)
+            .accessibilityIdentifier("behavior-pattern-\(pattern.id)")
+    }
+
+    private func confidenceLabel(_ pattern: BehaviorPattern) -> some View {
+        Text(pattern.confidence.rawValue.capitalized)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.secondary)
+            .accessibilityLabel(
+                "\(pattern.confidence.rawValue.capitalized) confidence"
+            )
     }
 
     @ViewBuilder
@@ -142,7 +182,11 @@ struct BehaviorPatternView: View {
                 .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            .disabled(saved || viewModel.behaviorConfirmingIDs.contains(pattern.id))
+            .disabled(
+                accessibilityQAPreview
+                    || saved
+                    || viewModel.behaviorConfirmingIDs.contains(pattern.id)
+            )
             if viewModel.behaviorConfirmingIDs.contains(pattern.id) {
                 ProgressView("Saving bounded preference")
             }
@@ -160,6 +204,7 @@ struct BehaviorPatternView: View {
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
+            .disabled(accessibilityQAPreview)
         case .checkinPrompt(_, _, _, let prompt):
             Button {
                 viewModel.markBehaviorPatternRouted(pattern)
@@ -180,10 +225,12 @@ struct BehaviorPatternView: View {
                 .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
+            .disabled(accessibilityQAPreview)
         case .caution(_, _, _, let actions):
             VStack(alignment: .leading, spacing: 8) {
                 Text("Conservative options")
                     .font(.subheadline.weight(.semibold))
+                    .accessibilityAddTraits(.isHeader)
                 ForEach(actions, id: \.rawValue) { action in
                     Label(cautionLabel(action), systemImage: "shield")
                         .font(.footnote)
@@ -200,8 +247,11 @@ struct BehaviorPatternView: View {
             Text(title)
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
             Text(value)
                 .font(.subheadline)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -209,6 +259,7 @@ struct BehaviorPatternView: View {
         VStack(alignment: .leading, spacing: 12) {
             Label(failureTitle(failure), systemImage: "exclamationmark.triangle")
                 .font(.headline)
+                .accessibilityAddTraits(.isHeader)
             Text(failureDetail(failure))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -219,6 +270,7 @@ struct BehaviorPatternView: View {
                 Task { await viewModel.loadBehaviorPatterns() }
             }
             .buttonStyle(.borderedProminent)
+            .disabled(accessibilityQAPreview)
         }
         .padding(18)
         .kineticCard()

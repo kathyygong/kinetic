@@ -19,6 +19,23 @@ final class BehaviorPatternContractFixtureTests: XCTestCase {
             ])
         )
         XCTAssertEqual(response.patterns.count, 7)
+
+        #if DEBUG
+        try BehaviorPatternValidator.validate(BehaviorPatternAccessibilityQA.response)
+        XCTAssertEqual(
+            Set(BehaviorPatternAccessibilityQA.response.patterns.map(\.result.kind)),
+            Set([
+                .scoringPreferenceReview,
+                .preferredDayReview,
+                .checkinPrompt,
+                .caution
+            ])
+        )
+        XCTAssertTrue(
+            Set(BehaviorPatternAccessibilityQA.response.patterns.map(\.id))
+                .isSubset(of: Set(response.patterns.map(\.id)))
+        )
+        #endif
     }
 
     func testStrictDecoderRejectsVersionUnknownKeysBoundsAndRouteDrift() throws {

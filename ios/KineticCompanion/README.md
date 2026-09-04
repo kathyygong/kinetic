@@ -212,11 +212,12 @@ launch, signed generic-device build, and rebuilt physical iPhone install and
 launch. Physical scoring, preferred-day, readiness-prompt, and caution routes,
 same-user web preference/schedule state, and privacy-safe `/qa/mobile`
 readback passed. Maximum simulator Dynamic Type plus increased contrast also
-rendered without clipping. Phase 3.5 is functionally complete; authenticated
-pattern-card VoiceOver order, landscape, and small-screen remain explicitly
-unverified and must run at the start of the next native-iOS-UI phase and before
-external beta. That next UI phase is Mobile Phase 5: native foundation,
-onboarding, and Settings. The notification boundary is governed by
+rendered without clipping. The debug-only, read-only
+`KineticCompanionUITests` target now verifies all four result routes plus
+loading, failure, and confirmed states. Its iPhone SE run passes semantic
+accessibility audits and portrait/landscape traversal. Phase 3.5 is
+functionally complete; authenticated physical-device VoiceOver order and
+labels remain required before external beta. The notification boundary is governed by
 [`MOBILE_NOTIFICATION_CONTRACT.md`](../../MOBILE_NOTIFICATION_CONTRACT.md).
 Final shared Windows/hosted
 integration and the owner-only emulator suite passed in run

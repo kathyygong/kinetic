@@ -613,3 +613,125 @@ enum BehaviorPatternValidator {
             && value.count <= BehaviorPatternContract.maximumTextLength
     }
 }
+
+#if DEBUG
+enum BehaviorPatternAccessibilityQA {
+    enum State: String {
+        case success
+        case confirmed
+        case loading
+        case failure
+    }
+
+    static var isEnabled: Bool {
+        UserDefaults.standard.bool(forKey: "kinetic.qa-behavior-patterns")
+    }
+
+    static var state: State {
+        guard
+            let rawValue = UserDefaults.standard.string(
+                forKey: "kinetic.qa-behavior-patterns-state"
+            ),
+            let state = State(rawValue: rawValue)
+        else {
+            return .success
+        }
+        return state
+    }
+
+    static let response = BehaviorInsightsResponse(
+        contractVersion: BehaviorPatternContract.schema,
+        analysis: BehaviorPatternAnalysis(
+            source: .deterministic,
+            fallbackUsed: false,
+            failure: .none
+        ),
+        patterns: [
+            BehaviorPattern(
+                id: "pattern_heavy_calendar_misses",
+                family: .heavyCalendarMisses,
+                title: "Heavy calendar",
+                description: "Repeated heavy-calendar days ended with skipped sessions.",
+                confidence: .moderate,
+                suggestedAdjustment: "Review a shorter-or-easier preference.",
+                preferenceType: .busyDayPreference,
+                supportCount: 3,
+                whyItMatters:
+                    "A smaller option may make training more feasible on constrained days.",
+                result: .scoringPreference(
+                    actionLabel: "Review busy-day preference",
+                    willChange:
+                        "Shorter or easier candidates may receive a small bounded score nudge on heavy-calendar days.",
+                    willNeverChange:
+                        "Safety state, available candidates, mileage, and the saved plan.",
+                    preferenceType: .busyDayPreference,
+                    direction: .shorterOrEasier
+                )
+            ),
+            BehaviorPattern(
+                id: "pattern_long_run_day_preference_sat",
+                family: .longRunDayPreference,
+                title: "Saturday long runs",
+                description: "Completed long runs repeatedly landed on Saturday.",
+                confidence: .high,
+                suggestedAdjustment: "Review Saturday as a preferred long-run day.",
+                preferenceType: .schedulePreference,
+                supportCount: 4,
+                whyItMatters:
+                    "A reviewed long-run day can improve fit without changing load or spacing rules.",
+                result: .preferredDay(
+                    actionLabel: "Review preferred training days",
+                    willChange:
+                        "Preferred-day inputs and the deterministically regenerated saved plan.",
+                    willNeverChange:
+                        "Weekly load, workout validity, phase structure, taper, or safety spacing.",
+                    strategy: .preferLongRunDay,
+                    observedDay: .sat
+                )
+            ),
+            BehaviorPattern(
+                id: "pattern_stale_data_or_checkin_gap_sync_readiness",
+                family: .staleDataOrCheckinGap,
+                title: "Readiness needs a refresh",
+                description: "Recent recommendations repeatedly used stale readiness inputs.",
+                confidence: .moderate,
+                suggestedAdjustment: "Prompt for a readiness sync.",
+                preferenceType: .none,
+                supportCount: 2,
+                whyItMatters: "Fresh bounded inputs make Today explanations more complete.",
+                result: .checkinPrompt(
+                    actionLabel: "Sync readiness",
+                    willChange: "No training state changes from this prompt.",
+                    willNeverChange:
+                        "The saved plan, readiness values, completion state, or preferences.",
+                    prompt: .syncReadiness
+                )
+            ),
+            BehaviorPattern(
+                id: "pattern_pain_or_discomfort_recurrence",
+                family: .painOrDiscomfortRecurrence,
+                title: "Repeated discomfort",
+                description: "A bounded discomfort flag appeared more than once.",
+                confidence: .moderate,
+                suggestedAdjustment: "Stay conservative and review the fixed caution options.",
+                preferenceType: .none,
+                supportCount: 2,
+                whyItMatters:
+                    "Repeated discomfort belongs in a conservative safety flow, not personalization.",
+                result: .caution(
+                    actionLabel: "Review caution guidance",
+                    willChange: "No training state changes from this guidance.",
+                    willNeverChange:
+                        "No sensitive health record or automatic training mutation is created.",
+                    actions: [
+                        .stopOrReduce,
+                        .captureDiscomfortFlag,
+                        .seekQualifiedCare
+                    ]
+                )
+            )
+        ],
+        warnings: []
+    )
+}
+#endif

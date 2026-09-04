@@ -21,6 +21,7 @@ let package = Package(
             exclude: [
                 "App",
                 "Config",
+                "KineticCompanionUITests",
                 "README.md",
                 "Tests"
             ],

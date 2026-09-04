@@ -406,8 +406,10 @@ fields from the existing owner-only audit envelope.
 - Mobile Phase 3.5 Part B passed the 2026-07-24 Mac/package/simulator/signed
   physical-route and same-user readback checkpoint on
   `codex/mobile-pattern-results`. Product accepted functional completion on
-  2026-07-29 and deferred the explicitly unverified authenticated pattern-card
-  VoiceOver/landscape/small-screen checks to Mobile Phase 5 and before external
+  2026-07-29. A debug-only, read-only XCUITest fixture subsequently passed
+  semantic accessibility audits and iPhone SE portrait/landscape traversal,
+  closing the simulator small-screen and landscape checks. Authenticated
+  physical-device VoiceOver order and labels remain required before external
   beta. Final shared Windows/hosted integration passed at `1b99cfe`.
 - Mobile Phase 4 starts with a provider-free, local-only evening check-in
   reminder. `mobile-notification.v1` produces deterministic request-permission,

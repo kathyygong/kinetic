@@ -526,6 +526,25 @@ final class TodayViewModel: ObservableObject {
         confirmedBehaviorPatternIDs = []
     }
 
+    #if DEBUG
+    func prepareBehaviorPatternAccessibilityQA() {
+        resetBehaviorPatterns()
+        behaviorHistoryCount = 11
+        switch BehaviorPatternAccessibilityQA.state {
+        case .success:
+            behaviorResponse = BehaviorPatternAccessibilityQA.response
+        case .confirmed:
+            behaviorResponse = BehaviorPatternAccessibilityQA.response
+            confirmedBehaviorPatternIDs = ["pattern_heavy_calendar_misses"]
+            behaviorMessage = "Preference saved. Safety and plan rules remain authoritative."
+        case .loading:
+            behaviorLoading = true
+        case .failure:
+            behaviorFailure = .offline
+        }
+    }
+    #endif
+
     var workoutCheckinAvailable: Bool {
         guard let shared = latestSharedState,
               let plan = shared.plan,
