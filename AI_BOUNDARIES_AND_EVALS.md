@@ -34,9 +34,9 @@ The release baseline is an offline, deterministic suite: **18 gate groups and
 498 assertions**. It does not require a live model, so contract and safety
 regressions are reproducible in development and CI.
 
-- **Decision integrity:** AI cannot change the selected workout, plan, recovery
-  classification, or decision trace, and its explanation cannot contradict the
-  selected action.
+- **Decision integrity:** AI cannot unilaterally change the selected workout,
+  plan, recovery classification, or decision trace, and its explanation cannot
+  contradict the selected action.
 - **Schema and grounding:** daily and weekly reasoning, intake, behavior results,
   What-if explanations, and training summaries must satisfy typed contracts and
   remain grounded in deterministic inputs.
