@@ -46,6 +46,8 @@ capabilities.
   surfaces.
 - `backend` — authenticated decision, intake, review, and eval services.
 - [Architecture](./ARCHITECTURE.md) — system boundaries and data flow.
+- [AI boundaries and evals](./AI_BOUNDARIES_AND_EVALS.md) — concise rationale
+  for AI use, deterministic authority, and evaluation coverage.
 - [AI eval report](./EVAL_REPORT.md) — generated deterministic safety evidence.
 - Public contracts: [readiness](./MOBILE_READINESS_SCHEMA.md),
   [Today](./MOBILE_TODAY_CONTRACT.md), [intake](./MOBILE_INTAKE_CONTRACT.md),
