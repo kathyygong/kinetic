@@ -1,4 +1,4 @@
-"""Generate or verify the human-readable deterministic safety report.
+"""Generate or verify the human-readable system safety and contract report.
 
 The report is rendered from the same canonical gate registry used by
 ``python -m evals._gates``. If a gate fails, generation fails and the existing
@@ -29,7 +29,7 @@ def render_report(results: tuple[GateResult, ...], generated_on: date) -> str:
         f"| `{result.id}` | {result.label} | {result.assertions} | PASS |"
         for result in results
     )
-    return f"""# Kinetic Deterministic AI Eval Report
+    return f"""# Kinetic AI System Safety and Contract Report
 
 Generated: {generated_on.isoformat()}
 
@@ -44,7 +44,7 @@ explicit safety assertions passed.**
 
 ## Enforced guarantees
 
-- AI explanations cannot change the deterministic selected workout.
+- AI cannot unilaterally change the deterministic selected workout.
 - Daily explanations cannot contradict the selected action.
 - Daily, weekly, behavior, What-if, intake, and training-summary outputs match
   their schemas.
@@ -68,7 +68,7 @@ explicit safety assertions passed.**
 - Weekly/monthly reviews derive metrics deterministically from bounded outcome
   fields, exclude raw notes, remain read-only, and reject invented AI facts.
 - The baseline suite runs with `KINETIC_AI_MODE=fallback`; live AI is never
-  required for a passing demo.
+  required to verify the product's deterministic safety boundary.
 - Calendar availability is stubbed inside the deterministic harness, so local
   credentials and external network state cannot change gate outcomes.
 
@@ -87,11 +87,9 @@ From `backend/`:
 .\\.venv\\Scripts\\python.exe -m evals.generate_report
 ```
 
-Optional local Ollama benchmarking is reported separately and never blocks
-the deterministic release gate. Run
-`.\\.venv\\Scripts\\python.exe -m evals.benchmark_intake_live` to require two
-identical model-backed passes across eight intake cases, exact expected values,
-request immutability, no fallback, and the 24-second server budget.
+Live model quality is evaluated separately and never weakens this release gate.
+See `MODEL_EVAL_REPORT.md` for the current candidate comparison, metrics, error
+analysis, limitations, and reproduction command.
 
 ## Additional product gates
 

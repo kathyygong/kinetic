@@ -204,7 +204,13 @@ Output: {"status":"ready","availability_changes":[{"day":"sun",
 
 Runner note: I cannot run on Thursday.
 Output: {"status":"ready","availability_changes":[{"day":"thu",
-"available_minutes":0,"easy_only":false}]}"""
+"available_minutes":0,"easy_only":false}]}
+
+Runner note: Things are complicated next month.
+Output: {"status":"needs_clarification"}
+
+Runner note: My knee hurts and I want recovery advice.
+Output: {"status":"unsupported"}"""
 
 _DEFAULT_INTAKE_TIMEOUT_SECONDS = 24.0
 _MAX_INTAKE_TIMEOUT_SECONDS = 25.0
@@ -725,6 +731,9 @@ def _validated_model_draft(
     the supported changes, IDs, exact evidence, warnings, and review copy. A
     mismatch is rejected instead of merging or guessing.
     """
+
+    if extraction.status != reference.status:
+        return None
 
     model_signatures: list[tuple] = []
     if extraction.race_distance is not None:

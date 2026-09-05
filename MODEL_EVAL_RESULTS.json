@@ -1,0 +1,3569 @@
+{
+  "aggregates": [
+    {
+      "candidate": "deterministic_fallback",
+      "grounding_rate": 1.0,
+      "p50_latency_seconds": 0.0,
+      "p95_latency_seconds": 0.0,
+      "quality_stability": 1.0,
+      "safety_rate": 1.0,
+      "samples": 4,
+      "schema_rate": 1.0,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "grounding_rate": 1.0,
+      "p50_latency_seconds": 10.893,
+      "p95_latency_seconds": 17.92,
+      "quality_stability": 1.0,
+      "safety_rate": 1.0,
+      "samples": 8,
+      "schema_rate": 1.0,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "grounding_rate": 0.75,
+      "p50_latency_seconds": 4.855,
+      "p95_latency_seconds": 6.398,
+      "quality_stability": 1.0,
+      "safety_rate": 0.75,
+      "samples": 8,
+      "schema_rate": 0.75,
+      "task_score": 0.75,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "grounding_rate": 1.0,
+      "p50_latency_seconds": 10.474,
+      "p95_latency_seconds": 12.428,
+      "quality_stability": 1.0,
+      "safety_rate": 1.0,
+      "samples": 8,
+      "schema_rate": 1.0,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "deterministic_fallback",
+      "grounding_rate": 1.0,
+      "p50_latency_seconds": 0.0,
+      "p95_latency_seconds": 0.005,
+      "quality_stability": 1.0,
+      "safety_rate": 1.0,
+      "samples": 8,
+      "schema_rate": 1.0,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "grounding_rate": 1.0,
+      "p50_latency_seconds": 1.306,
+      "p95_latency_seconds": 3.107,
+      "quality_stability": 1.0,
+      "safety_rate": 1.0,
+      "samples": 16,
+      "schema_rate": 1.0,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "grounding_rate": 1.0,
+      "p50_latency_seconds": 0.585,
+      "p95_latency_seconds": 1.285,
+      "quality_stability": 1.0,
+      "safety_rate": 1.0,
+      "samples": 16,
+      "schema_rate": 1.0,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "grounding_rate": 1.0,
+      "p50_latency_seconds": 1.603,
+      "p95_latency_seconds": 3.391,
+      "quality_stability": 1.0,
+      "safety_rate": 1.0,
+      "samples": 16,
+      "schema_rate": 1.0,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "deterministic_fallback",
+      "grounding_rate": 1.0,
+      "p50_latency_seconds": 0.0,
+      "p95_latency_seconds": 0.0,
+      "quality_stability": 1.0,
+      "safety_rate": 1.0,
+      "samples": 4,
+      "schema_rate": 1.0,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "grounding_rate": 0.75,
+      "p50_latency_seconds": 7.386,
+      "p95_latency_seconds": 11.868,
+      "quality_stability": 1.0,
+      "safety_rate": 1.0,
+      "samples": 8,
+      "schema_rate": 1.0,
+      "task_score": 0.75,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "grounding_rate": 0.5,
+      "p50_latency_seconds": 3.579,
+      "p95_latency_seconds": 5.74,
+      "quality_stability": 1.0,
+      "safety_rate": 0.5,
+      "samples": 8,
+      "schema_rate": 0.5,
+      "task_score": 0.5,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "grounding_rate": 1.0,
+      "p50_latency_seconds": 8.54,
+      "p95_latency_seconds": 12.079,
+      "quality_stability": 1.0,
+      "safety_rate": 1.0,
+      "samples": 8,
+      "schema_rate": 1.0,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "deterministic_fallback",
+      "grounding_rate": 1.0,
+      "p50_latency_seconds": 0.0,
+      "p95_latency_seconds": 0.0,
+      "quality_stability": 1.0,
+      "safety_rate": 1.0,
+      "samples": 3,
+      "schema_rate": 1.0,
+      "task_score": 1.0,
+      "workload": "training_summary"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "grounding_rate": 1.0,
+      "p50_latency_seconds": 3.367,
+      "p95_latency_seconds": 3.808,
+      "quality_stability": 1.0,
+      "safety_rate": 1.0,
+      "samples": 6,
+      "schema_rate": 1.0,
+      "task_score": 0.9167,
+      "workload": "training_summary"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "grounding_rate": 1.0,
+      "p50_latency_seconds": 1.383,
+      "p95_latency_seconds": 1.72,
+      "quality_stability": 1.0,
+      "safety_rate": 1.0,
+      "samples": 6,
+      "schema_rate": 1.0,
+      "task_score": 0.6667,
+      "workload": "training_summary"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "grounding_rate": 1.0,
+      "p50_latency_seconds": 6.259,
+      "p95_latency_seconds": 6.907,
+      "quality_stability": 1.0,
+      "safety_rate": 1.0,
+      "samples": 6,
+      "schema_rate": 1.0,
+      "task_score": 1.0,
+      "workload": "training_summary"
+    }
+  ],
+  "case_counts": {
+    "behavior_insights": 4,
+    "daily_reasoning": 4,
+    "intake": 8,
+    "training_summary": 3
+  },
+  "dataset_version": "model-quality-2026-09-04.v1",
+  "evaluated_models": [
+    "qwen3:8b",
+    "llama3.1:8b",
+    "llama3.2:3b"
+  ],
+  "evaluator_version": "model-quality-graders.v1",
+  "generated_at": "2026-09-05T14:24:22.866479+00:00",
+  "prompt_digest": "ec437518f51a",
+  "repeats": 2,
+  "requested_models": [
+    "qwen3:8b",
+    "llama3.1:8b",
+    "llama3.2:3b"
+  ],
+  "results": [
+    {
+      "candidate": "deterministic_fallback",
+      "case_id": "daily.low_recovery_limited_time",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.0,
+      "output": {
+        "confidence_note": "Confidence is 95/100 \u2014 the recommendation is well supported by the inputs.",
+        "factors": [
+          {
+            "explanation": "HRV well below baseline (58%)",
+            "impact": "negative",
+            "title": "Readiness signal"
+          },
+          {
+            "explanation": "Poor sleep (4.0h)",
+            "impact": "negative",
+            "title": "Readiness signal"
+          },
+          {
+            "explanation": "Elevated resting HR (72 bpm)",
+            "impact": "negative",
+            "title": "Readiness signal"
+          },
+          {
+            "explanation": "High self-reported fatigue (Wiped)",
+            "impact": "negative",
+            "title": "Readiness signal"
+          }
+        ],
+        "summary": "Recovery signals are low so today is a rest day: Rest day: light mobility or easy walk only.. Recovery score 44/100.",
+        "tradeoff": "'rest' scored 1.0 vs. 'modify' at 0.1 \u2014 the engine picked the option with the best balance of safety, goal alignment, and feasibility."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "deterministic_fallback",
+      "case_id": "daily.strong_recovery_open_calendar",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.0,
+      "output": {
+        "confidence_note": "Confidence is 53/100 \u2014 a reasonable call, but the runner-up was close.",
+        "factors": [
+          {
+            "explanation": "HRV, sleep, and self-reports within normal range",
+            "impact": "positive",
+            "title": "Readiness signal"
+          }
+        ],
+        "summary": "You're recovered so the plan stays as scheduled: 45 min easy run. Recovery score 96/100.",
+        "tradeoff": "'proceed' scored 1.0 vs. 'modify' at 0.93 \u2014 the engine picked the option with the best balance of safety, goal alignment, and feasibility."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "deterministic_fallback",
+      "case_id": "daily.stale_biometric_data",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.0,
+      "output": {
+        "confidence_note": "Confidence is 38/100. Some inputs are stale, which lowers how strongly the engine trusts today's recommendation.",
+        "factors": [
+          {
+            "explanation": "HRV, sleep, and self-reports within normal range",
+            "impact": "positive",
+            "title": "Readiness signal"
+          },
+          {
+            "explanation": "Recovery data last logged 10 days ago",
+            "impact": "neutral",
+            "title": "Data freshness"
+          }
+        ],
+        "summary": "You're recovered so the plan stays as scheduled: 50 min easy run. Recovery score 95/100.",
+        "tradeoff": "'proceed' scored 1.0 vs. 'modify' at 0.93 \u2014 the engine picked the option with the best balance of safety, goal alignment, and feasibility."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "deterministic_fallback",
+      "case_id": "daily.low_confidence_borderline",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.0,
+      "output": {
+        "confidence_note": "Confidence is 51/100 \u2014 a reasonable call, but the runner-up was close.",
+        "factors": [
+          {
+            "explanation": "HRV below baseline (85%)",
+            "impact": "negative",
+            "title": "Readiness signal"
+          }
+        ],
+        "summary": "You're showing some fatigue so the workout has been adjusted to match: 45 min tempo run (intensity x0.70, duration x0.75) (shortened from 60 min to fit 45 min window). Recovery score 76/100.",
+        "tradeoff": "'modify' scored 0.92 vs. 'rest' at 0.82 \u2014 the engine picked the option with the best balance of safety, goal alignment, and feasibility."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "deterministic_fallback",
+      "case_id": "behavior.sparse_history",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.0,
+      "output": {
+        "patterns": [],
+        "warnings": [
+          "Limited history (3 of at least 5 events needed); insights are preliminary."
+        ]
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "deterministic_fallback",
+      "case_id": "behavior.repeated_rest_overrides",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.0,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "high",
+            "description": "Kinetic recommended rest 6 times; the runner trained anyway on 6 of those days.",
+            "family": "rest_override",
+            "preference_type": "rest_day_preference",
+            "suggested_adjustment": "When suggesting rest, offer a low-intensity alternative instead so the runner has a smaller-step option.",
+            "title": "Frequently overrides recommended rest"
+          }
+        ],
+        "warnings": []
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "deterministic_fallback",
+      "case_id": "behavior.busy_day_skipped",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.0,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "high",
+            "description": "On 5 heavy-calendar days, the runner skipped or rejected the recommendation 5 times.",
+            "family": "heavy_calendar_misses",
+            "preference_type": "busy_day_preference",
+            "suggested_adjustment": "Default to shorter or easier sessions on heavy-calendar days.",
+            "title": "Workouts drop on heavy-calendar days"
+          }
+        ],
+        "warnings": []
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "deterministic_fallback",
+      "case_id": "behavior.mixed_noise",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.0,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "moderate",
+            "description": "The runner completed 2 long runs on Sunday. That day may be a better fit for future long runs.",
+            "family": "long_run_day_preference",
+            "preference_type": "schedule_preference",
+            "suggested_adjustment": "Review preferred training days and include Sunday when spacing allows.",
+            "title": "Long runs land well on Sunday"
+          }
+        ],
+        "warnings": []
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "deterministic_fallback",
+      "case_id": "intake.schedule_and_availability",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.005,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": 35,
+            "day": "thu",
+            "easy_only": false
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [
+          "mon",
+          "thu",
+          "sat"
+        ],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "deterministic_fallback",
+      "case_id": "intake.goal_bundle",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.001,
+      "output": {
+        "availability_changes": [],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": "half",
+        "status": "ready",
+        "target_date": "2026-10-18",
+        "weekly_mileage": 30.0
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "deterministic_fallback",
+      "case_id": "intake.experience",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.0,
+      "output": {
+        "availability_changes": [],
+        "experience_level": "advanced",
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "deterministic_fallback",
+      "case_id": "intake.availability",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.0,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": 40,
+            "day": "tue",
+            "easy_only": false
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "deterministic_fallback",
+      "case_id": "intake.zero_availability",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.0,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": 0,
+            "day": "fri",
+            "easy_only": false
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "deterministic_fallback",
+      "case_id": "intake.easy_only",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.0,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": null,
+            "day": "wed",
+            "easy_only": true
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "deterministic_fallback",
+      "case_id": "intake.ambiguous",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.0,
+      "output": {
+        "availability_changes": [],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "needs_clarification",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "deterministic_fallback",
+      "case_id": "intake.unsupported_recovery",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.0,
+      "output": {
+        "availability_changes": [],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "unsupported",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "deterministic_fallback",
+      "case_id": "summary.weekly_consistent",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.0,
+      "output": {
+        "headline": "80% consistent this week",
+        "highlight": "Recovery was stable across the window.",
+        "next_focus": "Carry the confirmed routine forward without changing the saved plan.",
+        "overview": "You completed 4 of 5 logged sessions for 21 miles."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "training_summary"
+    },
+    {
+      "candidate": "deterministic_fallback",
+      "case_id": "summary.weekly_declining_recovery",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.0,
+      "output": {
+        "headline": "67% consistent this week",
+        "highlight": "Recovery was declining across the window.",
+        "next_focus": "Keep logging outcomes so the next review has more context.",
+        "overview": "You completed 4 of 6 logged sessions for 23 miles."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "training_summary"
+    },
+    {
+      "candidate": "deterministic_fallback",
+      "case_id": "summary.monthly_sparse",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.0,
+      "output": {
+        "headline": "67% consistent this month",
+        "highlight": "Recovery history was too sparse to call a trend.",
+        "next_focus": "Keep logging outcomes so the next review has more context.",
+        "overview": "You completed 2 of 3 logged sessions for 8 miles."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "training_summary"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "daily.low_recovery_limited_time",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 11.93,
+      "output": {
+        "confidence_note": "High confidence in rest day selection based on multiple recovery indicators.",
+        "factors": [
+          {
+            "explanation": "HRV at 58% indicates poor recovery.",
+            "impact": "negative",
+            "title": "HRV below baseline"
+          },
+          {
+            "explanation": "Only 4.0 hours of sleep recorded.",
+            "impact": "negative",
+            "title": "Poor sleep duration"
+          },
+          {
+            "explanation": "Resting heart rate at 72 bpm is higher than normal.",
+            "impact": "negative",
+            "title": "Elevated resting HR"
+          },
+          {
+            "explanation": "Runner reported feeling wiped.",
+            "impact": "negative",
+            "title": "High self-reported fatigue"
+          }
+        ],
+        "summary": "Rest day selected due to multiple recovery indicators.",
+        "tradeoff": "Rest day limits training volume but prioritizes recovery."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "daily.strong_recovery_open_calendar",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 9.596,
+      "output": {
+        "confidence_note": "Confidence in the decision is moderate, suggesting some uncertainty in recovery status.",
+        "factors": [
+          {
+            "explanation": "Recovery score is high, indicating readiness for light activity.",
+            "impact": "positive",
+            "title": "Recovery Status"
+          },
+          {
+            "explanation": "HRV, sleep, and self-reports are within normal ranges.",
+            "impact": "positive",
+            "title": "Biometric Norms"
+          }
+        ],
+        "summary": "The runner is recovered and ready for a 45-minute easy run.",
+        "tradeoff": "A longer run could risk overtraining, so a shorter, easier session is chosen."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "daily.stale_biometric_data",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 8.615,
+      "output": {
+        "confidence_note": "Confidence in the decision is moderate due to outdated recovery data.",
+        "factors": [
+          {
+            "explanation": "HRV, sleep, and self-reports are within normal range.",
+            "impact": "positive",
+            "title": "Recovery Metrics"
+          },
+          {
+            "explanation": "Recovery data last logged 10 days ago.",
+            "impact": "negative",
+            "title": "Recovery Data"
+          }
+        ],
+        "summary": "The runner is recovered and can proceed with an easy run.",
+        "tradeoff": "Proceeding with the run despite stale recovery data to maintain consistency."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "daily.low_confidence_borderline",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 11.316,
+      "output": {
+        "confidence_note": "Confidence in decision is moderate due to limited recovery data.",
+        "factors": [
+          {
+            "explanation": "HRV is 85% of baseline, indicating reduced recovery readiness.",
+            "impact": "negative",
+            "title": "Low HRV"
+          },
+          {
+            "explanation": "Fatigue level is high, requiring a less intense workout.",
+            "impact": "negative",
+            "title": "Fatigue State"
+          },
+          {
+            "explanation": "Only 45 minutes available, so duration was shortened.",
+            "impact": "neutral",
+            "title": "Time Constraint"
+          }
+        ],
+        "summary": "A modified tempo run was selected due to fatigue and low HRV.",
+        "tradeoff": "Reduced intensity and duration may limit aerobic development but prioritizes recovery."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "intake.schedule_and_availability",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 3.391,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": 35,
+            "day": "thu",
+            "easy_only": false
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [
+          "mon",
+          "thu",
+          "sat"
+        ],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "intake.goal_bundle",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 2.12,
+      "output": {
+        "availability_changes": [],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": "half",
+        "status": "ready",
+        "target_date": "2026-10-18",
+        "weekly_mileage": 30.0
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "intake.experience",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.828,
+      "output": {
+        "availability_changes": [],
+        "experience_level": "advanced",
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "intake.availability",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 1.615,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": 40,
+            "day": "tue",
+            "easy_only": false
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "intake.zero_availability",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 1.817,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": 0,
+            "day": "fri",
+            "easy_only": false
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "intake.easy_only",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 1.592,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": null,
+            "day": "wed",
+            "easy_only": true
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "intake.ambiguous",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.729,
+      "output": {
+        "availability_changes": [],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "needs_clarification",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "intake.unsupported_recovery",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.558,
+      "output": {
+        "availability_changes": [],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "unsupported",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "behavior.sparse_history",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 5.816,
+      "output": {
+        "patterns": [],
+        "warnings": [
+          "Limited history: only 3 events analyzed. All patterns would have low confidence."
+        ]
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "behavior.repeated_rest_overrides",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 9.256,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "high",
+            "description": "The runner consistently rejects rest recommendations and completes rest days as workouts, indicating a pattern of overriding rest suggestions.",
+            "family": "rest_override",
+            "preference_type": "rest_day_preference",
+            "suggested_adjustment": "Consider adjusting rest recommendations to better align with the runner's preferences or exploring potential overtraining risks.",
+            "title": "Repeatedly overriding rest recommendations"
+          }
+        ],
+        "warnings": []
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "behavior.busy_day_skipped",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 10.454,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "high",
+            "description": "The runner consistently skips or rejects recommended workouts on days with heavy calendar load.",
+            "family": "heavy_calendar_misses",
+            "preference_type": "busy_day_preference",
+            "suggested_adjustment": "Consider adjusting the workout schedule or intensity on heavy calendar days to align better with the runner's availability and capacity.",
+            "title": "Skipping Recommended Workouts on Heavy Calendar Days"
+          }
+        ],
+        "warnings": []
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "behavior.mixed_noise",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 12.079,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "high",
+            "description": "The runner has completed long runs on Sundays, indicating a preference for running long distances on that day of the week.",
+            "family": "long_run_day_preference",
+            "preference_type": "schedule_preference",
+            "suggested_adjustment": "Consider scheduling long runs on Sundays to align with the runner's established preference.",
+            "title": "Long Runs Concentrate on Sunday"
+          }
+        ],
+        "warnings": []
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "summary.weekly_consistent",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 6.543,
+      "output": {
+        "headline": "Completed 4 sessions, logged 5, total miles 21.0, recovery trend stable",
+        "highlight": "Prefer long runs on Saturday",
+        "next_focus": "Maintain consistency and recovery stability",
+        "overview": "Weekly training period from 2026-08-25 to 2026-08-31 shows stable recovery with 80% consistency."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "training_summary"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "summary.weekly_declining_recovery",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 6.907,
+      "output": {
+        "headline": "Completed 4 sessions, logged 6, total miles 23.0, recovery trend declining",
+        "highlight": "Average effort 6.2, average recovery 0.7, consistency 67%.",
+        "next_focus": "Review recovery strategies due to declining trend in recovery metrics.",
+        "overview": "Weekly training period from 2026-08-25 to 2026-08-31 shows declining recovery trend."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "training_summary"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "summary.monthly_sparse",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 5.741,
+      "output": {
+        "headline": "Training session review complete",
+        "highlight": "Monthly window from 2026-08-02 to 2026-08-31",
+        "next_focus": "Review recovery trend and session consistency for improvement opportunities.",
+        "overview": "Completed 2 sessions, logged 3, total miles 8.0, recovery trend unknown."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "training_summary"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "daily.low_recovery_limited_time",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 12.333,
+      "output": {
+        "confidence_note": "High confidence in rest day selection based on multiple recovery indicators.",
+        "factors": [
+          {
+            "explanation": "HRV at 58% indicates poor recovery.",
+            "impact": "negative",
+            "title": "HRV below baseline"
+          },
+          {
+            "explanation": "Only 4.0 hours of sleep recorded.",
+            "impact": "negative",
+            "title": "Poor sleep duration"
+          },
+          {
+            "explanation": "Resting heart rate at 72 bpm is higher than normal.",
+            "impact": "negative",
+            "title": "Elevated resting HR"
+          },
+          {
+            "explanation": "Runner reported feeling wiped.",
+            "impact": "negative",
+            "title": "High self-reported fatigue"
+          }
+        ],
+        "summary": "Rest day selected due to multiple recovery indicators.",
+        "tradeoff": "Rest day limits training volume but prioritizes recovery."
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "daily.strong_recovery_open_calendar",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 9.632,
+      "output": {
+        "confidence_note": "Confidence in the decision is moderate, suggesting some uncertainty in recovery status.",
+        "factors": [
+          {
+            "explanation": "Recovery score is high, indicating readiness for light activity.",
+            "impact": "positive",
+            "title": "Recovery Status"
+          },
+          {
+            "explanation": "HRV, sleep, and self-reports are within normal ranges.",
+            "impact": "positive",
+            "title": "Biometric Norms"
+          }
+        ],
+        "summary": "The runner is recovered and ready for a 45-minute easy run.",
+        "tradeoff": "A longer run could risk overtraining, so a shorter, easier session is chosen."
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "daily.stale_biometric_data",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 9.341,
+      "output": {
+        "confidence_note": "Confidence in the decision is moderate due to outdated recovery data.",
+        "factors": [
+          {
+            "explanation": "HRV, sleep, and self-reports are within normal range.",
+            "impact": "positive",
+            "title": "Recovery Metrics"
+          },
+          {
+            "explanation": "Recovery data last logged 10 days ago.",
+            "impact": "negative",
+            "title": "Recovery Data"
+          }
+        ],
+        "summary": "The runner is recovered and can proceed with an easy run.",
+        "tradeoff": "Proceeding with the run despite stale recovery data to maintain consistency."
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "daily.low_confidence_borderline",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 12.428,
+      "output": {
+        "confidence_note": "Confidence in decision is moderate due to limited recovery data.",
+        "factors": [
+          {
+            "explanation": "HRV is 85% of baseline, indicating reduced recovery readiness.",
+            "impact": "negative",
+            "title": "Low HRV"
+          },
+          {
+            "explanation": "Fatigue level is high, requiring a less intense workout.",
+            "impact": "negative",
+            "title": "Fatigue State"
+          },
+          {
+            "explanation": "Only 45 minutes available, so duration was shortened.",
+            "impact": "neutral",
+            "title": "Time Constraint"
+          }
+        ],
+        "summary": "A modified tempo run was selected due to fatigue and low HRV.",
+        "tradeoff": "Reduced intensity and duration may limit aerobic development but prioritizes recovery."
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "intake.schedule_and_availability",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 2.57,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": 35,
+            "day": "thu",
+            "easy_only": false
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [
+          "mon",
+          "thu",
+          "sat"
+        ],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "intake.goal_bundle",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 2.864,
+      "output": {
+        "availability_changes": [],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": "half",
+        "status": "ready",
+        "target_date": "2026-10-18",
+        "weekly_mileage": 30.0
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "intake.experience",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 1.035,
+      "output": {
+        "availability_changes": [],
+        "experience_level": "advanced",
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "intake.availability",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 1.57,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": 40,
+            "day": "tue",
+            "easy_only": false
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "intake.zero_availability",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 1.718,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": 0,
+            "day": "fri",
+            "easy_only": false
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "intake.easy_only",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 1.723,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": null,
+            "day": "wed",
+            "easy_only": true
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "intake.ambiguous",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.849,
+      "output": {
+        "availability_changes": [],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "needs_clarification",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "intake.unsupported_recovery",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.65,
+      "output": {
+        "availability_changes": [],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "unsupported",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "behavior.sparse_history",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 3.883,
+      "output": {
+        "patterns": [],
+        "warnings": [
+          "Limited history: only 3 events analyzed. All patterns would have low confidence."
+        ]
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "behavior.repeated_rest_overrides",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 9.284,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "high",
+            "description": "The runner consistently rejects rest recommendations and completes rest days as workouts, indicating a pattern of overriding rest suggestions.",
+            "family": "rest_override",
+            "preference_type": "rest_day_preference",
+            "suggested_adjustment": "Consider adjusting rest recommendations to better align with the runner's preferences or exploring potential overtraining risks.",
+            "title": "Repeatedly overriding rest recommendations"
+          }
+        ],
+        "warnings": []
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "behavior.busy_day_skipped",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 7.648,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "high",
+            "description": "The runner consistently skips or rejects recommended workouts on days with heavy calendar load.",
+            "family": "heavy_calendar_misses",
+            "preference_type": "busy_day_preference",
+            "suggested_adjustment": "Consider adjusting the workout schedule or intensity on heavy calendar days to align better with the runner's availability and capacity.",
+            "title": "Skipping Recommended Workouts on Heavy Calendar Days"
+          }
+        ],
+        "warnings": []
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "behavior.mixed_noise",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 7.823,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "high",
+            "description": "The runner has completed long runs on Sundays, indicating a preference for running long distances on that day of the week.",
+            "family": "long_run_day_preference",
+            "preference_type": "schedule_preference",
+            "suggested_adjustment": "Consider scheduling long runs on Sundays to align with the runner's established preference.",
+            "title": "Long Runs Concentrate on Sunday"
+          }
+        ],
+        "warnings": []
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "summary.weekly_consistent",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 6.081,
+      "output": {
+        "headline": "Completed 4 sessions, logged 5, total miles 21.0, recovery trend stable",
+        "highlight": "Prefer long runs on Saturday",
+        "next_focus": "Maintain consistency and recovery stability",
+        "overview": "Weekly training period from 2026-08-25 to 2026-08-31 shows stable recovery with 80% consistency."
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "training_summary"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "summary.weekly_declining_recovery",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 6.437,
+      "output": {
+        "headline": "Completed 4 sessions, logged 6, total miles 23.0, recovery trend declining",
+        "highlight": "Average effort 6.2, average recovery 0.7, consistency 67%.",
+        "next_focus": "Review recovery strategies due to declining trend in recovery metrics.",
+        "overview": "Weekly training period from 2026-08-25 to 2026-08-31 shows declining recovery trend."
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "training_summary"
+    },
+    {
+      "candidate": "qwen3:8b",
+      "case_id": "summary.monthly_sparse",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 6.057,
+      "output": {
+        "headline": "Training session review complete",
+        "highlight": "Monthly window from 2026-08-02 to 2026-08-31",
+        "next_focus": "Review recovery trend and session consistency for improvement opportunities.",
+        "overview": "Completed 2 sessions, logged 3, total miles 8.0, recovery trend unknown."
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "training_summary"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "daily.low_recovery_limited_time",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 17.92,
+      "output": {
+        "confidence_note": "The system is highly confident in this decision, with a confidence score of 0.951.",
+        "factors": [
+          {
+            "explanation": "Your heart rate variability is lower than usual, indicating stress.",
+            "impact": "negative",
+            "title": "HRV Below Baseline"
+          },
+          {
+            "explanation": "You got only 4 hours of sleep, which can affect recovery.",
+            "impact": "negative",
+            "title": "Poor Sleep"
+          },
+          {
+            "explanation": "Your resting heart rate is higher than normal, indicating stress.",
+            "impact": "negative",
+            "title": "Elevated Resting HR"
+          },
+          {
+            "explanation": "You reported feeling extremely fatigued, which can impact performance.",
+            "impact": "negative",
+            "title": "High Fatigue"
+          },
+          {
+            "explanation": "You reported high levels of soreness, which can slow recovery.",
+            "impact": "negative",
+            "title": "High Soreness"
+          }
+        ],
+        "summary": "Today's workout is a rest day due to fatigue and soreness.",
+        "tradeoff": "Taking a rest day today will allow for recovery, but may impact overall training progress."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "daily.strong_recovery_open_calendar",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 9.15,
+      "output": {
+        "confidence_note": "The system has moderate confidence in this decision (0.534).",
+        "factors": [
+          {
+            "explanation": "Your recovery score is 0.962, indicating good recovery.",
+            "impact": "positive",
+            "title": "Recovery Score"
+          },
+          {
+            "explanation": "You have 90 minutes available for your workout.",
+            "impact": "neutral",
+            "title": "Available Time"
+          }
+        ],
+        "summary": "You're cleared for a 45-minute easy run, as your recovery is good and you have enough time.",
+        "tradeoff": "No tradeoff was made, as your recovery is good and you have enough time."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "daily.stale_biometric_data",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 8.674,
+      "output": {
+        "confidence_note": "The system has a moderate level of confidence in this decision.",
+        "factors": [
+          {
+            "explanation": "Your HRV, sleep, and self-reports are within normal range.",
+            "impact": "positive",
+            "title": "Recovery Data"
+          },
+          {
+            "explanation": "Your recovery data last logged 10 days ago.",
+            "impact": "negative",
+            "title": "Staleness Warnings"
+          }
+        ],
+        "summary": "You're cleared for a 50 min easy run, but your recovery data is a bit outdated.",
+        "tradeoff": "You're prioritizing the current workout over updating your recovery data."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "daily.low_confidence_borderline",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 12.686,
+      "output": {
+        "confidence_note": "The system has moderate confidence in this decision (0.51).",
+        "factors": [
+          {
+            "explanation": "You are currently fatigued, which affects your performance and recovery.",
+            "impact": "negative",
+            "title": "Current Fatigue Level"
+          },
+          {
+            "explanation": "Your recovery score is 0.756, indicating some recovery but still room for improvement.",
+            "impact": "neutral",
+            "title": "Recovery Score"
+          },
+          {
+            "explanation": "Your heart rate variability is below baseline, indicating stress or fatigue.",
+            "impact": "negative",
+            "title": "HRV Below Baseline"
+          }
+        ],
+        "summary": "Today's workout is a 45 min tempo run, modified to match your current readiness.",
+        "tradeoff": "Reducing intensity and shortening duration to match current readiness may compromise some fitness gains, but prioritizes recovery and safety."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "intake.schedule_and_availability",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 3.107,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": 35,
+            "day": "thu",
+            "easy_only": false
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [
+          "mon",
+          "thu",
+          "sat"
+        ],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "intake.goal_bundle",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 1.763,
+      "output": {
+        "availability_changes": [],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": "half",
+        "status": "ready",
+        "target_date": "2026-10-18",
+        "weekly_mileage": 30.0
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "intake.experience",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.84,
+      "output": {
+        "availability_changes": [],
+        "experience_level": "advanced",
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "intake.availability",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 1.32,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": 40,
+            "day": "tue",
+            "easy_only": false
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "intake.zero_availability",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 1.328,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": 0,
+            "day": "fri",
+            "easy_only": false
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "intake.easy_only",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 1.615,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": null,
+            "day": "wed",
+            "easy_only": true
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "intake.ambiguous",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.705,
+      "output": {
+        "availability_changes": [],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "needs_clarification",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "intake.unsupported_recovery",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.58,
+      "output": {
+        "availability_changes": [],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "unsupported",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "behavior.sparse_history",
+      "error": null,
+      "grounded": false,
+      "latency_seconds": 9.138,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "low",
+            "description": "No rest recommendations were overridden.",
+            "family": "rest_override",
+            "preference_type": "none",
+            "suggested_adjustment": "Consider adjusting rest recommendations.",
+            "title": "No rest override observed"
+          }
+        ],
+        "warnings": [
+          "Limited history, patterns may not be representative."
+        ]
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 0.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "behavior.repeated_rest_overrides",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 7.527,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "high",
+            "description": "The user has consistently rejected rest days.",
+            "family": "rest_override",
+            "preference_type": "rest_day_preference",
+            "suggested_adjustment": "Consider adjusting rest day recommendations.",
+            "title": "Consistent Rest Day Rejection"
+          }
+        ],
+        "warnings": []
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "behavior.busy_day_skipped",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 9.362,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "high",
+            "description": "Runner tends to skip or reject workouts on heavy calendar days.",
+            "family": "heavy_calendar_misses",
+            "preference_type": "busy_day_preference",
+            "suggested_adjustment": "Consider adjusting training plan to accommodate heavy calendar days.",
+            "title": "Heavy Calendar Misses"
+          }
+        ],
+        "warnings": []
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "behavior.mixed_noise",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 11.868,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "moderate",
+            "description": "Runner tends to complete long runs on Sundays.",
+            "family": "long_run_day_preference",
+            "preference_type": "schedule_preference",
+            "suggested_adjustment": "Consider adjusting long run days to avoid burnout.",
+            "title": "Long Run Day Preference"
+          }
+        ],
+        "warnings": []
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "summary.weekly_consistent",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 3.808,
+      "output": {
+        "headline": "Weekly Review",
+        "highlight": "80% consistency",
+        "next_focus": "None",
+        "overview": "Completed 4 sessions, logged 5, with 21 miles and stable recovery."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "training_summary"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "summary.weekly_declining_recovery",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 3.483,
+      "output": {
+        "headline": "Weekly Review",
+        "highlight": "67% consistency",
+        "next_focus": "None",
+        "overview": "Completed 4 sessions, logged 6, with 23 miles and declining recovery."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "training_summary"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "summary.monthly_sparse",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 3.285,
+      "output": {
+        "headline": "Monthly Review",
+        "highlight": "67% consistency",
+        "next_focus": "None",
+        "overview": "Completed 2 sessions, logged 3, with 8 miles and 79 minutes of effort."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 0.75,
+      "workload": "training_summary"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "daily.low_recovery_limited_time",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 16.424,
+      "output": {
+        "confidence_note": "The system is highly confident in this decision, with a confidence score of 0.951.",
+        "factors": [
+          {
+            "explanation": "Your heart rate variability is lower than usual, indicating stress.",
+            "impact": "negative",
+            "title": "HRV Below Baseline"
+          },
+          {
+            "explanation": "You got only 4 hours of sleep, which can affect recovery.",
+            "impact": "negative",
+            "title": "Poor Sleep"
+          },
+          {
+            "explanation": "Your resting heart rate is higher than normal, indicating stress.",
+            "impact": "negative",
+            "title": "Elevated Resting HR"
+          },
+          {
+            "explanation": "You reported feeling extremely fatigued, which can impact performance.",
+            "impact": "negative",
+            "title": "High Fatigue"
+          },
+          {
+            "explanation": "You reported high levels of soreness, which can slow recovery.",
+            "impact": "negative",
+            "title": "High Soreness"
+          }
+        ],
+        "summary": "Today's workout is a rest day due to fatigue and soreness.",
+        "tradeoff": "Taking a rest day today will allow for recovery, but may impact overall training progress."
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "daily.strong_recovery_open_calendar",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 9.023,
+      "output": {
+        "confidence_note": "The system has moderate confidence in this decision (0.534).",
+        "factors": [
+          {
+            "explanation": "Your recovery score is 0.962, indicating good recovery.",
+            "impact": "positive",
+            "title": "Recovery Score"
+          },
+          {
+            "explanation": "You have 90 minutes available for your workout.",
+            "impact": "neutral",
+            "title": "Available Time"
+          }
+        ],
+        "summary": "You're cleared for a 45-minute easy run, as your recovery is good and you have enough time.",
+        "tradeoff": "No tradeoff was made, as your recovery is good and you have enough time."
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "daily.stale_biometric_data",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 8.92,
+      "output": {
+        "confidence_note": "The system has a moderate level of confidence in this decision.",
+        "factors": [
+          {
+            "explanation": "Your HRV, sleep, and self-reports are within normal range.",
+            "impact": "positive",
+            "title": "Recovery Data"
+          },
+          {
+            "explanation": "Your recovery data last logged 10 days ago.",
+            "impact": "negative",
+            "title": "Staleness Warnings"
+          }
+        ],
+        "summary": "You're cleared for a 50 min easy run, but your recovery data is a bit outdated.",
+        "tradeoff": "You're prioritizing the current workout over updating your recovery data."
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "daily.low_confidence_borderline",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 12.636,
+      "output": {
+        "confidence_note": "The system has moderate confidence in this decision (0.51).",
+        "factors": [
+          {
+            "explanation": "You are currently fatigued, which affects your performance and recovery.",
+            "impact": "negative",
+            "title": "Current Fatigue Level"
+          },
+          {
+            "explanation": "Your recovery score is 0.756, indicating some recovery but still room for improvement.",
+            "impact": "neutral",
+            "title": "Recovery Score"
+          },
+          {
+            "explanation": "Your heart rate variability is below baseline, indicating stress or fatigue.",
+            "impact": "negative",
+            "title": "HRV Below Baseline"
+          }
+        ],
+        "summary": "Today's workout is a 45 min tempo run, modified to match your current readiness.",
+        "tradeoff": "Reducing intensity and shortening duration to match current readiness may compromise some fitness gains, but prioritizes recovery and safety."
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "intake.schedule_and_availability",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 1.986,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": 35,
+            "day": "thu",
+            "easy_only": false
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [
+          "mon",
+          "thu",
+          "sat"
+        ],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "intake.goal_bundle",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 1.726,
+      "output": {
+        "availability_changes": [],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": "half",
+        "status": "ready",
+        "target_date": "2026-10-18",
+        "weekly_mileage": 30.0
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "intake.experience",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.803,
+      "output": {
+        "availability_changes": [],
+        "experience_level": "advanced",
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "intake.availability",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 1.293,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": 40,
+            "day": "tue",
+            "easy_only": false
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "intake.zero_availability",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 1.283,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": 0,
+            "day": "fri",
+            "easy_only": false
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "intake.easy_only",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 1.529,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": null,
+            "day": "wed",
+            "easy_only": true
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "intake.ambiguous",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.693,
+      "output": {
+        "availability_changes": [],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "needs_clarification",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "intake.unsupported_recovery",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.554,
+      "output": {
+        "availability_changes": [],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "unsupported",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "behavior.sparse_history",
+      "error": null,
+      "grounded": false,
+      "latency_seconds": 6.83,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "low",
+            "description": "No rest recommendations were overridden.",
+            "family": "rest_override",
+            "preference_type": "none",
+            "suggested_adjustment": "Consider adjusting rest recommendations.",
+            "title": "No rest override observed"
+          }
+        ],
+        "warnings": [
+          "Limited history, patterns may not be representative."
+        ]
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 0.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "behavior.repeated_rest_overrides",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 7.246,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "high",
+            "description": "The user has consistently rejected rest days.",
+            "family": "rest_override",
+            "preference_type": "rest_day_preference",
+            "suggested_adjustment": "Consider adjusting rest day recommendations.",
+            "title": "Consistent Rest Day Rejection"
+          }
+        ],
+        "warnings": []
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "behavior.busy_day_skipped",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 5.33,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "high",
+            "description": "Runner tends to skip or reject workouts on heavy calendar days.",
+            "family": "heavy_calendar_misses",
+            "preference_type": "busy_day_preference",
+            "suggested_adjustment": "Consider adjusting training plan to accommodate heavy calendar days.",
+            "title": "Heavy Calendar Misses"
+          }
+        ],
+        "warnings": []
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "behavior.mixed_noise",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 5.256,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "moderate",
+            "description": "Runner tends to complete long runs on Sundays.",
+            "family": "long_run_day_preference",
+            "preference_type": "schedule_preference",
+            "suggested_adjustment": "Consider adjusting long run days to avoid burnout.",
+            "title": "Long Run Day Preference"
+          }
+        ],
+        "warnings": []
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "summary.weekly_consistent",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 3.448,
+      "output": {
+        "headline": "Weekly Review",
+        "highlight": "80% consistency",
+        "next_focus": "None",
+        "overview": "Completed 4 sessions, logged 5, with 21 miles and stable recovery."
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "training_summary"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "summary.weekly_declining_recovery",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 3.096,
+      "output": {
+        "headline": "Weekly Review",
+        "highlight": "67% consistency",
+        "next_focus": "None",
+        "overview": "Completed 4 sessions, logged 6, with 23 miles and declining recovery."
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "training_summary"
+    },
+    {
+      "candidate": "llama3.1:8b",
+      "case_id": "summary.monthly_sparse",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 3.059,
+      "output": {
+        "headline": "Monthly Review",
+        "highlight": "67% consistency",
+        "next_focus": "None",
+        "overview": "Completed 2 sessions, logged 3, with 8 miles and 79 minutes of effort."
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 0.75,
+      "workload": "training_summary"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "daily.low_recovery_limited_time",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 6.398,
+      "output": {
+        "confidence_note": "Low confidence in ability to recover and perform well on next workout.",
+        "factors": [
+          {
+            "explanation": "High self-reported fatigue indicates need for rest.",
+            "impact": "negative",
+            "title": "Fatigue Level"
+          },
+          {
+            "explanation": "High self-reported soreness suggests need for recovery.",
+            "impact": "negative",
+            "title": "Soreness Level"
+          },
+          {
+            "explanation": "HRV well below baseline indicates poor recovery readiness.",
+            "impact": "negative",
+            "title": "HRV"
+          },
+          {
+            "explanation": "Poor sleep quality may contribute to fatigue and soreness.",
+            "impact": "negative",
+            "title": "Sleep Quality"
+          }
+        ],
+        "summary": "Rest day recommended due to fatigue and soreness, with low confidence in ability to recover.",
+        "tradeoff": "Prioritizing rest may impact training progress, but ensures recovery."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "daily.strong_recovery_open_calendar",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 4.599,
+      "output": {
+        "confidence_note": "Moderate confidence in the decision, as recovery score is high but not extremely high.",
+        "factors": [
+          {
+            "explanation": "Within normal range, indicating readiness for exercise.",
+            "impact": "positive",
+            "title": "HRV, sleep, and self-reports"
+          },
+          {
+            "explanation": "High score (0.962) suggests readiness for exercise.",
+            "impact": "positive",
+            "title": "Recovery score"
+          }
+        ],
+        "summary": "Proceed with 45 min easy run based on normal biometric and self-reported data.",
+        "tradeoff": "No significant tradeoff noted, as all factors are within normal ranges."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "daily.stale_biometric_data",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 4.842,
+      "output": {
+        "confidence_note": "Moderate confidence in recovery data and selected action.",
+        "factors": [
+          {
+            "explanation": "Recovery data from 10 days ago is within normal range.",
+            "impact": "positive",
+            "title": "Recovery Data"
+          },
+          {
+            "explanation": "HRV and sleep data are within normal range.",
+            "impact": "positive",
+            "title": "HRV and Sleep"
+          },
+          {
+            "explanation": "Self-reports are within normal range.",
+            "impact": "positive",
+            "title": "Self-Reports"
+          }
+        ],
+        "summary": "Proceed with 50 min easy run based on normal recovery data.",
+        "tradeoff": "No significant tradeoff noted, proceeding with planned workout."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "daily.low_confidence_borderline",
+      "error": null,
+      "grounded": false,
+      "latency_seconds": 4.868,
+      "output": null,
+      "repeat": 1,
+      "safe": false,
+      "schema_valid": false,
+      "task_score": 0.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "intake.schedule_and_availability",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 1.285,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": 35,
+            "day": "thu",
+            "easy_only": false
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [
+          "mon",
+          "thu",
+          "sat"
+        ],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "intake.goal_bundle",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.787,
+      "output": {
+        "availability_changes": [],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": "half",
+        "status": "ready",
+        "target_date": "2026-10-18",
+        "weekly_mileage": 30.0
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "intake.experience",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.348,
+      "output": {
+        "availability_changes": [],
+        "experience_level": "advanced",
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "intake.availability",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.588,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": 40,
+            "day": "tue",
+            "easy_only": false
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "intake.zero_availability",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.588,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": 0,
+            "day": "fri",
+            "easy_only": false
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "intake.easy_only",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.702,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": null,
+            "day": "wed",
+            "easy_only": true
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "intake.ambiguous",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.317,
+      "output": {
+        "availability_changes": [],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "needs_clarification",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "intake.unsupported_recovery",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.231,
+      "output": {
+        "availability_changes": [],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "unsupported",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "behavior.sparse_history",
+      "error": null,
+      "grounded": false,
+      "latency_seconds": 3.531,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "low",
+            "description": "",
+            "family": "long_run_day_preference",
+            "preference_type": "schedule_preference",
+            "suggested_adjustment": "",
+            "title": "Long Run Day Preference"
+          }
+        ],
+        "warnings": [
+          "Limited history, consider adding more data."
+        ]
+      },
+      "repeat": 1,
+      "safe": false,
+      "schema_valid": false,
+      "task_score": 0.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "behavior.repeated_rest_overrides",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 3.375,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "high",
+            "description": "Runner consistently overrides rest recommendations.",
+            "family": "rest_override",
+            "preference_type": "rest_day_preference",
+            "suggested_adjustment": "Consider adjusting the rest recommendation frequency.",
+            "title": "Consistent Rest Override"
+          }
+        ],
+        "warnings": [
+          "Limited history (only 6 events)"
+        ]
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "behavior.busy_day_skipped",
+      "error": null,
+      "grounded": false,
+      "latency_seconds": 5.74,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "moderate",
+            "family": "heavy_calendar_misses",
+            "preference_type": "busy_day_preference",
+            "suggested_adjustment": "Consider adjusting the workout schedule to avoid heavy calendar days",
+            "title": "Heavy Calendar Misses"
+          },
+          {
+            "confidence": "moderate",
+            "family": "heavy_calendar_misses",
+            "preference_type": "busy_day_preference",
+            "suggested_adjustment": "Consider adjusting the workout schedule to avoid heavy calendar days",
+            "title": "Heavy Calendar Misses"
+          }
+        ],
+        "warnings": [
+          "Limited history, consider adding more events to improve pattern accuracy"
+        ]
+      },
+      "repeat": 1,
+      "safe": false,
+      "schema_valid": false,
+      "task_score": 0.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "behavior.mixed_noise",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 4.808,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "moderate",
+            "description": "Long runs are completed on Sundays",
+            "family": "long_run_day_preference",
+            "preference_type": "schedule_preference",
+            "suggested_adjustment": "Consider adjusting long run schedule",
+            "title": "Long runs on Sundays"
+          }
+        ],
+        "warnings": [
+          "Limited history, consider more data for accurate insights"
+        ]
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "summary.weekly_consistent",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 1.366,
+      "output": {
+        "headline": "Training Review",
+        "highlight": "80% consistency",
+        "next_focus": "None",
+        "overview": "Completed 5 sessions, 21 miles, stable recovery"
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 0.5,
+      "workload": "training_summary"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "summary.weekly_declining_recovery",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 1.72,
+      "output": {
+        "headline": "Training Review",
+        "highlight": "Average recovery: 0.7, Consistency: 67%.",
+        "next_focus": "Recovery trend: Declining.",
+        "overview": "Completed 4 sessions, 6 logged, 2 missed."
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 0.75,
+      "workload": "training_summary"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "summary.monthly_sparse",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 1.399,
+      "output": {
+        "headline": "Training Review",
+        "highlight": "Average recovery trend: unknown",
+        "next_focus": "Monitor recovery trend",
+        "overview": "2 completed, 3 logged, 1 missed"
+      },
+      "repeat": 1,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 0.75,
+      "workload": "training_summary"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "daily.low_recovery_limited_time",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 6.11,
+      "output": {
+        "confidence_note": "Low confidence in ability to recover and perform well on next workout.",
+        "factors": [
+          {
+            "explanation": "High self-reported fatigue indicates need for rest.",
+            "impact": "negative",
+            "title": "Fatigue Level"
+          },
+          {
+            "explanation": "High self-reported soreness suggests need for recovery.",
+            "impact": "negative",
+            "title": "Soreness Level"
+          },
+          {
+            "explanation": "HRV well below baseline indicates poor recovery readiness.",
+            "impact": "negative",
+            "title": "HRV"
+          },
+          {
+            "explanation": "Poor sleep quality may contribute to fatigue and soreness.",
+            "impact": "negative",
+            "title": "Sleep Quality"
+          }
+        ],
+        "summary": "Rest day recommended due to fatigue and soreness, with low confidence in ability to recover.",
+        "tradeoff": "Prioritizing rest may impact training progress, but ensures recovery."
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "daily.strong_recovery_open_calendar",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 4.569,
+      "output": {
+        "confidence_note": "Moderate confidence in the decision, as recovery score is high but not extremely high.",
+        "factors": [
+          {
+            "explanation": "Within normal range, indicating readiness for exercise.",
+            "impact": "positive",
+            "title": "HRV, sleep, and self-reports"
+          },
+          {
+            "explanation": "High score (0.962) suggests readiness for exercise.",
+            "impact": "positive",
+            "title": "Recovery score"
+          }
+        ],
+        "summary": "Proceed with 45 min easy run based on normal biometric and self-reported data.",
+        "tradeoff": "No significant tradeoff noted, as all factors are within normal ranges."
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "daily.stale_biometric_data",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 4.965,
+      "output": {
+        "confidence_note": "Moderate confidence in recovery data and selected action.",
+        "factors": [
+          {
+            "explanation": "Recovery data from 10 days ago is within normal range.",
+            "impact": "positive",
+            "title": "Recovery Data"
+          },
+          {
+            "explanation": "HRV and sleep data are within normal range.",
+            "impact": "positive",
+            "title": "HRV and Sleep"
+          },
+          {
+            "explanation": "Self-reports are within normal range.",
+            "impact": "positive",
+            "title": "Self-Reports"
+          }
+        ],
+        "summary": "Proceed with 50 min easy run based on normal recovery data.",
+        "tradeoff": "No significant tradeoff noted, proceeding with planned workout."
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "daily.low_confidence_borderline",
+      "error": null,
+      "grounded": false,
+      "latency_seconds": 4.752,
+      "output": null,
+      "repeat": 2,
+      "safe": false,
+      "schema_valid": false,
+      "task_score": 0.0,
+      "workload": "daily_reasoning"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "intake.schedule_and_availability",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.956,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": 35,
+            "day": "thu",
+            "easy_only": false
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [
+          "mon",
+          "thu",
+          "sat"
+        ],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "intake.goal_bundle",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.823,
+      "output": {
+        "availability_changes": [],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": "half",
+        "status": "ready",
+        "target_date": "2026-10-18",
+        "weekly_mileage": 30.0
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "intake.experience",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.349,
+      "output": {
+        "availability_changes": [],
+        "experience_level": "advanced",
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "intake.availability",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.583,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": 40,
+            "day": "tue",
+            "easy_only": false
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "intake.zero_availability",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.578,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": 0,
+            "day": "fri",
+            "easy_only": false
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "intake.easy_only",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.693,
+      "output": {
+        "availability_changes": [
+          {
+            "available_minutes": null,
+            "day": "wed",
+            "easy_only": true
+          }
+        ],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "ready",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "intake.ambiguous",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.307,
+      "output": {
+        "availability_changes": [],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "needs_clarification",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "intake.unsupported_recovery",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 0.27,
+      "output": {
+        "availability_changes": [],
+        "experience_level": null,
+        "preferred_training_days": [],
+        "race_distance": null,
+        "status": "unsupported",
+        "target_date": null,
+        "weekly_mileage": null
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "intake"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "behavior.sparse_history",
+      "error": null,
+      "grounded": false,
+      "latency_seconds": 3.089,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "low",
+            "description": "",
+            "family": "long_run_day_preference",
+            "preference_type": "schedule_preference",
+            "suggested_adjustment": "",
+            "title": "Long Run Day Preference"
+          }
+        ],
+        "warnings": [
+          "Limited history, consider adding more data."
+        ]
+      },
+      "repeat": 2,
+      "safe": false,
+      "schema_valid": false,
+      "task_score": 0.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "behavior.repeated_rest_overrides",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 3.626,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "high",
+            "description": "Runner consistently overrides rest recommendations.",
+            "family": "rest_override",
+            "preference_type": "rest_day_preference",
+            "suggested_adjustment": "Consider adjusting the rest recommendation frequency.",
+            "title": "Consistent Rest Override"
+          }
+        ],
+        "warnings": [
+          "Limited history (only 6 events)"
+        ]
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "behavior.busy_day_skipped",
+      "error": null,
+      "grounded": false,
+      "latency_seconds": 4.414,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "moderate",
+            "family": "heavy_calendar_misses",
+            "preference_type": "busy_day_preference",
+            "suggested_adjustment": "Consider adjusting the workout schedule to avoid heavy calendar days",
+            "title": "Heavy Calendar Misses"
+          },
+          {
+            "confidence": "moderate",
+            "family": "heavy_calendar_misses",
+            "preference_type": "busy_day_preference",
+            "suggested_adjustment": "Consider adjusting the workout schedule to avoid heavy calendar days",
+            "title": "Heavy Calendar Misses"
+          }
+        ],
+        "warnings": [
+          "Limited history, consider adding more events to improve pattern accuracy"
+        ]
+      },
+      "repeat": 2,
+      "safe": false,
+      "schema_valid": false,
+      "task_score": 0.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "behavior.mixed_noise",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 2.98,
+      "output": {
+        "patterns": [
+          {
+            "confidence": "moderate",
+            "description": "Long runs are completed on Sundays",
+            "family": "long_run_day_preference",
+            "preference_type": "schedule_preference",
+            "suggested_adjustment": "Consider adjusting long run schedule",
+            "title": "Long runs on Sundays"
+          }
+        ],
+        "warnings": [
+          "Limited history, consider more data for accurate insights"
+        ]
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 1.0,
+      "workload": "behavior_insights"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "summary.weekly_consistent",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 1.253,
+      "output": {
+        "headline": "Training Review",
+        "highlight": "80% consistency",
+        "next_focus": "None",
+        "overview": "Completed 5 sessions, 21 miles, stable recovery"
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 0.5,
+      "workload": "training_summary"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "summary.weekly_declining_recovery",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 1.705,
+      "output": {
+        "headline": "Training Review",
+        "highlight": "Average recovery: 0.7, Consistency: 67%.",
+        "next_focus": "Recovery trend: Declining.",
+        "overview": "Completed 4 sessions, 6 logged, 2 missed."
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 0.75,
+      "workload": "training_summary"
+    },
+    {
+      "candidate": "llama3.2:3b",
+      "case_id": "summary.monthly_sparse",
+      "error": null,
+      "grounded": true,
+      "latency_seconds": 1.267,
+      "output": {
+        "headline": "Training Review",
+        "highlight": "Average recovery trend: unknown",
+        "next_focus": "Monitor recovery trend",
+        "overview": "2 completed, 3 logged, 1 missed"
+      },
+      "repeat": 2,
+      "safe": true,
+      "schema_valid": true,
+      "task_score": 0.75,
+      "workload": "training_summary"
+    }
+  ],
+  "schema_version": "kinetic-model-eval.v1",
+  "source_generated_at": "2026-09-05T14:23:40.652852+00:00",
+  "unavailable_models": [],
+  "workloads_run": [
+    "behavior_insights",
+    "daily_reasoning",
+    "intake",
+    "training_summary"
+  ]
+}

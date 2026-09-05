@@ -284,7 +284,15 @@ def _prepare_behavior_prompts() -> list[tuple[EvalCase, list[dict[str, Any]], st
             events = events[-_BEHAVIOR_EVENT_CAP:]
         sanitised = behavior_insights._sanitise_events(events)
         aggregates = behavior_insights._compute_aggregates(sanitised)
-        user_prompt = behavior_insights._build_user_prompt(sanitised, aggregates)
+        deterministic = behavior_insights.deterministic_behavior_insights(sanitised)
+        supported_families = {
+            pattern["family"] for pattern in deterministic["patterns"]
+        }
+        user_prompt = behavior_insights._build_user_prompt(
+            sanitised,
+            aggregates,
+            supported_families=supported_families,
+        )
         prepared.append((case, sanitised, user_prompt))
     return prepared
 

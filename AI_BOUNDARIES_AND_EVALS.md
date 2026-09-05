@@ -27,11 +27,31 @@ match. When a model is unavailable or outside its latency budget, bounded
 fallbacks preserve safe continuity, but with reduced intelligence and
 personalization.
 
-## What the evals cover
+## How Kinetic evaluates AI
 
-The release baseline is an offline, deterministic suite: **18 gate groups and
-498 assertions**. It does not require a live model, so contract and safety
-regressions are reproducible in development and CI.
+### Model quality
+
+The model-quality suite tests non-deterministic outputs against **19 versioned
+synthetic cases** across daily reasoning, intake, behavior insights, and
+training summaries. It compares three local models with the deterministic
+continuity baseline over two runs per case.
+
+Each workload has explicit success criteria: trace-factor coverage, field-level
+extraction F1, supported-pattern selection F1, or summary metric coverage.
+Schema validity, grounding, safety, repeat stability, and latency are reported
+separately. A prompt/contract digest ties results to the evaluated
+configuration, and a blinded human-review rubric covers helpfulness and
+personalization that automatic graders cannot establish.
+
+The current automated results select `qwen3:8b` for daily reasoning, behavior
+insights, and training summaries, and `llama3.2:3b` for low-latency intake.
+Human ratings and a larger adversarial dataset remain next steps.
+
+### System safety and contracts
+
+The offline release suite verifies deterministic product invariants without a
+live model, keeping contract and safety regressions reproducible in development
+and CI.
 
 - **Decision integrity:** AI cannot unilaterally change the selected workout,
   plan, recovery classification, or decision trace, and its explanation cannot
@@ -49,17 +69,12 @@ regressions are reproducible in development and CI.
   telemetry paths, uncertainty is preserved, and unsupported medical or factual
   claims are rejected.
 
-An optional live-model intake benchmark complements the release gates. It runs
-eight representative cases twice and checks exact extraction, request
-immutability, absence of fallback, repeatability, and latency. This measures a
-specific model configuration without making core safety depend on that model or
-machine.
-
 Frontend smoke tests, Firestore emulator isolation tests, Swift contract tests,
 and iOS accessibility checks provide the surrounding end-to-end evidence. They
 are not model-quality evals, but they verify that the evaluated boundaries hold
 in the shipped product paths.
 
 See [Architecture](./ARCHITECTURE.md) for the full system design and the
-[generated eval report](./EVAL_REPORT.md) for the current gate inventory and
-reproduction commands.
+[model-quality report](./MODEL_EVAL_REPORT.md) for measured model results. The
+[system safety and contract report](./EVAL_REPORT.md) lists the release-gate
+inventory and reproduction commands.

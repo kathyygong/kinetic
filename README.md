@@ -18,7 +18,7 @@ surfaces used to validate the shared system.
   Today recommendations, bounded natural-language intake, workout/recovery
   check-ins, and behavior-pattern results.
 - Typed, privacy-minimized contracts between the iOS, web, backend, and
-  Firestore layers. AI output can explain or propose, but deterministic code
+  Firestore layers. AI output can explain or propose, but deterministic logic
   remains authoritative for every plan mutation.
 - Local-first web persistence with owner-scoped Firebase mirroring, deletion
   tombstones, deterministic offline fallbacks, and privacy-conscious audit
@@ -48,7 +48,10 @@ capabilities.
 - [Architecture](./ARCHITECTURE.md) — system boundaries and data flow.
 - [AI boundaries and evals](./AI_BOUNDARIES_AND_EVALS.md) — concise rationale
   for AI use, deterministic authority, and evaluation coverage.
-- [AI eval report](./EVAL_REPORT.md) — generated deterministic safety evidence.
+- [Model quality eval report](./MODEL_EVAL_REPORT.md) — measured task quality,
+  grounding, safety, stability, and latency across local model candidates.
+- [AI system safety and contract report](./EVAL_REPORT.md) — generated
+  deterministic product-boundary evidence.
 - Public contracts: [readiness](./MOBILE_READINESS_SCHEMA.md),
   [Today](./MOBILE_TODAY_CONTRACT.md), [intake](./MOBILE_INTAKE_CONTRACT.md),
   [check-in](./MOBILE_CHECKIN_CONTRACT.md),

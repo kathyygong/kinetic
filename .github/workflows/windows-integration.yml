@@ -98,6 +98,10 @@ jobs:
         working-directory: backend
         run: python -m evals.generate_report --check
 
+      - name: Verify model-quality datasets and graders
+        working-directory: backend
+        run: python -m evals.model_quality_smoke
+
       - name: Run backend smoke suite
         working-directory: backend
         run: python -m evals._smoke

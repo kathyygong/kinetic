@@ -1,6 +1,6 @@
 # Kinetic Project Status
 
-_Updated September 4, 2026. This page describes the code available on the
+_Updated September 5, 2026. This page describes the code available on the
 public `main` branch, not private planning or unmerged experiments._
 
 ## Implemented
@@ -30,6 +30,9 @@ public `main` branch, not private planning or unmerged experiments._
 - Local-first web persistence with authenticated Firebase mirroring,
   owner-isolation rules, and deletion tombstones.
 - Privacy-minimized product events and an owner-only QA readback surface.
+- A versioned model-quality eval suite covering daily reasoning, intake,
+  behavior insights, and training summaries, with candidate comparison,
+  workload-specific metrics, grounding, safety, stability, and latency.
 - A provider-free notification decision contract for local evening check-in
   reminders. Native OS scheduling is not yet part of `main`.
 
@@ -39,8 +42,8 @@ public `main` branch, not private planning or unmerged experiments._
 - The iPhone SE behavior-pattern UI suite passes all 3 tests, including
   semantic accessibility checks and portrait/landscape traversal.
 - GitHub Actions validates frontend lint, TypeScript, deterministic smoke,
-  production build, backend gates, generated eval evidence, dependency posture,
-  and owner-only Firestore rules on Windows.
+  production build, backend gates, offline model-eval graders, generated safety
+  evidence, dependency posture, and owner-only Firestore rules on Windows.
 
 ## Known gaps
 
@@ -51,6 +54,8 @@ public `main` branch, not private planning or unmerged experiments._
 - EventKit free/busy ingestion, recent-progress views, offline/sync migration
   hardening, production operations, and TestFlight support remain incomplete.
 - Kinetic is not currently presented as an externally supported beta product.
+- Model-quality coverage is intentionally small and synthetic; blinded human
+  ratings and broader adversarial/regression cases are still pending.
 
 ## Next milestones
 

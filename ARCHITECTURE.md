@@ -1,8 +1,8 @@
 # Kinetic Architecture
 
-Kinetic is a hybrid adaptive-training system: deterministic code owns every
-safety-critical decision, while an optional bounded AI layer explains and
-summarizes those decisions.
+Kinetic is a hybrid adaptive-training system: deterministic systems own every
+safety-critical decision, while a bounded AI layer interprets intent, identifies
+patterns, and turns training evidence into contextual reasoning.
 
 ## Request flow
 
@@ -12,8 +12,8 @@ summarizes those decisions.
    deterministic workout candidates.
 3. Safety constraints select the final workout and return a decision trace.
 4. The reasoning layer receives that immutable trace and produces typed prose.
-5. Invalid, slow, unavailable, or contradictory AI output is discarded and
-   replaced by deterministic fallback copy.
+5. Validation admits grounded, consistent AI output; otherwise the response
+   uses bounded deterministic fallback copy.
 6. The user accepts, rejects, completes, or skips the recommendation; that
    response becomes advisory history for future preference detection.
 
@@ -158,26 +158,20 @@ Current choices:
 
 | Workload | Configuration | User benefit | Technical tradeoff |
 | --- | --- | --- | --- |
-| Safety-critical workout selection and persisted changes | Deterministic code | Predictable, explainable decisions that remain available offline and cannot drift with a model response | Less flexible prose and language understanding; feature logic must be maintained explicitly |
-| Daily/weekly explanation and behavior analysis | Ollama with `qwen3:8b` | More natural explanation and pattern-selection capability than templates while keeping data local and avoiding per-call fees | CPU inference is too slow for synchronous product flows; these paths must be asynchronous, cached, or fallback-safe |
-| Natural-language intake | Startup-warmed Ollama with `llama3.2:3b` | Meets the bounded extraction need with stable structured output and a measured sub-24-second interaction budget | Lower general reasoning headroom than larger models; Kinetic compensates with a constrained schema, deterministic field agreement, review, and explicit confirmation |
-| Training-summary narration | Ollama with `llama3.2:3b` | Reuses the warm low-latency model for concise grounded prose | The model may add little value over deterministic copy in sparse cases, so invalid or ungrounded narration is discarded |
-| Offline/demo failure path | Deterministic fallback | Immediate, private, reliable behavior with no paid or network dependency | Copy is less varied and conversational |
+| Safety-critical workout selection and persisted changes | Deterministic logic | Predictable, explainable decisions that remain available offline and cannot drift with a model response | Language and feature rules must be maintained explicitly |
+| Daily explanation and behavior analysis | Ollama with `qwen3:8b` | Contextual explanation and supported pattern selection while keeping data local | Local p95 latency was 12.43s for daily reasoning and 12.08s for behavior insights; both paths remain cached or fallback-safe |
+| Weekly recalibration explanation | Ollama with `qwen3:8b` provisionally | Explains an already-final recalibration trace | Deterministic contract gates exist; a dedicated model-quality dataset is still needed |
+| Natural-language intake | Startup-warmed Ollama with `llama3.2:3b` | Accurate bounded extraction with the lowest passing latency | Passed every automated hard gate at 1.28s p95; schemas, deterministic agreement, review, and confirmation still constrain writes |
+| Training-summary narration | Ollama with `qwen3:8b` | Grounded synthesis of deterministic metrics and confirmed context | Passed every automated hard gate at 6.91s p95; the result remains read-only and fallback-safe |
+| Offline/unavailable path | Deterministic fallback | Immediate, private, reliable behavior with no paid or network dependency | Copy is less varied and conversational |
 
-`llama3.2:3b` has workload-specific promotion evidence: the optional intake
-gate completed two identical passes over eight exact-value cases with no
-fallback and a recorded p95/max of 16.67 seconds on the development machine.
-Its small size is therefore a user-latency decision as much as a technical
-resource decision.
-
-`qwen3:8b` is a pragmatic local-demo configuration, not a production winner.
-It offers additional language capability without hosted cost, but observed CPU
-latency ranges from minutes for normal reasoning to longer behavior prompts.
-The repository contains a comparative harness for `qwen3:8b`,
-`gpt-oss:20b`, and `llama3.1:8b`, but it does not preserve a completed
-comparative report proving `qwen3:8b` is the best candidate. It should remain
-optional and fallback-safe until a representative workload report justifies a
-promotion or replacement.
+The checked-in [model-quality report](./MODEL_EVAL_REPORT.md) contains the
+comparative evidence behind these choices: 19 versioned cases, two runs per
+case, three local models, a deterministic continuity baseline, workload-specific
+quality metrics, grounding, safety, schema validity, repeat stability, and
+latency. Automated promotion requires 100% on every hard gate. Blinded human
+ratings are still required before treating these selections as final product
+quality decisions.
 
 Model promotion follows a user-first Pareto rule:
 

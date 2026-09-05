@@ -1,10 +1,10 @@
-# Kinetic Deterministic AI Eval Report
+# Kinetic AI System Safety and Contract Report
 
-Generated: 2026-07-23
+Generated: 2026-09-05
 
 ## Result
 
-**PASS — all 18 deterministic gate groups and 498
+**PASS — all 18 deterministic gate groups and 502
 explicit safety assertions passed.**
 
 | Gate ID | Gate group | Assertions | Result |
@@ -17,7 +17,7 @@ explicit safety assertions passed.**
 | `what-if` | What-if read-only safety | 11 | PASS |
 | `what-if-failures` | What-if malformed/timeout fallback | 10 | PASS |
 | `intake` | Intake grounding and no-mutation safety | 14 | PASS |
-| `intake-failures` | Intake malformed/timeout/ungrounded fallback | 11 | PASS |
+| `intake-failures` | Intake malformed/timeout/ungrounded fallback | 13 | PASS |
 | `mobile-intake` | Mobile intake tagged route contract | 198 | PASS |
 | `mobile-intake-failures` | Mobile intake failures and strict auth | 10 | PASS |
 | `mobile-checkin` | Mobile check-in compatibility and strict auth | 10 | PASS |
@@ -26,11 +26,11 @@ explicit safety assertions passed.**
 | `behavior-result-failures` | Behavior result failures and strict auth | 26 | PASS |
 | `behavior-privacy` | Behavior prompt privacy | 3 | PASS |
 | `training-summary` | Training-summary grounding and privacy | 17 | PASS |
-| `training-summary-failures` | Training-summary invalid/timeout fallback | 4 | PASS |
+| `training-summary-failures` | Training-summary invalid/timeout fallback | 6 | PASS |
 
 ## Enforced guarantees
 
-- AI explanations cannot change the deterministic selected workout.
+- AI cannot unilaterally change the deterministic selected workout.
 - Daily explanations cannot contradict the selected action.
 - Daily, weekly, behavior, What-if, intake, and training-summary outputs match
   their schemas.
@@ -54,7 +54,7 @@ explicit safety assertions passed.**
 - Weekly/monthly reviews derive metrics deterministically from bounded outcome
   fields, exclude raw notes, remain read-only, and reject invented AI facts.
 - The baseline suite runs with `KINETIC_AI_MODE=fallback`; live AI is never
-  required for a passing demo.
+  required to verify the product's deterministic safety boundary.
 - Calendar availability is stubbed inside the deterministic harness, so local
   credentials and external network state cannot change gate outcomes.
 
@@ -73,11 +73,9 @@ From `backend/`:
 .\.venv\Scripts\python.exe -m evals.generate_report
 ```
 
-Optional local Ollama benchmarking is reported separately and never blocks
-the deterministic release gate. Run
-`.\.venv\Scripts\python.exe -m evals.benchmark_intake_live` to require two
-identical model-backed passes across eight intake cases, exact expected values,
-request immutability, no fallback, and the 24-second server budget.
+Live model quality is evaluated separately and never weakens this release gate.
+See `MODEL_EVAL_REPORT.md` for the current candidate comparison, metrics, error
+analysis, limitations, and reproduction command.
 
 ## Additional product gates
 

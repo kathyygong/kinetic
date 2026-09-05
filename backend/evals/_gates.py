@@ -873,6 +873,25 @@ def check_intake_failure_fallbacks() -> None:
         )
         ungrounded = intake_parser_module.parse_intake(payload)
         _assert(ungrounded.fallback_used, "ungrounded AI output was accepted")
+
+        ambiguous_payload = intake_parser_module.IntakeParseRequest.model_validate(
+            {
+                "text": "Things are weird next month.",
+                "context": {"today": "2026-06-29"},
+            }
+        )
+        intake_parser_module.call_llm = lambda *args, **kwargs: json.dumps(
+            {"status": "ready"}
+        )
+        status_mismatch = intake_parser_module.parse_intake(ambiguous_payload)
+        _assert(
+            status_mismatch.fallback_used,
+            "AI status disagreement bypassed deterministic grounding",
+        )
+        _assert(
+            status_mismatch.failure_code == "ungrounded_ai",
+            "AI status disagreement did not report grounding failure",
+        )
     finally:
         intake_parser_module.call_llm = original_call
         if original_mode is None:
@@ -1244,6 +1263,28 @@ def check_training_summary_failure_fallbacks() -> None:
         }
     )
     try:
+        metrics = training_summary_module.build_metrics(payload)
+        dated = training_summary_module.TrainingSummaryNarrative(
+            headline="Weekly review",
+            overview=(
+                f"From {metrics.window_start.isoformat()} to "
+                f"{metrics.window_end.isoformat()}, you completed 1 of 1 sessions "
+                "for 5.0 miles."
+            ),
+            highlight="Recovery history is too sparse to call a trend.",
+            next_focus="Keep logging outcomes.",
+        )
+        _assert(
+            training_summary_module.narrative_is_grounded(dated, metrics),
+            "summary rejected exact aggregate window dates",
+        )
+        plan_change = dated.model_copy(
+            update={"next_focus": "Consider adjusting Saturday's long run."}
+        )
+        _assert(
+            not training_summary_module.narrative_is_grounded(plan_change, metrics),
+            "summary accepted a plan-change recommendation",
+        )
         training_summary_module.call_llm = lambda *args, **kwargs: json.dumps(
             {
                 "headline": "You ran 999 miles",

@@ -1,8 +1,8 @@
 """Read-only weekly/monthly training summaries.
 
-Deterministic code owns every metric and trend classification. Optional AI may
-turn that immutable aggregate into concise prose, but cannot add metrics,
-change training state, or persist anything.
+Deterministic logic owns every metric and trend classification. AI synthesizes
+that immutable aggregate into a contextual review, while validation prevents it
+from adding metrics, changing training state, or persisting anything.
 """
 
 from __future__ import annotations
@@ -11,6 +11,7 @@ import json
 import os
 import re
 from datetime import date, timedelta
+from decimal import Decimal
 from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
@@ -82,7 +83,22 @@ class TrainingSummaryEnvelope(BaseModel):
 SYSTEM_PROMPT = """Write a concise training review from the supplied aggregate.
 The metrics are final. Do not recommend a plan change, diagnose, give medical
 advice, or invent facts. Do not introduce a number absent from the aggregate.
-Confirmed preferences are context only. Return the enforced JSON schema."""
+Confirmed preferences are context only. In one compact sentence, state the
+completed count, logged count, total miles, and recovery trend exactly as supplied.
+Keep the overview under 220 characters and every other field under 160 characters.
+Return the enforced JSON schema."""
+
+_PLAN_CHANGE_RECOMMENDATIONS = (
+    "consider adjusting",
+    "should adjust",
+    "try adjusting",
+    "increase your mileage",
+    "decrease your mileage",
+    "add another workout",
+    "skip the workout",
+    "replace the workout",
+    "change your plan",
+)
 
 
 def generate_training_summary(
@@ -244,6 +260,10 @@ def narrative_is_grounded(
 ) -> bool:
     if contains_medical_claim(narrative.model_dump()):
         return False
+    narrative_text = " ".join(narrative.model_dump().values())
+    lowered = narrative_text.lower()
+    if any(phrase in lowered for phrase in _PLAN_CHANGE_RECOMMENDATIONS):
+        return False
     allowed = {
         str(metrics.window_days),
         str(metrics.logged_sessions),
@@ -262,10 +282,14 @@ def narrative_is_grounded(
                 f"{round(metrics.average_recovery * 100):g}",
             }
         )
-    numbers = re.findall(
-        r"(?<![\w-])\d+(?:\.\d+)?", " ".join(narrative.model_dump().values())
-    )
-    return all(number in allowed for number in numbers)
+    # Exact window dates are part of the supplied aggregate and are valid to
+    # repeat. Remove them before scanning for unsupported numeric claims so
+    # their year/month/day components are not mistaken for invented metrics.
+    for allowed_date in (metrics.window_start.isoformat(), metrics.window_end.isoformat()):
+        narrative_text = narrative_text.replace(allowed_date, "")
+    allowed_numbers = {Decimal(number) for number in allowed}
+    numbers = re.findall(r"(?<![\w-])\d+(?:\.\d+)?", narrative_text)
+    return all(Decimal(number) in allowed_numbers for number in numbers)
 
 
 def summary_model() -> str | None:

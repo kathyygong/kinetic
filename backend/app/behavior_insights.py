@@ -309,7 +309,12 @@ def generate_behavior_insights(
     if not events:
         return deterministic
 
-    user_prompt = _build_user_prompt(events, aggregates)
+    supported_families = {
+        pattern["family"] for pattern in deterministic["patterns"]
+    }
+    user_prompt = _build_user_prompt(
+        events, aggregates, supported_families=supported_families
+    )
 
     try:
         raw = call_llm(user_prompt, system_prompt=SYSTEM_PROMPT)
@@ -514,6 +519,8 @@ def _compute_aggregates(events: List[Dict[str, Any]]) -> Dict[str, Any]:
 def _build_user_prompt(
     events: List[Dict[str, Any]],
     aggregates: Dict[str, Any],
+    *,
+    supported_families: set[str] | None = None,
 ) -> str:
     """Render aggregates + a trimmed event view as a single prompt.
 
@@ -547,6 +554,7 @@ def _build_user_prompt(
     body = {
         "event_count": aggregates["total_events"],
         "low_data": aggregates["total_events"] < LOW_DATA_THRESHOLD,
+        "supported_families": sorted(supported_families or ()),
         "aggregates": aggregates,
         "events": event_view,
     }
@@ -554,6 +562,8 @@ def _build_user_prompt(
     return (
         "Analyse the following Kinetic recommendation history.\n"
         "Surface only patterns that are supported by at least two events.\n"
+        "Select only from `supported_families`; when it is empty, return no "
+        "patterns. Do not describe the absence of a pattern as a pattern.\n"
         "If `low_data` is true, every pattern must use confidence \"low\" "
         "and the warnings list must include a note about limited history.\n"
         "Return JSON only — no preamble, no commentary, no <think> blocks, "
