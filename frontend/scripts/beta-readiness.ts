@@ -195,6 +195,7 @@ function checkDocumentation(): Finding[] {
     "PROJECT_STATUS.md",
     "ARCHITECTURE.md",
     "AI_BOUNDARIES_AND_EVALS.md",
+    "AI_PRODUCT_EVAL_REPORT.md",
     "EVAL_REPORT.md",
     "MODEL_EVAL_REPORT.md",
     "MOBILE_READINESS_SCHEMA.md",

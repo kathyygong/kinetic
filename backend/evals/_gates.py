@@ -684,6 +684,29 @@ def check_what_if_failure_fallbacks() -> None:
         )
         _weekly_schema(malformed)
 
+        weekly_reasoning_module.call_llm = lambda *args, **kwargs: json.dumps(
+            {
+                "summary": "The recalibration is complete.",
+                "changes": [
+                    {
+                        "title": "Add more intensity",
+                        "explanation": "Add another hard workout on Friday.",
+                    }
+                ],
+                "preserved": [],
+                "tradeoff": "This goes beyond the final trace.",
+                "confidence_note": "The trace is final.",
+            }
+        )
+        additional_change = (
+            weekly_reasoning_module.generate_weekly_recalibration_summary(trace)
+        )
+        _weekly_schema(additional_change)
+        _assert(
+            "add another" not in json.dumps(additional_change).lower(),
+            "weekly AI introduced an additional plan change",
+        )
+
         def _timeout(*args, **kwargs):
             raise LLMUnavailable("simulated timeout")
 

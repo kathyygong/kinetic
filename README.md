@@ -48,6 +48,8 @@ capabilities.
 - [Architecture](./ARCHITECTURE.md) — system boundaries and data flow.
 - [AI boundaries and evals](./AI_BOUNDARIES_AND_EVALS.md) — concise rationale
   for AI use, deterministic authority, and evaluation coverage.
+- [AI product eval report](./AI_PRODUCT_EVAL_REPORT.md) — integrated user
+  journeys, product outcomes, failure recovery, user control, and prompt scope.
 - [Model quality eval report](./MODEL_EVAL_REPORT.md) — measured task quality,
   grounding, safety, stability, and latency across local model candidates.
 - [AI system safety and contract report](./EVAL_REPORT.md) — generated

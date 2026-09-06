@@ -897,8 +897,9 @@ def render_report(payload: dict[str, Any]) -> str:
         "## Scope",
         "",
         "This report measures non-deterministic output quality on a versioned,",
-        "synthetic dataset. It is separate from `EVAL_REPORT.md`, which verifies",
-        "deterministic safety, contracts, and integration behavior.",
+        "synthetic dataset. It is separate from `AI_PRODUCT_EVAL_REPORT.md`,",
+        "which evaluates complete AI-enabled journeys, and `EVAL_REPORT.md`,",
+        "which verifies deterministic safety and contract behavior.",
         "",
         f"Dataset: `{payload['dataset_version']}`. Evaluator: "
         f"`{payload['evaluator_version']}`. Prompt/contract digest: "

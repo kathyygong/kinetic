@@ -25,6 +25,8 @@ from __future__ import annotations
 
 import json
 import logging
+import re
+from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
 from .ai_safety import contains_medical_claim
@@ -61,6 +63,16 @@ Return JSON only:
   "confidence_note": string
 }"""
 
+_ADDITIONAL_CHANGE_PHRASES = (
+    "add another",
+    "add a new",
+    "should add",
+    "consider adding",
+    "increase your mileage",
+    "replace the workout",
+    "change the plan",
+)
+
 
 # --- Public API -------------------------------------------------------------
 
@@ -78,11 +90,22 @@ def generate_weekly_recalibration_summary(
     prompt above. On any failure path the caller still gets a usable
     dict; the failure mode is logged but never raised.
     """
+    summary, _ = generate_weekly_recalibration_summary_with_status(
+        recalibration_trace
+    )
+    return summary
+
+
+def generate_weekly_recalibration_summary_with_status(
+    recalibration_trace: Dict[str, Any],
+) -> tuple[Dict[str, Any], bool]:
+    """Return the summary and whether deterministic fallback was used."""
+
     if not isinstance(recalibration_trace, dict):
         _log.warning(
             "generate_weekly_recalibration_summary: non-dict input; using fallback"
         )
-        return _fallback_summary({})
+        return _fallback_summary({}), True
 
     user_prompt = _build_user_prompt(recalibration_trace)
 
@@ -93,7 +116,7 @@ def generate_weekly_recalibration_summary(
             "LLM unavailable, falling back to deterministic recalibration summary: %s",
             exc,
         )
-        return _fallback_summary(recalibration_trace)
+        return _fallback_summary(recalibration_trace), True
 
     parsed = safe_json_parse(raw)
     if parsed is None:
@@ -101,7 +124,7 @@ def generate_weekly_recalibration_summary(
             "LLM returned unparseable JSON for weekly recalibration; falling back. Raw head: %r",
             raw[:200],
         )
-        return _fallback_summary(recalibration_trace)
+        return _fallback_summary(recalibration_trace), True
 
     validated = _validate_schema(parsed)
     if validated is None:
@@ -109,14 +132,68 @@ def generate_weekly_recalibration_summary(
             "LLM JSON did not match weekly recalibration schema; falling back. Body: %r",
             parsed,
         )
-        return _fallback_summary(recalibration_trace)
+        return _fallback_summary(recalibration_trace), True
     if contains_medical_claim(validated):
         _log.warning(
             "LLM weekly recalibration tripped medical-claim guard; falling back."
         )
-        return _fallback_summary(recalibration_trace)
+        return _fallback_summary(recalibration_trace), True
+    if not weekly_summary_is_grounded(validated, recalibration_trace):
+        _log.warning(
+            "LLM weekly recalibration was ungrounded or recommended a new change; falling back."
+        )
+        return _fallback_summary(recalibration_trace), True
 
-    return validated
+    return validated, False
+
+
+def weekly_summary_is_grounded(
+    summary: Dict[str, Any], recalibration_trace: Dict[str, Any]
+) -> bool:
+    """Reject new numeric claims and recommendations beyond the final trace."""
+
+    text = " ".join(_flatten_text(summary)).lower()
+    if any(phrase in text for phrase in _ADDITIONAL_CHANGE_PHRASES):
+        return False
+
+    trace_text = " ".join(_flatten_text(recalibration_trace))
+    allowed = {
+        Decimal(number)
+        for number in re.findall(r"(?<![\w-])\d+(?:\.\d+)?", trace_text)
+    }
+    allowed.update(
+        {
+            Decimal(len(_as_workout_list(recalibration_trace.get(key))))
+            for key in (
+                "original_week_plan",
+                "adjusted_week_plan",
+                "preserved_workouts",
+                "modified_workouts",
+                "dropped_workouts",
+            )
+        }
+    )
+    confidence = _coerce_float(recalibration_trace.get("confidence"))
+    if confidence is not None:
+        allowed.add(Decimal(round(confidence * 100)))
+    allowed.add(Decimal(100))
+    claimed = {
+        Decimal(number)
+        for number in re.findall(r"(?<![\w-])\d+(?:\.\d+)?", text)
+    }
+    return claimed <= allowed
+
+
+def _flatten_text(value: Any) -> list[str]:
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, dict):
+        return [text for item in value.values() for text in _flatten_text(item)]
+    if isinstance(value, list):
+        return [text for item in value for text in _flatten_text(item)]
+    if isinstance(value, (int, float)):
+        return [str(value)]
+    return []
 
 
 # --- Prompt building -------------------------------------------------------

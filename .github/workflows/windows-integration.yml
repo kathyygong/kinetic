@@ -98,6 +98,10 @@ jobs:
         working-directory: backend
         run: python -m evals.generate_report --check
 
+      - name: Run AI product eval journeys
+        working-directory: backend
+        run: python -m evals.run_product_evals --check
+
       - name: Verify model-quality datasets and graders
         working-directory: backend
         run: python -m evals.model_quality_smoke

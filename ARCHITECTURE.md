@@ -147,6 +147,22 @@ and the owner-only emulator suite passed in run
   grounding checks, timeouts, caching, and fallback.
 - `disabled`: deterministic decision flow without AI reasoning calls.
 
+## Evaluation strategy
+
+Kinetic separates evaluation into three layers:
+
+1. [AI product evals](./AI_PRODUCT_EVAL_REPORT.md) replay complete user journeys
+   through production orchestration and measure task completion, correctness,
+   decision integrity, user control, failure recovery, and prompt scope.
+2. [Model-quality evals](./MODEL_EVAL_REPORT.md) measure non-deterministic output
+   quality, grounding, safety, stability, and latency for candidate models.
+3. [System safety and contract gates](./EVAL_REPORT.md) verify the deterministic
+   invariants that every model and fallback path must preserve.
+
+The product suite uses scripted useful and adversarial AI outputs so integrated
+journeys remain reproducible in CI. Live-model measurements and moderated human
+task testing provide complementary evidence rather than replacing that layer.
+
 ## Model selection and portability
 
 Kinetic selects models per workload. The goal is not to maximize a generic

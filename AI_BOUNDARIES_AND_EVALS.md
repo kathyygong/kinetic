@@ -29,6 +29,25 @@ personalization.
 
 ## How Kinetic evaluates AI
 
+### AI product quality
+
+The primary AI product suite evaluates **14 versioned user journeys** across
+daily decisions, weekly recalibration, What-if, intake, behavior insights, and
+training reviews. It replays useful, contradictory, unsupported, malformed,
+ungrounded, and unavailable AI behavior through the production orchestration.
+
+Each journey measures task completion, correctness, decision integrity, user
+control, graceful failure, and context minimization. This answers the product
+question: does the AI-enabled workflow help the runner reach the right outcome,
+with the right review and recovery behavior? The suite already caught and drove
+fixes for inaccurate What-if fallback provenance and unvalidated additional
+weekly-plan recommendations.
+
+Scripted AI playback keeps these journeys deterministic in CI. Moderated task
+testing is the next layer for perceived helpfulness, trust, and interaction
+friction; production monitoring will add privacy-safe completion and fallback
+rates.
+
 ### Model quality
 
 The model-quality suite tests non-deterministic outputs against **19 versioned
@@ -75,6 +94,8 @@ are not model-quality evals, but they verify that the evaluated boundaries hold
 in the shipped product paths.
 
 See [Architecture](./ARCHITECTURE.md) for the full system design and the
-[model-quality report](./MODEL_EVAL_REPORT.md) for measured model results. The
+[AI product eval report](./AI_PRODUCT_EVAL_REPORT.md) for integrated journey
+results, and the [model-quality report](./MODEL_EVAL_REPORT.md) for measured
+model results. The
 [system safety and contract report](./EVAL_REPORT.md) lists the release-gate
 inventory and reproduction commands.

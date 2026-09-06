@@ -1,10 +1,10 @@
 # Kinetic AI System Safety and Contract Report
 
-Generated: 2026-09-05
+Generated: 2026-09-06
 
 ## Result
 
-**PASS — all 18 deterministic gate groups and 502
+**PASS — all 18 deterministic gate groups and 508
 explicit safety assertions passed.**
 
 | Gate ID | Gate group | Assertions | Result |
@@ -15,7 +15,7 @@ explicit safety assertions passed.**
 | `mobile-today` | Mobile Today contract | 6 | PASS |
 | `weekly-reasoning` | Weekly reasoning safety | 8 | PASS |
 | `what-if` | What-if read-only safety | 11 | PASS |
-| `what-if-failures` | What-if malformed/timeout fallback | 10 | PASS |
+| `what-if-failures` | What-if malformed/timeout fallback | 16 | PASS |
 | `intake` | Intake grounding and no-mutation safety | 14 | PASS |
 | `intake-failures` | Intake malformed/timeout/ungrounded fallback | 13 | PASS |
 | `mobile-intake` | Mobile intake tagged route contract | 198 | PASS |
@@ -73,9 +73,10 @@ From `backend/`:
 .\.venv\Scripts\python.exe -m evals.generate_report
 ```
 
-Live model quality is evaluated separately and never weakens this release gate.
-See `MODEL_EVAL_REPORT.md` for the current candidate comparison, metrics, error
-analysis, limitations, and reproduction command.
+AI product quality is evaluated separately in `AI_PRODUCT_EVAL_REPORT.md`,
+which covers complete user journeys and failure recovery. Live model output
+quality is reported in `MODEL_EVAL_REPORT.md`. Neither layer weakens this
+deterministic release gate.
 
 ## Additional product gates
 

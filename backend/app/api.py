@@ -19,7 +19,10 @@ from .calendar import (
 from .decision_engine import make_decision
 from .ai_reasoning import generate_daily_reasoning, lookup_cached_reasoning
 from .ai_runtime import runtime_status
-from .weekly_reasoning import generate_weekly_recalibration_summary
+from .weekly_reasoning import (
+    generate_weekly_recalibration_summary,
+    generate_weekly_recalibration_summary_with_status,
+)
 from .behavior_insights import (
     BehaviorPatternEnvelope,
     deterministic_behavior_insights,
@@ -346,12 +349,15 @@ def explain_what_if(payload: WhatIfRequest):
         "dropped_workouts": dropped,
         "confidence": 0.8,
     }
-    explanation = generate_weekly_recalibration_summary(trace)
+    explanation, reasoning_fallback_used = (
+        generate_weekly_recalibration_summary_with_status(trace)
+    )
     status = runtime_status()
+    fallback_used = status["fallback_used"] or reasoning_fallback_used
 
     return {
         "mode": status["mode"],
-        "source": status["source"],
+        "source": "deterministic" if fallback_used else status["source"],
         "schema_version": "what-if.v1",
         "grounding": {
             "deterministic_authority": True,
@@ -362,7 +368,7 @@ def explain_what_if(payload: WhatIfRequest):
                 "scenario_summary",
             ],
         },
-        "fallback_used": status["fallback_used"],
+        "fallback_used": fallback_used,
         "warnings": [
             "Read-only preview. Nothing changes until a deterministic plan action is explicitly accepted."
         ],

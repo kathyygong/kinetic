@@ -87,9 +87,10 @@ From `backend/`:
 .\\.venv\\Scripts\\python.exe -m evals.generate_report
 ```
 
-Live model quality is evaluated separately and never weakens this release gate.
-See `MODEL_EVAL_REPORT.md` for the current candidate comparison, metrics, error
-analysis, limitations, and reproduction command.
+AI product quality is evaluated separately in `AI_PRODUCT_EVAL_REPORT.md`,
+which covers complete user journeys and failure recovery. Live model output
+quality is reported in `MODEL_EVAL_REPORT.md`. Neither layer weakens this
+deterministic release gate.
 
 ## Additional product gates
 

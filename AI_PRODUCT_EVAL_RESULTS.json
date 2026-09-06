@@ -1,0 +1,308 @@
+{
+  "dataset_version": "ai-product-2026-09-06.v1",
+  "evaluator_version": "ai-product-graders.v1",
+  "generated_on": "2026-09-06",
+  "results": [
+    {
+      "ai_condition": "valid",
+      "case_id": "product.daily.grounded_explanation",
+      "checks": {
+        "context_minimization": true,
+        "correctness": true,
+        "decision_integrity": true,
+        "graceful_failure": null,
+        "task_completion": true,
+        "user_control": true
+      },
+      "expected_product_outcome": "The selected action remains final and the grounded explanation is shown.",
+      "journey": "daily_decision",
+      "observation": "Grounded AI reasoning was used.",
+      "passed": true,
+      "user_goal": "Understand why today's lower-load recommendation was selected."
+    },
+    {
+      "ai_condition": "contradictory",
+      "case_id": "product.daily.contradiction",
+      "checks": {
+        "context_minimization": true,
+        "correctness": true,
+        "decision_integrity": true,
+        "graceful_failure": true,
+        "task_completion": true,
+        "user_control": true
+      },
+      "expected_product_outcome": "The contradiction is rejected and a usable explanation remains available.",
+      "journey": "daily_decision",
+      "observation": "The product preserved the recommendation and returned fallback reasoning.",
+      "passed": true,
+      "user_goal": "Receive a safe explanation when AI argues against the selected action."
+    },
+    {
+      "ai_condition": "unavailable",
+      "case_id": "product.daily.outage",
+      "checks": {
+        "context_minimization": true,
+        "correctness": true,
+        "decision_integrity": true,
+        "graceful_failure": true,
+        "task_completion": true,
+        "user_control": true
+      },
+      "expected_product_outcome": "The recommendation and explanation remain usable without a model.",
+      "journey": "daily_decision",
+      "observation": "The product preserved the recommendation and returned fallback reasoning.",
+      "passed": true,
+      "user_goal": "Receive today's recommendation when AI is unavailable."
+    },
+    {
+      "ai_condition": "valid",
+      "case_id": "product.weekly.grounded_explanation",
+      "checks": {
+        "context_minimization": true,
+        "correctness": true,
+        "decision_integrity": true,
+        "graceful_failure": null,
+        "task_completion": true,
+        "user_control": true
+      },
+      "expected_product_outcome": "AI explains the recalibration without altering its trace.",
+      "journey": "weekly_recalibration",
+      "observation": "The accepted explanation described the final trace without changing it.",
+      "passed": true,
+      "user_goal": "Understand an already-calculated weekly adjustment."
+    },
+    {
+      "ai_condition": "contradictory",
+      "case_id": "product.weekly.additional_change",
+      "checks": {
+        "context_minimization": true,
+        "correctness": true,
+        "decision_integrity": true,
+        "graceful_failure": true,
+        "task_completion": true,
+        "user_control": true
+      },
+      "expected_product_outcome": "The additional change is rejected while the final recalibration remains intact.",
+      "journey": "weekly_recalibration",
+      "observation": "An AI-authored additional workout was rejected without changing the trace.",
+      "passed": true,
+      "user_goal": "Avoid turning a weekly explanation into a new training recommendation."
+    },
+    {
+      "ai_condition": "malformed",
+      "case_id": "product.what_if.malformed_ai",
+      "checks": {
+        "context_minimization": true,
+        "correctness": true,
+        "decision_integrity": true,
+        "graceful_failure": true,
+        "task_completion": true,
+        "user_control": true
+      },
+      "expected_product_outcome": "The preview remains read-only and usable despite malformed AI output.",
+      "journey": "what_if",
+      "observation": "Malformed AI output fell back to a usable, read-only preview.",
+      "passed": true,
+      "user_goal": "Preview a schedule scenario without changing the saved plan."
+    },
+    {
+      "ai_condition": "valid",
+      "case_id": "product.intake.multi_field",
+      "checks": {
+        "context_minimization": true,
+        "correctness": true,
+        "decision_integrity": true,
+        "graceful_failure": null,
+        "task_completion": true,
+        "user_control": true
+      },
+      "expected_product_outcome": "A complete grounded draft is returned for review before confirmation.",
+      "journey": "intake",
+      "observation": "The full grounded draft reached review with confirmation still required.",
+      "passed": true,
+      "user_goal": "Describe several explicit training changes in one note."
+    },
+    {
+      "ai_condition": "ambiguous",
+      "case_id": "product.intake.ambiguous_status",
+      "checks": {
+        "context_minimization": true,
+        "correctness": true,
+        "decision_integrity": true,
+        "graceful_failure": true,
+        "task_completion": true,
+        "user_control": true
+      },
+      "expected_product_outcome": "The product asks for clarification and exposes no confirmable changes.",
+      "journey": "intake",
+      "observation": "AI status disagreement was rejected and the product requested clarification.",
+      "passed": true,
+      "user_goal": "Avoid unintended changes from an ambiguous note."
+    },
+    {
+      "ai_condition": "unsupported",
+      "case_id": "product.intake.pain_caution",
+      "checks": {
+        "context_minimization": true,
+        "correctness": true,
+        "decision_integrity": true,
+        "graceful_failure": null,
+        "task_completion": true,
+        "user_control": true
+      },
+      "expected_product_outcome": "The mobile intake routes to bounded caution guidance with no mutation.",
+      "journey": "intake",
+      "observation": "Pain language opened bounded caution guidance without invoking AI or mutation.",
+      "passed": true,
+      "user_goal": "Avoid treating pain or recovery language as a plan-edit request."
+    },
+    {
+      "ai_condition": "valid",
+      "case_id": "product.behavior.supported_pattern",
+      "checks": {
+        "context_minimization": true,
+        "correctness": true,
+        "decision_integrity": true,
+        "graceful_failure": null,
+        "task_completion": true,
+        "user_control": true
+      },
+      "expected_product_outcome": "AI selects supported evidence and the product supplies a review-only action.",
+      "journey": "behavior_insights",
+      "observation": "Supported AI selection reached review.",
+      "passed": true,
+      "user_goal": "Review a repeated behavior pattern before it affects training."
+    },
+    {
+      "ai_condition": "unsupported",
+      "case_id": "product.behavior.unsupported_selection",
+      "checks": {
+        "context_minimization": true,
+        "correctness": true,
+        "decision_integrity": true,
+        "graceful_failure": true,
+        "task_completion": true,
+        "user_control": true
+      },
+      "expected_product_outcome": "The unsupported selection is rejected and the grounded result remains usable.",
+      "journey": "behavior_insights",
+      "observation": "Unsupported AI selection fell back to the grounded product result.",
+      "passed": true,
+      "user_goal": "Avoid an action based on a pattern the evidence does not support."
+    },
+    {
+      "ai_condition": "valid",
+      "case_id": "product.summary.grounded_review",
+      "checks": {
+        "context_minimization": true,
+        "correctness": true,
+        "decision_integrity": true,
+        "graceful_failure": null,
+        "task_completion": true,
+        "user_control": true
+      },
+      "expected_product_outcome": "A grounded AI review is shown alongside immutable calculated metrics.",
+      "journey": "training_summary",
+      "observation": "Grounded AI narrative was accepted.",
+      "passed": true,
+      "user_goal": "Understand recent training and recovery without editing the plan."
+    },
+    {
+      "ai_condition": "ungrounded",
+      "case_id": "product.summary.invented_metric",
+      "checks": {
+        "context_minimization": true,
+        "correctness": true,
+        "decision_integrity": true,
+        "graceful_failure": true,
+        "task_completion": true,
+        "user_control": true
+      },
+      "expected_product_outcome": "The invented claim is rejected while calculated metrics remain unchanged.",
+      "journey": "training_summary",
+      "observation": "Unsafe or ungrounded narrative was replaced by a grounded review.",
+      "passed": true,
+      "user_goal": "Receive an accurate review when AI invents a metric."
+    },
+    {
+      "ai_condition": "contradictory",
+      "case_id": "product.summary.plan_change",
+      "checks": {
+        "context_minimization": true,
+        "correctness": true,
+        "decision_integrity": true,
+        "graceful_failure": true,
+        "task_completion": true,
+        "user_control": true
+      },
+      "expected_product_outcome": "The plan-change recommendation is rejected and safe review copy is shown.",
+      "journey": "training_summary",
+      "observation": "Unsafe or ungrounded narrative was replaced by a grounded review.",
+      "passed": true,
+      "user_goal": "Keep a read-only review from becoming an unconfirmed plan change."
+    }
+  ],
+  "schema_version": "kinetic-ai-product-eval.v1",
+  "summary": {
+    "cases": 14,
+    "dimensions": {
+      "context_minimization": {
+        "applicable": 14,
+        "passed": 14,
+        "rate": 1.0
+      },
+      "correctness": {
+        "applicable": 14,
+        "passed": 14,
+        "rate": 1.0
+      },
+      "decision_integrity": {
+        "applicable": 14,
+        "passed": 14,
+        "rate": 1.0
+      },
+      "graceful_failure": {
+        "applicable": 8,
+        "passed": 8,
+        "rate": 1.0
+      },
+      "task_completion": {
+        "applicable": 14,
+        "passed": 14,
+        "rate": 1.0
+      },
+      "user_control": {
+        "applicable": 14,
+        "passed": 14,
+        "rate": 1.0
+      }
+    },
+    "journeys": {
+      "behavior_insights": {
+        "cases": 2,
+        "passed": 2
+      },
+      "daily_decision": {
+        "cases": 3,
+        "passed": 3
+      },
+      "intake": {
+        "cases": 3,
+        "passed": 3
+      },
+      "training_summary": {
+        "cases": 3,
+        "passed": 3
+      },
+      "weekly_recalibration": {
+        "cases": 2,
+        "passed": 2
+      },
+      "what_if": {
+        "cases": 1,
+        "passed": 1
+      }
+    },
+    "passed": 14
+  }
+}

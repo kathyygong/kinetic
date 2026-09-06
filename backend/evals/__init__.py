@@ -1,4 +1,4 @@
-"""Eval cases and harness scaffolding for Kinetic AI outputs.
+"""AI product, model-quality, and deterministic safety evals for Kinetic.
 
 The :mod:`backend.evals.eval_cases` module is a pure-data manifest of
 test cases for the daily reasoning and behavior insight layers. It
@@ -6,9 +6,9 @@ declares the inputs to send, the deterministic engine outcomes we
 expect, and a set of *safety expectations* — machine-readable invariants
 the AI-authored output must satisfy.
 
-This package intentionally has no runtime dependencies on the FastAPI
-app or any LLM client. Harnesses import from here, drive the system
-under test, and assert against the declared expectations.
+The case manifests remain pure data. Product and model harnesses import the
+production feature modules to exercise the relevant integrated or live-model
+boundary, while the deterministic gate registry remains provider-independent.
 """
 
 from .eval_cases import (
