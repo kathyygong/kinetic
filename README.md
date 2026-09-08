@@ -6,6 +6,8 @@ AI explanations, reviewable inputs, and user-controlled changes.
 
 [![Project status: active development](https://img.shields.io/badge/status-active%20development-2f855a)](./PROJECT_STATUS.md)
 
+> **AI product case study:** [A valid model output can still be a failed product](./CASE_STUDY.md) — how I designed Kinetic’s evaluation system to decide when AI behavior is good enough to ship.
+
 Native iOS is the primary runner experience. The web app provides advanced
 What-if planning and deep analysis, plus the demo, administration, and quality
 surfaces used to validate the shared system.
@@ -45,6 +47,8 @@ capabilities.
 - [`frontend`](./frontend/README.md) — runner web experience and operator/QA
   surfaces.
 - `backend` — authenticated decision, intake, review, and eval services.
+- [AI product case study](./CASE_STUDY.md) — product framing, eval design,
+  model-selection decisions, failure analysis, and lessons on model responsibility.
 - [Architecture](./ARCHITECTURE.md) — system boundaries and data flow.
 - [AI boundaries and evals](./AI_BOUNDARIES_AND_EVALS.md) — concise rationale
   for AI use, deterministic authority, and evaluation coverage.
