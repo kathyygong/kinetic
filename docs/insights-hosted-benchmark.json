@@ -1,0 +1,285 @@
+{
+  "scenario_version": "recruiter-demo.2026-09.v8",
+  "note": "Live synthetic acceptance, not a clinical evaluation or an availability guarantee. Cache disabled; local warmup is reported separately.",
+  "results": [
+    {
+      "provider": "groq",
+      "model": "openai/gpt-oss-20b",
+      "status": "rate_limited",
+      "warmup_seconds": 0.0,
+      "cache_enabled": false,
+      "passed": 4,
+      "total": 10,
+      "planned": 10,
+      "not_run": 0,
+      "validated_generations": 4,
+      "latency_basis": "validated model responses only; provider failures excluded",
+      "run_note": "Initial burst before stop-on-quota handling; six HTTP 429 rate_limit_exceeded responses were captured by the diagnostic wrapper. Summary latency was recomputed from rows with model provenance.",
+      "provider_error_summary": {
+        "http_status": 429,
+        "code": "rate_limit_exceeded",
+        "count": 6
+      },
+      "median_seconds": 0.482,
+      "slowest_seconds": 0.563,
+      "cases": [
+        {
+          "case": "scheduling",
+          "repeat": 1,
+          "seconds": 0.5,
+          "passed": true,
+          "analysis": {
+            "source": "groq",
+            "fallback_used": false,
+            "failure": "none",
+            "provenance": {
+              "provider": "groq",
+              "model": "openai/gpt-oss-20b",
+              "generated_at": "2026-09-14T15:24:31.266290Z",
+              "delivery": "live",
+              "input_signature": "c6e4e006ed9b1566fb56d368a51a091e1377415bfc26fe3290ea1fbaf63c3c5d"
+            }
+          }
+        },
+        {
+          "case": "recovery_concern",
+          "repeat": 1,
+          "seconds": 0.563,
+          "status": "supported",
+          "review_available": true,
+          "passed": true,
+          "analysis": {
+            "source": "groq",
+            "failure": "none",
+            "proposed_comparisons": [
+              {
+                "metric": "effort_over_target",
+                "workout_type": "all",
+                "direction": "increase"
+              },
+              {
+                "metric": "next_day_fatigue",
+                "workout_type": "all",
+                "direction": "increase"
+              }
+            ],
+            "rejected_comparisons": 0,
+            "provenance": {
+              "provider": "groq",
+              "model": "openai/gpt-oss-20b",
+              "generated_at": "2026-09-14T15:24:31.829560Z",
+              "delivery": "live",
+              "input_signature": "439b0eb4ff51fd3dd4a996fae20b1f89b3573f4051859fb89e373d7082ed0967"
+            }
+          }
+        },
+        {
+          "case": "flat",
+          "repeat": 1,
+          "seconds": 0.463,
+          "status": "no_finding",
+          "review_available": false,
+          "passed": true,
+          "analysis": {
+            "source": "groq",
+            "failure": "no_supported_comparison",
+            "proposed_comparisons": [],
+            "rejected_comparisons": 0,
+            "provenance": {
+              "provider": "groq",
+              "model": "openai/gpt-oss-20b",
+              "generated_at": "2026-09-14T15:24:32.294455Z",
+              "delivery": "live",
+              "input_signature": "f3d18d043a0d75699f62481929a16cced5406ae17ac5449c2cfb88b1c1c82fd4"
+            }
+          }
+        },
+        {
+          "case": "improving",
+          "repeat": 1,
+          "seconds": 0.221,
+          "status": "unavailable",
+          "review_available": false,
+          "passed": false,
+          "analysis": {
+            "source": "none",
+            "failure": "ai_unavailable",
+            "proposed_comparisons": [],
+            "rejected_comparisons": 0,
+            "provenance": null
+          }
+        },
+        {
+          "case": "no_later_corroboration",
+          "repeat": 1,
+          "seconds": 0.176,
+          "status": "unavailable",
+          "review_available": false,
+          "passed": false,
+          "analysis": {
+            "source": "none",
+            "failure": "ai_unavailable",
+            "proposed_comparisons": [],
+            "rejected_comparisons": 0,
+            "provenance": null
+          }
+        },
+        {
+          "case": "scheduling",
+          "repeat": 2,
+          "seconds": 0.282,
+          "passed": true,
+          "analysis": {
+            "source": "groq",
+            "fallback_used": false,
+            "failure": "none",
+            "provenance": {
+              "provider": "groq",
+              "model": "openai/gpt-oss-20b",
+              "generated_at": "2026-09-14T15:24:32.973077Z",
+              "delivery": "live",
+              "input_signature": "c6e4e006ed9b1566fb56d368a51a091e1377415bfc26fe3290ea1fbaf63c3c5d"
+            }
+          }
+        },
+        {
+          "case": "recovery_concern",
+          "repeat": 2,
+          "seconds": 0.294,
+          "status": "unavailable",
+          "review_available": false,
+          "passed": false,
+          "analysis": {
+            "source": "none",
+            "failure": "ai_unavailable",
+            "proposed_comparisons": [],
+            "rejected_comparisons": 0,
+            "provenance": null
+          }
+        },
+        {
+          "case": "flat",
+          "repeat": 2,
+          "seconds": 0.159,
+          "status": "unavailable",
+          "review_available": false,
+          "passed": false,
+          "analysis": {
+            "source": "none",
+            "failure": "ai_unavailable",
+            "proposed_comparisons": [],
+            "rejected_comparisons": 0,
+            "provenance": null
+          }
+        },
+        {
+          "case": "improving",
+          "repeat": 2,
+          "seconds": 0.153,
+          "status": "unavailable",
+          "review_available": false,
+          "passed": false,
+          "analysis": {
+            "source": "none",
+            "failure": "ai_unavailable",
+            "proposed_comparisons": [],
+            "rejected_comparisons": 0,
+            "provenance": null
+          }
+        },
+        {
+          "case": "no_later_corroboration",
+          "repeat": 2,
+          "seconds": 0.128,
+          "status": "unavailable",
+          "review_available": false,
+          "passed": false,
+          "analysis": {
+            "source": "none",
+            "failure": "ai_unavailable",
+            "proposed_comparisons": [],
+            "rejected_comparisons": 0,
+            "provenance": null
+          }
+        }
+      ]
+    },
+    {
+      "provider": "groq",
+      "model": "openai/gpt-oss-20b",
+      "status": "completed",
+      "warmup_seconds": 0.0,
+      "cache_enabled": false,
+      "passed": 1,
+      "total": 2,
+      "planned": 2,
+      "not_run": 0,
+      "validated_generations": 1,
+      "latency_basis": "validated model responses only; provider failures excluded",
+      "median_seconds": 1.698,
+      "slowest_seconds": 1.698,
+      "cases": [
+        {
+          "case": "improving",
+          "repeat": 1,
+          "seconds": 1.056,
+          "status": "unavailable",
+          "review_available": false,
+          "passed": false,
+          "analysis": {
+            "source": "none",
+            "failure": "ai_unavailable",
+            "proposed_comparisons": [],
+            "rejected_comparisons": 0,
+            "provenance": null
+          },
+          "provider_error": {
+            "http_status": 400,
+            "code": "json_validate_failed",
+            "limits": {
+              "x-ratelimit-limit-requests": "1000",
+              "x-ratelimit-limit-tokens": "8000",
+              "x-ratelimit-remaining-requests": "995",
+              "x-ratelimit-remaining-tokens": "5083",
+              "x-ratelimit-reset-requests": "7m12s",
+              "x-ratelimit-reset-tokens": "21.877s"
+            }
+          }
+        },
+        {
+          "case": "no_later_corroboration",
+          "repeat": 1,
+          "seconds": 1.698,
+          "status": "no_finding",
+          "review_available": false,
+          "passed": true,
+          "analysis": {
+            "source": "groq",
+            "failure": "no_supported_comparison",
+            "proposed_comparisons": [
+              {
+                "metric": "effort_over_target",
+                "workout_type": "all",
+                "direction": "increase"
+              },
+              {
+                "metric": "next_day_fatigue",
+                "workout_type": "all",
+                "direction": "increase"
+              }
+            ],
+            "rejected_comparisons": 2,
+            "provenance": {
+              "provider": "groq",
+              "model": "openai/gpt-oss-20b",
+              "generated_at": "2026-09-14T15:28:35.525435Z",
+              "delivery": "live",
+              "input_signature": "58779911518243b40012b69d98ad83fe07dc203bd2bfe92cb14d331496af1fcd"
+            }
+          },
+          "provider_error": null
+        }
+      ]
+    }
+  ]
+}

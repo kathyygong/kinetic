@@ -1,0 +1,348 @@
+{
+  "scenario_version": "recruiter-demo.2026-09.v8",
+  "note": "Live synthetic acceptance, not a clinical evaluation or an availability guarantee. Cache disabled; local warmup is reported separately.",
+  "results": [
+    {
+      "provider": "ollama",
+      "model": "qwen3:8b",
+      "status": "completed",
+      "warmup_seconds": 5.157,
+      "cache_enabled": false,
+      "passed": 5,
+      "total": 5,
+      "median_seconds": 12.086,
+      "slowest_seconds": 13.477,
+      "cases": [
+        {
+          "case": "scheduling",
+          "repeat": 1,
+          "seconds": 3.735,
+          "passed": true,
+          "analysis": {
+            "source": "ollama",
+            "fallback_used": false,
+            "failure": "none",
+            "provenance": {
+              "provider": "ollama",
+              "model": "qwen3:8b",
+              "generated_at": "2026-09-14T13:13:00.473843Z",
+              "delivery": "live",
+              "input_signature": "c6e4e006ed9b1566fb56d368a51a091e1377415bfc26fe3290ea1fbaf63c3c5d"
+            }
+          }
+        },
+        {
+          "case": "recovery_concern",
+          "repeat": 1,
+          "seconds": 13.477,
+          "status": "supported",
+          "review_available": true,
+          "passed": true,
+          "analysis": {
+            "source": "ollama",
+            "failure": "none",
+            "proposed_comparisons": [
+              {
+                "metric": "effort_over_target",
+                "workout_type": "all",
+                "direction": "increase"
+              },
+              {
+                "metric": "next_day_fatigue",
+                "workout_type": "all",
+                "direction": "increase"
+              },
+              {
+                "metric": "pace_vs_target",
+                "workout_type": "long",
+                "direction": "increase"
+              }
+            ],
+            "rejected_comparisons": 1,
+            "provenance": {
+              "provider": "ollama",
+              "model": "qwen3:8b",
+              "generated_at": "2026-09-14T13:13:13.965070Z",
+              "delivery": "live",
+              "input_signature": "439b0eb4ff51fd3dd4a996fae20b1f89b3573f4051859fb89e373d7082ed0967"
+            }
+          }
+        },
+        {
+          "case": "flat",
+          "repeat": 1,
+          "seconds": 12.086,
+          "status": "no_finding",
+          "review_available": false,
+          "passed": true,
+          "analysis": {
+            "source": "ollama",
+            "failure": "no_supported_comparison",
+            "proposed_comparisons": [
+              {
+                "metric": "effort_over_target",
+                "workout_type": "all",
+                "direction": "increase"
+              },
+              {
+                "metric": "next_day_fatigue",
+                "workout_type": "all",
+                "direction": "increase"
+              },
+              {
+                "metric": "pace_vs_target",
+                "workout_type": "all",
+                "direction": "increase"
+              }
+            ],
+            "rejected_comparisons": 3,
+            "provenance": {
+              "provider": "ollama",
+              "model": "qwen3:8b",
+              "generated_at": "2026-09-14T13:13:26.054173Z",
+              "delivery": "live",
+              "input_signature": "f3d18d043a0d75699f62481929a16cced5406ae17ac5449c2cfb88b1c1c82fd4"
+            }
+          }
+        },
+        {
+          "case": "improving",
+          "repeat": 1,
+          "seconds": 12.483,
+          "status": "supported",
+          "review_available": false,
+          "passed": true,
+          "analysis": {
+            "source": "ollama",
+            "failure": "none",
+            "proposed_comparisons": [
+              {
+                "metric": "effort_over_target",
+                "workout_type": "all",
+                "direction": "decrease"
+              },
+              {
+                "metric": "next_day_fatigue",
+                "workout_type": "all",
+                "direction": "decrease"
+              },
+              {
+                "metric": "pace_vs_target",
+                "workout_type": "all",
+                "direction": "increase"
+              }
+            ],
+            "rejected_comparisons": 1,
+            "provenance": {
+              "provider": "ollama",
+              "model": "qwen3:8b",
+              "generated_at": "2026-09-14T13:13:38.536208Z",
+              "delivery": "live",
+              "input_signature": "98204d5c4ebed1f04be2d4290f0eac9c78d410b41639b00583f55b1c1c7859c8"
+            }
+          }
+        },
+        {
+          "case": "no_later_corroboration",
+          "repeat": 1,
+          "seconds": 6.6,
+          "status": "no_finding",
+          "review_available": false,
+          "passed": true,
+          "analysis": {
+            "source": "ollama",
+            "failure": "no_supported_comparison",
+            "proposed_comparisons": [
+              {
+                "metric": "effort_over_target",
+                "workout_type": "all",
+                "direction": "increase"
+              },
+              {
+                "metric": "next_day_fatigue",
+                "workout_type": "all",
+                "direction": "increase"
+              },
+              {
+                "metric": "pace_vs_target",
+                "workout_type": "long",
+                "direction": "increase"
+              }
+            ],
+            "rejected_comparisons": 3,
+            "provenance": {
+              "provider": "ollama",
+              "model": "qwen3:8b",
+              "generated_at": "2026-09-14T13:13:45.136827Z",
+              "delivery": "live",
+              "input_signature": "58779911518243b40012b69d98ad83fe07dc203bd2bfe92cb14d331496af1fcd"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "provider": "ollama",
+      "model": "llama3.1:8b",
+      "status": "completed",
+      "warmup_seconds": 3.372,
+      "cache_enabled": false,
+      "passed": 4,
+      "total": 5,
+      "median_seconds": 11.531,
+      "slowest_seconds": 13.256,
+      "cases": [
+        {
+          "case": "scheduling",
+          "repeat": 1,
+          "seconds": 3.858,
+          "passed": true,
+          "analysis": {
+            "source": "ollama",
+            "fallback_used": false,
+            "failure": "none",
+            "provenance": {
+              "provider": "ollama",
+              "model": "llama3.1:8b",
+              "generated_at": "2026-09-14T13:13:52.373962Z",
+              "delivery": "live",
+              "input_signature": "c6e4e006ed9b1566fb56d368a51a091e1377415bfc26fe3290ea1fbaf63c3c5d"
+            }
+          }
+        },
+        {
+          "case": "recovery_concern",
+          "repeat": 1,
+          "seconds": 13.073,
+          "status": "supported",
+          "review_available": true,
+          "passed": true,
+          "analysis": {
+            "source": "ollama",
+            "failure": "none",
+            "proposed_comparisons": [
+              {
+                "metric": "effort_over_target",
+                "workout_type": "all",
+                "direction": "increase"
+              },
+              {
+                "metric": "next_day_fatigue",
+                "workout_type": "all",
+                "direction": "increase"
+              },
+              {
+                "metric": "pace_vs_target",
+                "workout_type": "all",
+                "direction": "increase"
+              }
+            ],
+            "rejected_comparisons": 1,
+            "provenance": {
+              "provider": "ollama",
+              "model": "llama3.1:8b",
+              "generated_at": "2026-09-14T13:14:05.444789Z",
+              "delivery": "live",
+              "input_signature": "439b0eb4ff51fd3dd4a996fae20b1f89b3573f4051859fb89e373d7082ed0967"
+            }
+          }
+        },
+        {
+          "case": "flat",
+          "repeat": 1,
+          "seconds": 11.531,
+          "status": "no_finding",
+          "review_available": false,
+          "passed": true,
+          "analysis": {
+            "source": "ollama",
+            "failure": "no_supported_comparison",
+            "proposed_comparisons": [
+              {
+                "metric": "effort_over_target",
+                "workout_type": "all",
+                "direction": "increase"
+              },
+              {
+                "metric": "next_day_fatigue",
+                "workout_type": "all",
+                "direction": "decrease"
+              },
+              {
+                "metric": "pace_vs_target",
+                "workout_type": "easy",
+                "direction": "decrease"
+              }
+            ],
+            "rejected_comparisons": 3,
+            "provenance": {
+              "provider": "ollama",
+              "model": "llama3.1:8b",
+              "generated_at": "2026-09-14T13:14:16.978069Z",
+              "delivery": "live",
+              "input_signature": "f3d18d043a0d75699f62481929a16cced5406ae17ac5449c2cfb88b1c1c82fd4"
+            }
+          }
+        },
+        {
+          "case": "improving",
+          "repeat": 1,
+          "seconds": 13.256,
+          "status": "unavailable",
+          "review_available": false,
+          "passed": false,
+          "analysis": {
+            "source": "ollama",
+            "failure": "invalid_queries",
+            "proposed_comparisons": [],
+            "rejected_comparisons": 0,
+            "provenance": null
+          }
+        },
+        {
+          "case": "no_later_corroboration",
+          "repeat": 1,
+          "seconds": 6.016,
+          "status": "no_finding",
+          "review_available": false,
+          "passed": true,
+          "analysis": {
+            "source": "ollama",
+            "failure": "no_supported_comparison",
+            "proposed_comparisons": [
+              {
+                "metric": "effort_over_target",
+                "workout_type": "all",
+                "direction": "increase"
+              },
+              {
+                "metric": "next_day_fatigue",
+                "workout_type": "all",
+                "direction": "increase"
+              },
+              {
+                "metric": "pace_vs_target",
+                "workout_type": "all",
+                "direction": "increase"
+              }
+            ],
+            "rejected_comparisons": 3,
+            "provenance": {
+              "provider": "ollama",
+              "model": "llama3.1:8b",
+              "generated_at": "2026-09-14T13:14:36.251146Z",
+              "delivery": "live",
+              "input_signature": "58779911518243b40012b69d98ad83fe07dc203bd2bfe92cb14d331496af1fcd"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "provider": "groq",
+      "model": "openai/gpt-oss-20b",
+      "status": "not_run",
+      "reason": "GROQ_API_KEY is not configured; no hosted latency or quality result is claimed."
+    }
+  ]
+}

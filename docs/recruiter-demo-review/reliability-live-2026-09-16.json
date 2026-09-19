@@ -1,0 +1,972 @@
+{
+  "testedAt": "2026-09-16T17:56:18.476Z",
+  "apiBase": "http://127.0.0.1:8000",
+  "passed": true,
+  "results": [
+    {
+      "text": "My knee hurts when I run. I only have 25 minutes today.",
+      "elapsedMs": 192,
+      "response": {
+        "mode": "local_ollama",
+        "source": "deterministic",
+        "schema_version": "intake.v1",
+        "fallback_used": false,
+        "failure_code": "none",
+        "warnings": [
+          "Do not push through pain. Seek qualified care for concerning or persistent symptoms."
+        ],
+        "grounding": {
+          "deterministic_authority": true,
+          "source_text_required": true,
+          "apply_requires_confirmation": true,
+          "allowed_fields": [
+            "race_distance",
+            "target_date",
+            "weekly_mileage",
+            "preferred_training_days",
+            "availability",
+            "experience_level"
+          ]
+        },
+        "draft": {
+          "status": "unsupported",
+          "summary": "Pain or injury needs attention before a workout adjustment. Your plan is unchanged.",
+          "goal_changes": [],
+          "schedule_changes": [],
+          "availability_changes": [],
+          "preference_changes": [],
+          "workout_swap_changes": [],
+          "grounding": [],
+          "warnings": [
+            "Do not push through pain. Seek qualified care for concerning or persistent symptoms."
+          ]
+        },
+        "next_step": "seek_qualified_care",
+        "recovery": {
+          "status": "complete",
+          "observations": [],
+          "source": "none",
+          "model": null,
+          "failure_code": "none"
+        }
+      }
+    },
+    {
+      "text": "I have knee pain when I run. I only have 25 minutes today.",
+      "elapsedMs": 11,
+      "response": {
+        "mode": "local_ollama",
+        "source": "deterministic",
+        "schema_version": "intake.v1",
+        "fallback_used": false,
+        "failure_code": "none",
+        "warnings": [
+          "Do not push through pain. Seek qualified care for concerning or persistent symptoms."
+        ],
+        "grounding": {
+          "deterministic_authority": true,
+          "source_text_required": true,
+          "apply_requires_confirmation": true,
+          "allowed_fields": [
+            "race_distance",
+            "target_date",
+            "weekly_mileage",
+            "preferred_training_days",
+            "availability",
+            "experience_level"
+          ]
+        },
+        "draft": {
+          "status": "unsupported",
+          "summary": "Pain or injury needs attention before a workout adjustment. Your plan is unchanged.",
+          "goal_changes": [],
+          "schedule_changes": [],
+          "availability_changes": [],
+          "preference_changes": [],
+          "workout_swap_changes": [],
+          "grounding": [],
+          "warnings": [
+            "Do not push through pain. Seek qualified care for concerning or persistent symptoms."
+          ]
+        },
+        "next_step": "seek_qualified_care",
+        "recovery": {
+          "status": "complete",
+          "observations": [],
+          "source": "none",
+          "model": null,
+          "failure_code": "none"
+        }
+      }
+    },
+    {
+      "text": "I’m traveling Thursday and Friday, so I’d rather do my long run Saturday.",
+      "elapsedMs": 6003,
+      "response": {
+        "mode": "local_ollama",
+        "source": "ollama",
+        "schema_version": "intake.v1",
+        "fallback_used": false,
+        "failure_code": "none",
+        "warnings": [
+          "Travel uses Kinetic's easy-only rule. State that you cannot run if a travel day is unavailable."
+        ],
+        "grounding": {
+          "deterministic_authority": true,
+          "source_text_required": true,
+          "apply_requires_confirmation": true,
+          "allowed_fields": [
+            "race_distance",
+            "target_date",
+            "weekly_mileage",
+            "preferred_training_days",
+            "availability",
+            "experience_level"
+          ]
+        },
+        "draft": {
+          "status": "ready",
+          "summary": "Kinetic found 3 proposed changes for review.",
+          "goal_changes": [],
+          "schedule_changes": [],
+          "availability_changes": [
+            {
+              "id": "availability-thu",
+              "day": "thu",
+              "available_minutes": null,
+              "easy_only": true
+            },
+            {
+              "id": "availability-fri",
+              "day": "fri",
+              "available_minutes": null,
+              "easy_only": true
+            }
+          ],
+          "preference_changes": [],
+          "workout_swap_changes": [
+            {
+              "id": "workout-swap-sun-sat",
+              "from_day": "sun",
+              "to_day": "sat"
+            }
+          ],
+          "grounding": [
+            {
+              "change_id": "availability-thu",
+              "evidence": "traveling Thursday and Friday"
+            },
+            {
+              "change_id": "availability-fri",
+              "evidence": "traveling Thursday and Friday"
+            },
+            {
+              "change_id": "workout-swap-sun-sat",
+              "evidence": "rather do my long run Saturday"
+            }
+          ],
+          "warnings": [
+            "Travel uses Kinetic's easy-only rule. State that you cannot run if a travel day is unavailable."
+          ]
+        },
+        "next_step": null,
+        "recovery": {
+          "status": "complete",
+          "observations": [],
+          "source": "groq",
+          "model": "openai/gpt-oss-120b",
+          "failure_code": "none"
+        }
+      },
+      "preview": {
+        "workout": {
+          "type": "tempo",
+          "segments": [
+            {
+              "kind": "warm-up",
+              "label": "Warm-up",
+              "distance": 0.9,
+              "pace": 9.8,
+              "duration": 9
+            },
+            {
+              "kind": "main",
+              "label": "Tempo",
+              "distance": 1.4,
+              "pace": 8.55,
+              "duration": 12,
+              "note": "comfortably hard, sustained effort"
+            },
+            {
+              "kind": "cool-down",
+              "label": "Cool-down",
+              "distance": 0.9,
+              "pace": 9.8,
+              "duration": 9
+            }
+          ],
+          "totalDistance": 3.2,
+          "totalDuration": 30,
+          "headline": "Tempo run",
+          "note": "Modified · reduced volume to match today's readiness"
+        },
+        "week": {
+          "weekNumber": 1,
+          "phase": "build",
+          "workouts": [
+            {
+              "day": "Mon",
+              "type": "easy",
+              "distance": 5.5,
+              "pace": 9.8,
+              "duration": 55
+            },
+            {
+              "day": "Wed",
+              "type": "tempo",
+              "distance": 3.2,
+              "pace": 8.55,
+              "duration": 30
+            },
+            {
+              "day": "Fri",
+              "type": "easy",
+              "distance": 5.5,
+              "pace": 9.8,
+              "duration": 55
+            },
+            {
+              "day": "Sat",
+              "type": "long run",
+              "distance": 9.5,
+              "pace": 9.55,
+              "duration": 90
+            }
+          ]
+        }
+      }
+    },
+    {
+      "text": "I only have 20 minutes on Friday.",
+      "elapsedMs": 1752,
+      "response": {
+        "mode": "local_ollama",
+        "source": "ollama",
+        "schema_version": "intake.v1",
+        "fallback_used": false,
+        "failure_code": "none",
+        "warnings": [],
+        "grounding": {
+          "deterministic_authority": true,
+          "source_text_required": true,
+          "apply_requires_confirmation": true,
+          "allowed_fields": [
+            "race_distance",
+            "target_date",
+            "weekly_mileage",
+            "preferred_training_days",
+            "availability",
+            "experience_level"
+          ]
+        },
+        "draft": {
+          "status": "ready",
+          "summary": "Kinetic found 1 proposed change for review.",
+          "goal_changes": [],
+          "schedule_changes": [],
+          "availability_changes": [
+            {
+              "id": "availability-fri",
+              "day": "fri",
+              "available_minutes": 20,
+              "easy_only": false
+            }
+          ],
+          "preference_changes": [],
+          "workout_swap_changes": [],
+          "grounding": [
+            {
+              "change_id": "availability-fri",
+              "evidence": "20 minutes on Friday"
+            }
+          ],
+          "warnings": []
+        },
+        "next_step": null,
+        "recovery": {
+          "status": "complete",
+          "observations": [],
+          "source": "groq",
+          "model": "openai/gpt-oss-120b",
+          "failure_code": "none"
+        }
+      },
+      "preview": {
+        "workout": {
+          "type": "tempo",
+          "segments": [
+            {
+              "kind": "warm-up",
+              "label": "Warm-up",
+              "distance": 0.9,
+              "pace": 9.8,
+              "duration": 9
+            },
+            {
+              "kind": "main",
+              "label": "Tempo",
+              "distance": 1.4,
+              "pace": 8.55,
+              "duration": 12,
+              "note": "comfortably hard, sustained effort"
+            },
+            {
+              "kind": "cool-down",
+              "label": "Cool-down",
+              "distance": 0.9,
+              "pace": 9.8,
+              "duration": 9
+            }
+          ],
+          "totalDistance": 3.2,
+          "totalDuration": 30,
+          "headline": "Tempo run",
+          "note": "Modified · reduced volume to match today's readiness"
+        },
+        "week": {
+          "weekNumber": 1,
+          "phase": "build",
+          "workouts": [
+            {
+              "day": "Mon",
+              "type": "easy",
+              "distance": 5.5,
+              "pace": 9.8,
+              "duration": 55
+            },
+            {
+              "day": "Wed",
+              "type": "tempo",
+              "distance": 3.2,
+              "pace": 8.55,
+              "duration": 30
+            },
+            {
+              "day": "Thu",
+              "type": "easy",
+              "distance": 5.5,
+              "pace": 9.8,
+              "duration": 55
+            },
+            {
+              "day": "Sun",
+              "type": "long run",
+              "distance": 9.5,
+              "pace": 9.55,
+              "duration": 90
+            }
+          ]
+        }
+      }
+    },
+    {
+      "text": "Move my Sunday long run to Saturday.",
+      "elapsedMs": 1198,
+      "response": {
+        "mode": "local_ollama",
+        "source": "ollama",
+        "schema_version": "intake.v1",
+        "fallback_used": false,
+        "failure_code": "none",
+        "warnings": [],
+        "grounding": {
+          "deterministic_authority": true,
+          "source_text_required": true,
+          "apply_requires_confirmation": true,
+          "allowed_fields": [
+            "race_distance",
+            "target_date",
+            "weekly_mileage",
+            "preferred_training_days",
+            "availability",
+            "experience_level"
+          ]
+        },
+        "draft": {
+          "status": "ready",
+          "summary": "Kinetic found 1 proposed change for review.",
+          "goal_changes": [],
+          "schedule_changes": [],
+          "availability_changes": [],
+          "preference_changes": [],
+          "workout_swap_changes": [
+            {
+              "id": "workout-swap-sun-sat",
+              "from_day": "sun",
+              "to_day": "sat"
+            }
+          ],
+          "grounding": [
+            {
+              "change_id": "workout-swap-sun-sat",
+              "evidence": "Move my Sunday long run to Saturday"
+            }
+          ],
+          "warnings": []
+        },
+        "next_step": null,
+        "recovery": {
+          "status": "complete",
+          "observations": [],
+          "source": "groq",
+          "model": "openai/gpt-oss-120b",
+          "failure_code": "none"
+        }
+      },
+      "preview": {
+        "workout": {
+          "type": "tempo",
+          "segments": [
+            {
+              "kind": "warm-up",
+              "label": "Warm-up",
+              "distance": 0.9,
+              "pace": 9.8,
+              "duration": 9
+            },
+            {
+              "kind": "main",
+              "label": "Tempo",
+              "distance": 1.4,
+              "pace": 8.55,
+              "duration": 12,
+              "note": "comfortably hard, sustained effort"
+            },
+            {
+              "kind": "cool-down",
+              "label": "Cool-down",
+              "distance": 0.9,
+              "pace": 9.8,
+              "duration": 9
+            }
+          ],
+          "totalDistance": 3.2,
+          "totalDuration": 30,
+          "headline": "Tempo run",
+          "note": "Modified · reduced volume to match today's readiness"
+        },
+        "week": {
+          "weekNumber": 1,
+          "phase": "build",
+          "workouts": [
+            {
+              "day": "Mon",
+              "type": "easy",
+              "distance": 5.5,
+              "pace": 9.8,
+              "duration": 55
+            },
+            {
+              "day": "Wed",
+              "type": "tempo",
+              "distance": 3.2,
+              "pace": 8.55,
+              "duration": 30
+            },
+            {
+              "day": "Fri",
+              "type": "easy",
+              "distance": 5.5,
+              "pace": 9.8,
+              "duration": 55
+            },
+            {
+              "day": "Sat",
+              "type": "long run",
+              "distance": 9.5,
+              "pace": 9.55,
+              "duration": 90
+            }
+          ]
+        }
+      }
+    },
+    {
+      "text": "I cannot run on Thursday and Friday.",
+      "elapsedMs": 2032,
+      "response": {
+        "mode": "local_ollama",
+        "source": "ollama",
+        "schema_version": "intake.v1",
+        "fallback_used": false,
+        "failure_code": "none",
+        "warnings": [],
+        "grounding": {
+          "deterministic_authority": true,
+          "source_text_required": true,
+          "apply_requires_confirmation": true,
+          "allowed_fields": [
+            "race_distance",
+            "target_date",
+            "weekly_mileage",
+            "preferred_training_days",
+            "availability",
+            "experience_level"
+          ]
+        },
+        "draft": {
+          "status": "ready",
+          "summary": "Kinetic found 2 proposed changes for review.",
+          "goal_changes": [],
+          "schedule_changes": [],
+          "availability_changes": [
+            {
+              "id": "availability-thu",
+              "day": "thu",
+              "available_minutes": 0,
+              "easy_only": false
+            },
+            {
+              "id": "availability-fri",
+              "day": "fri",
+              "available_minutes": 0,
+              "easy_only": false
+            }
+          ],
+          "preference_changes": [],
+          "workout_swap_changes": [],
+          "grounding": [
+            {
+              "change_id": "availability-thu",
+              "evidence": "cannot run on Thursday and Friday"
+            },
+            {
+              "change_id": "availability-fri",
+              "evidence": "cannot run on Thursday and Friday"
+            }
+          ],
+          "warnings": []
+        },
+        "next_step": null,
+        "recovery": {
+          "status": "complete",
+          "observations": [],
+          "source": "groq",
+          "model": "openai/gpt-oss-120b",
+          "failure_code": "none"
+        }
+      },
+      "preview": {
+        "workout": {
+          "type": "tempo",
+          "segments": [
+            {
+              "kind": "warm-up",
+              "label": "Warm-up",
+              "distance": 0.9,
+              "pace": 9.8,
+              "duration": 9
+            },
+            {
+              "kind": "main",
+              "label": "Tempo",
+              "distance": 1.4,
+              "pace": 8.55,
+              "duration": 12,
+              "note": "comfortably hard, sustained effort"
+            },
+            {
+              "kind": "cool-down",
+              "label": "Cool-down",
+              "distance": 0.9,
+              "pace": 9.8,
+              "duration": 9
+            }
+          ],
+          "totalDistance": 3.2,
+          "totalDuration": 30,
+          "headline": "Tempo run",
+          "note": "Modified · reduced volume to match today's readiness"
+        },
+        "week": {
+          "weekNumber": 1,
+          "phase": "build",
+          "workouts": [
+            {
+              "day": "Mon",
+              "type": "easy",
+              "distance": 5.5,
+              "pace": 9.8,
+              "duration": 55
+            },
+            {
+              "day": "Wed",
+              "type": "tempo",
+              "distance": 3.2,
+              "pace": 8.55,
+              "duration": 30
+            },
+            {
+              "day": "Sat",
+              "type": "easy",
+              "distance": 5.5,
+              "pace": 9.8,
+              "duration": 55
+            },
+            {
+              "day": "Sun",
+              "type": "long run",
+              "distance": 9.5,
+              "pace": 9.55,
+              "duration": 90
+            }
+          ]
+        }
+      }
+    },
+    {
+      "text": "I prefer Monday, Thursday, Friday, and Sunday.",
+      "elapsedMs": 1644,
+      "response": {
+        "mode": "local_ollama",
+        "source": "ollama",
+        "schema_version": "intake.v1",
+        "fallback_used": false,
+        "failure_code": "none",
+        "warnings": [],
+        "grounding": {
+          "deterministic_authority": true,
+          "source_text_required": true,
+          "apply_requires_confirmation": true,
+          "allowed_fields": [
+            "race_distance",
+            "target_date",
+            "weekly_mileage",
+            "preferred_training_days",
+            "availability",
+            "experience_level"
+          ]
+        },
+        "draft": {
+          "status": "ready",
+          "summary": "Kinetic found 1 proposed change for review.",
+          "goal_changes": [],
+          "schedule_changes": [
+            {
+              "id": "schedule-days",
+              "field": "preferred_training_days",
+              "value": [
+                "mon",
+                "thu",
+                "fri",
+                "sun"
+              ]
+            }
+          ],
+          "availability_changes": [],
+          "preference_changes": [],
+          "workout_swap_changes": [],
+          "grounding": [
+            {
+              "change_id": "schedule-days",
+              "evidence": "prefer Monday, Thursday, Friday, and Sunday"
+            }
+          ],
+          "warnings": []
+        },
+        "next_step": null,
+        "recovery": {
+          "status": "complete",
+          "observations": [],
+          "source": "groq",
+          "model": "openai/gpt-oss-120b",
+          "failure_code": "none"
+        }
+      },
+      "preview": {
+        "workout": {
+          "type": "rest",
+          "segments": [],
+          "totalDistance": 0,
+          "totalDuration": 0,
+          "headline": "Rest day · no workout scheduled"
+        },
+        "week": {
+          "weekNumber": 1,
+          "phase": "build",
+          "workouts": [
+            {
+              "day": "Mon",
+              "type": "easy",
+              "distance": 5.5,
+              "pace": 9.8,
+              "duration": 55
+            },
+            {
+              "day": "Thu",
+              "type": "tempo",
+              "distance": 5,
+              "pace": 8.55,
+              "duration": 45
+            },
+            {
+              "day": "Fri",
+              "type": "easy",
+              "distance": 5.5,
+              "pace": 9.8,
+              "duration": 55
+            },
+            {
+              "day": "Sun",
+              "type": "long run",
+              "distance": 9.5,
+              "pace": 9.55,
+              "duration": 90
+            }
+          ]
+        }
+      }
+    },
+    {
+      "text": "Easy effort only on Thursday and Friday.",
+      "elapsedMs": 2040,
+      "response": {
+        "mode": "local_ollama",
+        "source": "ollama",
+        "schema_version": "intake.v1",
+        "fallback_used": false,
+        "failure_code": "none",
+        "warnings": [],
+        "grounding": {
+          "deterministic_authority": true,
+          "source_text_required": true,
+          "apply_requires_confirmation": true,
+          "allowed_fields": [
+            "race_distance",
+            "target_date",
+            "weekly_mileage",
+            "preferred_training_days",
+            "availability",
+            "experience_level"
+          ]
+        },
+        "draft": {
+          "status": "ready",
+          "summary": "Kinetic found 2 proposed changes for review.",
+          "goal_changes": [],
+          "schedule_changes": [],
+          "availability_changes": [
+            {
+              "id": "availability-thu",
+              "day": "thu",
+              "available_minutes": null,
+              "easy_only": true
+            },
+            {
+              "id": "availability-fri",
+              "day": "fri",
+              "available_minutes": null,
+              "easy_only": true
+            }
+          ],
+          "preference_changes": [],
+          "workout_swap_changes": [],
+          "grounding": [
+            {
+              "change_id": "availability-thu",
+              "evidence": "Easy effort only on Thursday and Friday"
+            },
+            {
+              "change_id": "availability-fri",
+              "evidence": "Easy effort only on Thursday and Friday"
+            }
+          ],
+          "warnings": []
+        },
+        "next_step": null,
+        "recovery": {
+          "status": "complete",
+          "observations": [],
+          "source": "groq",
+          "model": "openai/gpt-oss-120b",
+          "failure_code": "none"
+        }
+      },
+      "preview": {
+        "workout": {
+          "type": "tempo",
+          "segments": [
+            {
+              "kind": "warm-up",
+              "label": "Warm-up",
+              "distance": 0.9,
+              "pace": 9.8,
+              "duration": 9
+            },
+            {
+              "kind": "main",
+              "label": "Tempo",
+              "distance": 1.4,
+              "pace": 8.55,
+              "duration": 12,
+              "note": "comfortably hard, sustained effort"
+            },
+            {
+              "kind": "cool-down",
+              "label": "Cool-down",
+              "distance": 0.9,
+              "pace": 9.8,
+              "duration": 9
+            }
+          ],
+          "totalDistance": 3.2,
+          "totalDuration": 30,
+          "headline": "Tempo run",
+          "note": "Modified · reduced volume to match today's readiness"
+        },
+        "week": {
+          "weekNumber": 1,
+          "phase": "build",
+          "workouts": [
+            {
+              "day": "Mon",
+              "type": "easy",
+              "distance": 5.5,
+              "pace": 9.8,
+              "duration": 55
+            },
+            {
+              "day": "Wed",
+              "type": "tempo",
+              "distance": 3.2,
+              "pace": 8.55,
+              "duration": 30
+            },
+            {
+              "day": "Fri",
+              "type": "easy",
+              "distance": 5.5,
+              "pace": 9.8,
+              "duration": 55
+            },
+            {
+              "day": "Sun",
+              "type": "long run",
+              "distance": 9.5,
+              "pace": 9.55,
+              "duration": 90
+            }
+          ]
+        }
+      }
+    },
+    {
+      "text": "I only have 25 minutes today.",
+      "elapsedMs": 1350,
+      "response": {
+        "mode": "local_ollama",
+        "source": "ollama",
+        "schema_version": "intake.v1",
+        "fallback_used": false,
+        "failure_code": "none",
+        "warnings": [],
+        "grounding": {
+          "deterministic_authority": true,
+          "source_text_required": true,
+          "apply_requires_confirmation": true,
+          "allowed_fields": [
+            "race_distance",
+            "target_date",
+            "weekly_mileage",
+            "preferred_training_days",
+            "availability",
+            "experience_level"
+          ]
+        },
+        "draft": {
+          "status": "ready",
+          "summary": "Kinetic found 1 proposed change for review.",
+          "goal_changes": [],
+          "schedule_changes": [],
+          "availability_changes": [
+            {
+              "id": "availability-wed",
+              "day": "wed",
+              "available_minutes": 25,
+              "easy_only": false
+            }
+          ],
+          "preference_changes": [],
+          "workout_swap_changes": [],
+          "grounding": [
+            {
+              "change_id": "availability-wed",
+              "evidence": "25 minutes today"
+            }
+          ],
+          "warnings": []
+        },
+        "next_step": null,
+        "recovery": {
+          "status": "complete",
+          "observations": [],
+          "source": "groq",
+          "model": "openai/gpt-oss-120b",
+          "failure_code": "none"
+        }
+      },
+      "preview": {
+        "workout": {
+          "type": "tempo",
+          "segments": [
+            {
+              "kind": "main",
+              "label": "Tempo",
+              "distance": 2,
+              "pace": 8.55,
+              "duration": 17
+            }
+          ],
+          "totalDistance": 2,
+          "totalDuration": 17,
+          "headline": "Tempo run",
+          "note": "Modified · reduced volume to match today's readiness"
+        },
+        "week": {
+          "weekNumber": 1,
+          "phase": "build",
+          "workouts": [
+            {
+              "day": "Mon",
+              "type": "easy",
+              "distance": 5.5,
+              "pace": 9.8,
+              "duration": 55
+            },
+            {
+              "day": "Wed",
+              "type": "tempo",
+              "distance": 2,
+              "pace": 8.55,
+              "duration": 17
+            },
+            {
+              "day": "Fri",
+              "type": "easy",
+              "distance": 5.5,
+              "pace": 9.8,
+              "duration": 55
+            },
+            {
+              "day": "Sun",
+              "type": "long run",
+              "distance": 9.5,
+              "pace": 9.55,
+              "duration": 90
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
