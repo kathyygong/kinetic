@@ -4,6 +4,7 @@ import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FirebaseError } from "firebase/app";
 import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 
 import {
   signInWithEmail,
@@ -23,6 +24,7 @@ import { completeReturningUserSignIn } from "@/lib/persistence/signInHydration";
 import { getReadinessLog } from "@/lib/readinessStorage";
 import { getSavedPlan } from "@/lib/storage";
 import { tokens } from "@/lib/tokens";
+import { DEMO_URL } from "@/lib/experienceLinks";
 import AthleticImage from "@/components/AthleticImage";
 import KineticLogo from "@/components/KineticLogo";
 import StrideWave from "@/components/StrideWave";
@@ -278,6 +280,18 @@ function LoginInner() {
             {mode === "signin" ? "Sign up" : "Sign in"}
           </button>
         </p>
+        {DEMO_URL && (
+          <div className="border-t border-black/10 pt-4 text-center dark:border-white/10">
+            <a
+              href={DEMO_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 items-center justify-center gap-2 text-sm font-medium text-blue-700 underline-offset-4 hover:underline dark:text-blue-300"
+            >
+              Try demo <ArrowRight size={16} aria-hidden="true" />
+            </a>
+          </div>
+        )}
         </div>
         </motion.div>
       </div>
